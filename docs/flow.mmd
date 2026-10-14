@@ -1,0 +1,104 @@
+---
+title: OpenFleet — Project Workflow
+---
+flowchart LR
+  subgraph S0["0 · Setup (once)"]
+    direction TB
+    H0["<b>0A · Install</b><br/>npx create-openfleet"]
+    C0["<b>0B · Scaffold workspace</b>"]
+    F0["openfleet/<br/>core/ · extensions/ · projects/<br/>repos.json · extensions.lock.json"]
+    H0b["<b>0C · Add extensions</b><br/>npx openfleet add &lt;git|path&gt;"]
+    F0b["extensions/&lt;ext&gt;/<br/>manifest + *.md"]
+    H0 --> C0 --> F0 --> H0b --> F0b
+  end
+
+  subgraph S1["1 · Specify (grill)"]
+    direction TB
+    H1["<b>1A · Start project</b><br/>npx openfleet new &lt;name&gt;<br/>+ free-text prompt"]
+    C1["<b>1B · Grill session</b><br/>question rounds · suggest repos<br/>discover build/test cmds"]
+    HA["Answer questions"]
+    X0["ext: pre-spec"]
+    C2["<b>1C · Write spec</b><br/>goal · repos · contracts · order<br/>acceptance · branches · done-mode"]
+    F1["spec.md · contracts/<br/>repos.json (updated)"]
+    HR["<b>Review & approve spec</b>"]
+    DR{"Refine?"}
+    H1 --> C1
+    C1 <--> HA
+    C1 --> X0 --> C2 --> F1 --> HR --> DR
+    DR -- Yes --> C1
+  end
+
+  subgraph S2["2 · Plan (per repo, parallel)"]
+    direction TB
+    C3["<b>2A · Create worktrees<br/>+ branches</b>"]
+    F2["worktrees/&lt;repo&gt;/<br/>state.json"]
+    P["<b>2B · Planner</b><br/>repo plan + contract tests"]
+    DV{"Coordinator:<br/>plan matches spec?"}
+    X1["ext: post-plan"]
+    C3 --> F2 --> P --> DV
+    DV -- No --> P
+    DV -- Yes --> X1
+  end
+
+  subgraph S3["3 · Implement & Test (per repo, parallel)"]
+    direction TB
+    XA["ext: augment roles"]
+    I["<b>3A · Implementer</b><br/>code + contract tests"]
+    DQ{"Ambiguity?"}
+    CQ{"Coordinator:<br/>answered by spec?"}
+    HQ["Answer question"]
+    CB["Broadcast contract change<br/>to affected repos"]
+    T["<b>3B · Tester</b><br/>build · test · contract tests"]
+    DT{"Pass?"}
+    DN{"Retries &lt; 3?"}
+    HE["Resolve escalation"]
+    X2["ext: post-test"]
+    XA -.-> I
+    I --> DQ
+    DQ -- Yes --> CQ
+    CQ -- Yes --> I
+    CQ -- No --> HQ --> CB --> I
+    DQ -- No --> T --> DT
+    DT -- No --> DN
+    DN -- Yes --> I
+    DN -- No --> HE --> I
+    DT -- Yes --> X2
+  end
+
+  subgraph S4["4 · Finish"]
+    direction TB
+    DA{"All repos done?"}
+    X3["<b>ext: post-run</b><br/>pattern-extractor · audit"]
+    FX["pattern report<br/>audit summary"]
+    C5["<b>4A · Finalize</b><br/>staged changes or<br/>cross-linked draft PRs"]
+    HF["<b>4B · Review</b><br/>diffs / PRs"]
+    DP{"Pass?"}
+    HC["<b>Done</b><br/>npx openfleet clean &lt;name&gt;"]
+    DA -- Yes --> X3 --> FX
+    X3 --> C5 --> HF --> DP
+    DP -- Yes --> HC
+  end
+
+  EV[("<b>events.jsonl + patches/</b><br/>core hooks capture every agent,<br/>message & file change")]
+
+  F0b --> H1
+  DR -- No --> C3
+  X1 --> I
+  X2 --> DA
+  DP -- "No: resume / new project" --> H1
+  FX -. "make it a project" .-> H1
+
+  classDef human fill:#c9d4ee,stroke:#5b6fa8,color:#000
+  classDef loop fill:#f6d5dc,stroke:#b0707f,color:#000
+  classDef ai fill:#f9c48f,stroke:#c07a30,color:#000
+  classDef file fill:#fbe9a5,stroke:#c9a92c,color:#000
+  classDef cond fill:#cdbff2,stroke:#6a55b5,stroke-dasharray:5 5,color:#000
+  classDef ext fill:#bfe3d6,stroke:#3f8f75,color:#000
+  classDef dec fill:#222,stroke:#000,color:#fff
+  class H0,H0b,H1,HC human
+  class HA,HR,HQ,HE,HF loop
+  class C0,C1,C2,C3,CB,C5,P,I,T ai
+  class F0,F1,F2 file
+  class F0b,FX,EV cond
+  class X0,X1,XA,X2,X3 ext
+  class DR,DV,CQ,DA,DQ,DT,DN,DP dec
