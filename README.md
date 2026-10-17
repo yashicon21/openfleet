@@ -2,6 +2,8 @@
 
 Coordinate **one change across many repos** with [GitHub Copilot CLI](https://github.com/github/copilot-cli).
 
+Website: [openfleet.tools](https://openfleet.tools) · Repository: [github.com/yashicon21/openfleet](https://github.com/yashicon21/openfleet)
+
 You describe the change once. A **coordinator** agent turns it into a spec with you, then runs a **planner → implementer → tester** pipeline for each repo (or monorepo package), in parallel, each in its own git worktree. Every agent action is recorded in an append-only event log.
 
 OpenFleet is built from Copilot primitives (custom agents, subagents, hooks, skills). It is not a new agent runtime.
@@ -118,7 +120,7 @@ pnpm typecheck
 
 Packages:
 
-- `packages/cli` is `@openfleet/cli`: the `openfleet` binary, plus `core/` (Copilot plugin: agents, skills, hooks).
+- `packages/cli` is `@openfleet-tools/cli`: the `openfleet` binary, plus `core/` (Copilot plugin: agents, skills, hooks).
 - `packages/create-openfleet` is the `npm create openfleet` initializer.
 
 To try a local build, run `node packages/create-openfleet/dist/index.js ../my-fleet --cli file:$PWD/packages/cli`. Set `OPENFLEET_COPILOT_BIN` to use a different `copilot` binary.

@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "Scaffold an OpenFleet workspace: npx create-openfleet",
   "license": "MIT",
+  "homepage": "https://openfleet.tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yashicon21/openfleet.git",
+    "directory": "packages/create-openfleet"
+  },
+  "bugs": {
+    "url": "https://github.com/yashicon21/openfleet/issues"
+  },
   "type": "module",
   "bin": {
     "create-openfleet": "dist/index.js"
