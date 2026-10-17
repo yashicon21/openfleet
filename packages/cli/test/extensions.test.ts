@@ -13,7 +13,7 @@ import {
 } from "../src/extensions.js";
 import { gitRepo, sh, tmpDir, workspace, writeExtension } from "./helpers.js";
 
-const base = { version: "1.0.0", core: ">=0.1.0 <1.0.0" };
+const base = { version: "1.0.0", core: ">=0.0.0 <1.0.0" };
 
 describe("validateManifest", () => {
   it("accepts a phase extension", () => {

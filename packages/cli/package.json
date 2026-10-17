@@ -1,6 +1,6 @@
 {
   "name": "@openfleet-tools/cli",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Coordinate one change across many repos with GitHub Copilot CLI.",
   "license": "MIT",
   "homepage": "https://openfleet.tools",
@@ -43,5 +43,8 @@
   },
   "devDependencies": {
     "@types/semver": "^7.8.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
