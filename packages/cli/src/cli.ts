@@ -119,7 +119,12 @@ export function run(argv: string[]): number {
     }
     default: {
       const ask = rest.includes("--ask");
-      const code = runExtensionCommand(command, rest.filter((a) => a !== "--ask"), passthrough, { ask });
+      const code = runExtensionCommand(
+        command,
+        rest.filter((a) => a !== "--ask"),
+        passthrough,
+        { ask },
+      );
       if (code === undefined) throw new UserError(`Unknown command "${command}". Run \`npx openfleet help\`.`);
       return code;
     }
@@ -131,7 +136,7 @@ export function main(argv = process.argv.slice(2)): void {
     process.exitCode = run(argv);
   } catch (err) {
     const isUser = err instanceof UserError || (err as { code?: string }).code?.startsWith("ERR_PARSE_ARGS");
-    process.stderr.write(`openfleet: ${isUser ? (err as Error).message : (err as Error).stack ?? String(err)}\n`);
+    process.stderr.write(`openfleet: ${isUser ? (err as Error).message : ((err as Error).stack ?? String(err))}\n`);
     process.exitCode = 1;
   }
 }

@@ -40,6 +40,7 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
    If the plan fails, log `plan.rejected` with reasons. Send the reasons to the **same** planner with `write_agent`. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
 
    If the plan passes, log `plan.validated`.
+
 4. Run the `post-plan` extension agents, if any.
 
 ### Implement

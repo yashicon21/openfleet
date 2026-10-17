@@ -21,19 +21,24 @@ You are **read-only**. Do not create, edit or delete files. Do not run commands.
 # Plan: <child id>
 
 ## Summary
+
 One paragraph.
 
 ## Changes
+
 1. `path/to/file` — what changes and why.
-…
+   …
 
 ## Contract tests
+
 - Test file path, the contract fixture(s) it covers, and what it asserts.
 
 ## Acceptance criteria mapping
+
 - <criterion from spec> → change #/test that satisfies it.
 
 ## Risks / open questions
+
 - …
 ```
 

@@ -213,7 +213,11 @@ export function onSubagentStop(ctx: HookContext, payload: HookPayload): HookOutp
       ts: at,
       actor: `ext:${ext}`,
       type: "agent.stopped",
-      payload: { agentId: payload.agentId ?? null, agentName: payload.agentName ?? null, response: payload.response ?? "" },
+      payload: {
+        agentId: payload.agentId ?? null,
+        agentName: payload.agentName ?? null,
+        response: payload.response ?? "",
+      },
     });
     return {};
   }
@@ -232,7 +236,11 @@ export function onSubagentStop(ctx: HookContext, payload: HookPayload): HookOutp
     actor,
     type: "agent.stopped",
     target: childId ?? null,
-    payload: { agentId: payload.agentId ?? null, agentName: payload.agentName ?? null, response: payload.response ?? "" },
+    payload: {
+      agentId: payload.agentId ?? null,
+      agentName: payload.agentName ?? null,
+      response: payload.response ?? "",
+    },
   });
   if (childId && payload.agentId && !match![1].agentIds[role as Role]) {
     updateState(p, (s) => {
@@ -280,7 +288,12 @@ function parseApplyPatch(text: string): ToolFileChange[] {
   for (const line of text.split("\n")) {
     const m = /^\*\*\* (Add|Update|Delete) File: (.+)$/.exec(line);
     if (m) {
-      cur = { path: m[2]!.trim(), kind: m[1] === "Add" ? "added" : m[1] === "Delete" ? "deleted" : "edited", added: 0, removed: 0 };
+      cur = {
+        path: m[2]!.trim(),
+        kind: m[1] === "Add" ? "added" : m[1] === "Delete" ? "deleted" : "edited",
+        added: 0,
+        removed: 0,
+      };
       out.push(cur);
       continue;
     }
@@ -382,4 +395,3 @@ export function runHook(event: string, payload: HookPayload, env: NodeJS.Process
   if (!ctx) return {};
   return handler(ctx, payload);
 }
-

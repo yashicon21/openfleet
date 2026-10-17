@@ -54,7 +54,7 @@ export function cmdInit(): number {
   out(`${created ? "Created" : "Refreshed"} OpenFleet workspace at ${ws.dir} (core ${packageVersion()}).`);
   out("");
   out("Next:");
-  out("  npx openfleet new <project-name> \"<what you want to change>\"");
+  out('  npx openfleet new <project-name> "<what you want to change>"');
   return 0;
 }
 
@@ -64,7 +64,9 @@ export function cmdUpdate(): number {
   const version = packageVersion();
   const disabled = disableIncompatible(ws, version);
   for (const name of disabled) {
-    warn(`Disabled extension "${name}": not compatible with core ${version}. Update it, then \`npx openfleet add\` it again.`);
+    warn(
+      `Disabled extension "${name}": not compatible with core ${version}. Update it, then \`npx openfleet add\` it again.`,
+    );
   }
   installCore(ws, warn);
   out(`Updated OpenFleet core ${before ?? "(none)"} → ${version}.`);

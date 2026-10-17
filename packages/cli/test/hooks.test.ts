@@ -19,7 +19,16 @@ function setup() {
   addWorktree(repo, worktree, "openfleet/demo", "main");
   patchState(p, {
     status: "running",
-    children: { api: { repo: "api", repoPath: repo, worktree, branch: "openfleet/demo", baseSha: headSha(worktree), phase: "implementing" } },
+    children: {
+      api: {
+        repo: "api",
+        repoPath: repo,
+        worktree,
+        branch: "openfleet/demo",
+        baseSha: headSha(worktree),
+        phase: "implementing",
+      },
+    },
   });
   const env = { OPENFLEET_WORKSPACE: ws.root, OPENFLEET_PROJECT: "demo" };
   return { ws, p, worktree, env };
@@ -29,14 +38,33 @@ const types = (ws: Workspace) => readEvents(projectPaths(ws, "demo")).map((e) =>
 
 describe("fileChangesFromTool", () => {
   it("parses create, edit, multi-edit and apply_patch payloads", () => {
-    expect(fileChangesFromTool("create", { path: "a.ts", file_text: "1\n2\n" })).toEqual([{ path: "a.ts", kind: "added", added: 2, removed: 0 }]);
+    expect(fileChangesFromTool("create", { path: "a.ts", file_text: "1\n2\n" })).toEqual([
+      { path: "a.ts", kind: "added", added: 2, removed: 0 },
+    ]);
     expect(fileChangesFromTool("edit", JSON.stringify({ path: "a.ts", old_str: "x", new_str: "y\nz" }))).toEqual([
       { path: "a.ts", kind: "edited", added: 2, removed: 1 },
     ]);
-    expect(fileChangesFromTool("multi_edit", { file_path: "b.ts", edits: [{ old_string: "a", new_string: "b" }, { old_string: "c\nd", new_string: "" }] })).toEqual([
-      { path: "b.ts", kind: "edited", added: 1, removed: 3 },
-    ]);
-    const patch = ["*** Begin Patch", "*** Add File: n.ts", "+x", "+y", "*** Update File: o.ts", "*** Move to: p.ts", "-a", "+b", "*** Delete File: q.ts", "*** End Patch"].join("\n");
+    expect(
+      fileChangesFromTool("multi_edit", {
+        file_path: "b.ts",
+        edits: [
+          { old_string: "a", new_string: "b" },
+          { old_string: "c\nd", new_string: "" },
+        ],
+      }),
+    ).toEqual([{ path: "b.ts", kind: "edited", added: 1, removed: 3 }]);
+    const patch = [
+      "*** Begin Patch",
+      "*** Add File: n.ts",
+      "+x",
+      "+y",
+      "*** Update File: o.ts",
+      "*** Move to: p.ts",
+      "-a",
+      "+b",
+      "*** Delete File: q.ts",
+      "*** End Patch",
+    ].join("\n");
     expect(fileChangesFromTool("apply_patch", patch)).toEqual([
       { path: "n.ts", kind: "added", added: 2, removed: 0 },
       { path: "p.ts", kind: "added", added: 1, removed: 1 },
@@ -77,9 +105,25 @@ describe("hooks", () => {
     const { p, worktree, env } = setup();
     fs.writeFileSync(path.join(worktree, "src/a.ts"), "export const a = 2;\n");
     fs.writeFileSync(path.join(worktree, "src/b.ts"), "export const b = 1;\n");
-    runHook("postToolUse", { cwd: worktree, toolName: "edit", toolArgs: { path: "src/a.ts", old_str: "1", new_str: "2" } }, env);
-    runHook("postToolUse", { cwd: worktree, toolName: "create", toolArgs: { path: path.join(worktree, "src/b.ts"), file_text: "export const b = 1;\n" } }, env);
-    runHook("postToolUse", { cwd: tmpDir(), toolName: "create", toolArgs: { path: "/elsewhere/x.ts", file_text: "" } }, env);
+    runHook(
+      "postToolUse",
+      { cwd: worktree, toolName: "edit", toolArgs: { path: "src/a.ts", old_str: "1", new_str: "2" } },
+      env,
+    );
+    runHook(
+      "postToolUse",
+      {
+        cwd: worktree,
+        toolName: "create",
+        toolArgs: { path: path.join(worktree, "src/b.ts"), file_text: "export const b = 1;\n" },
+      },
+      env,
+    );
+    runHook(
+      "postToolUse",
+      { cwd: tmpDir(), toolName: "create", toolArgs: { path: "/elsewhere/x.ts", file_text: "" } },
+      env,
+    );
     const files = readEvents(p).filter((e) => e.type.startsWith("file."));
     expect(files.map((e) => [e.type, e.actor, e.payload.path])).toEqual([
       ["file.edited", "api/implementer", "src/a.ts"],
@@ -96,7 +140,11 @@ describe("hooks", () => {
     patchState(p, { children: { api: { role: "implementer" } } });
     fs.writeFileSync(path.join(worktree, "src/a.ts"), "export const a = 3;\n");
     fs.writeFileSync(path.join(worktree, "new.md"), "# new\n");
-    runHook("subagentStop", { agentName: "openfleet:openfleet-implementer", agentId: "agent-1", response: "Done." }, env);
+    runHook(
+      "subagentStop",
+      { agentName: "openfleet:openfleet-implementer", agentId: "agent-1", response: "Done." },
+      env,
+    );
     runHook("subagentStop", { agentName: "openfleet-implementer", agentId: "agent-1", response: "Again." }, env);
     const events = readEvents(p);
     expect(events.filter((e) => e.type === "agent.stopped").map((e) => e.target)).toEqual(["api", "api"]);
@@ -119,7 +167,10 @@ describe("hooks", () => {
     const main = path.join(ws.core, "lib", "hooks", "main.js");
     const run = (event: string, input: string) =>
       execFileSync(process.execPath, [main, event], { input, env: { ...process.env, ...env }, encoding: "utf8" });
-    expect((JSON.parse(run("sessionStart", JSON.stringify({ sessionId: "s" }))) as { additionalContext: string }).additionalContext).toContain("demo");
+    expect(
+      (JSON.parse(run("sessionStart", JSON.stringify({ sessionId: "s" }))) as { additionalContext: string })
+        .additionalContext,
+    ).toContain("demo");
     expect(run("postToolUse", "not json")).toBe("");
     expect(readEvents(p).some((e) => e.type === "session.started")).toBe(true);
   });

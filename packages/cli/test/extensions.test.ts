@@ -36,7 +36,11 @@ describe("validateManifest", () => {
   });
 
   it("rejects code and executables", () => {
-    const a = writeExtension(tmpDir(), { ...base, name: "x", mode: "phase", slot: "post-run" }, { "run.sh": "echo hi" });
+    const a = writeExtension(
+      tmpDir(),
+      { ...base, name: "x", mode: "phase", slot: "post-run" },
+      { "run.sh": "echo hi" },
+    );
     expect(() => validateManifest(a)).toThrow(/only Markdown/);
     const b = writeExtension(tmpDir(), { ...base, name: "x", mode: "phase", slot: "post-run" });
     fs.chmodSync(path.join(b, "instructions.md"), 0o755);
@@ -62,12 +66,23 @@ describe("add / sync / remove", () => {
     const ws = workspace();
     const audit = writeExtension(
       tmpDir(),
-      { ...base, name: "audit", mode: "phase", slot: "post-test", permissions: ["shell"], commands: { report: "report.md" } },
+      {
+        ...base,
+        name: "audit",
+        mode: "phase",
+        slot: "post-test",
+        permissions: ["shell"],
+        commands: { report: "report.md" },
+      },
       { "report.md": "# Report\nSummarise events.\n" },
     );
-    const style = writeExtension(tmpDir(), { ...base, name: "style", mode: "augment", role: "implementer" }, {
-      "instructions.md": "Always use tabs.\n",
-    });
+    const style = writeExtension(
+      tmpDir(),
+      { ...base, name: "style", mode: "augment", role: "implementer" },
+      {
+        "instructions.md": "Always use tabs.\n",
+      },
+    );
     addExtension(ws, audit, installedCoreVersion(ws)!);
     addExtension(ws, style, installedCoreVersion(ws)!);
     syncExtensions(ws);
@@ -85,7 +100,9 @@ describe("add / sync / remove", () => {
     expect(auditAgent).toMatch(/name: "openfleet-ext-audit"/);
     expect(auditAgent).toContain('"execute"');
     expect(auditAgent).not.toContain('"edit"');
-    expect(fs.readFileSync(path.join(ws.core, "skills", "openfleet-ext-audit-report", "SKILL.md"), "utf8")).toContain("Summarise events.");
+    expect(fs.readFileSync(path.join(ws.core, "skills", "openfleet-ext-audit-report", "SKILL.md"), "utf8")).toContain(
+      "Summarise events.",
+    );
 
     const index = readCoreIndex(ws)!;
     expect(index.slots["post-test"]).toEqual([{ extension: "audit", agent: "openfleet:openfleet-ext-audit" }]);
@@ -116,7 +133,10 @@ describe("add / sync / remove", () => {
     expect(() => addExtension(ws, ext, "2.0.0")).toThrow(/requires core/);
     addExtension(ws, ext, "0.1.0");
     expect(disableIncompatible(ws, "0.2.0")).toEqual(["old"]);
-    expect(readLock(ws).extensions[0]).toMatchObject({ enabled: false, disabledReason: expect.stringMatching(/requires core/) as string });
+    expect(readLock(ws).extensions[0]).toMatchObject({
+      enabled: false,
+      disabledReason: expect.stringMatching(/requires core/) as string,
+    });
     syncExtensions(ws);
     expect(readCoreIndex(ws)!.slots["post-run"]).toEqual([]);
   });

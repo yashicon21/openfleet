@@ -12,7 +12,9 @@ export function cmdAdd(args: string[]): number {
   const coreVersion = installedCoreVersion(ws) ?? packageVersion();
   const { entry, manifest, replaced } = addExtension(ws, source, coreVersion);
   syncExtensions(ws, warn);
-  out(`${replaced ? "Updated" : "Added"} extension ${manifest.name}@${manifest.version} (${entry.sha === "local" ? "local" : entry.sha.slice(0, 12)}).`);
+  out(
+    `${replaced ? "Updated" : "Added"} extension ${manifest.name}@${manifest.version} (${entry.sha === "local" ? "local" : entry.sha.slice(0, 12)}).`,
+  );
   out(
     manifest.mode === "phase"
       ? `Mode: phase, slot ${manifest.slot} (runs as agent openfleet:openfleet-ext-${manifest.name}).`
@@ -43,7 +45,9 @@ export function cmdExtensions(): number {
     return 0;
   }
   for (const e of lock.extensions) {
-    out(`${e.enabled ? "✓" : "✗"} ${e.name}@${e.version}  ${e.source}  ${e.sha === "local" ? "local" : e.sha.slice(0, 12)}${e.disabledReason ? `  (disabled: ${e.disabledReason})` : ""}`);
+    out(
+      `${e.enabled ? "✓" : "✗"} ${e.name}@${e.version}  ${e.source}  ${e.sha === "local" ? "local" : e.sha.slice(0, 12)}${e.disabledReason ? `  (disabled: ${e.disabledReason})` : ""}`,
+    );
   }
   return 0;
 }

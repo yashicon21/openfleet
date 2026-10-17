@@ -25,17 +25,17 @@ my-extension/
 }
 ```
 
-| Field | Required | Notes |
-|---|---|---|
-| `name` | yes | `^[a-z0-9][a-z0-9-]*$`, unique in the workspace |
-| `version` | yes | semver |
-| `core` | yes | semver range of compatible `@openfleet-tools/cli` versions. `update` disables the extension when the new core is outside the range. |
-| `mode` | yes | `phase` or `augment` |
-| `slot` | `phase` only | `pre-spec`, `post-plan`, `post-test` or `post-run` |
-| `role` | `augment` only | `coordinator`, `planner`, `implementer` or `tester` |
-| `instructions` | no | Markdown file. Default `instructions.md`. |
-| `commands` | no | `{ "<command>": "<skill>.md" }`. The command name must not collide with a built-in command. |
-| `permissions` | no | Subset of `read`, `write`, `shell`, `web`. `read` is always included. |
+| Field          | Required       | Notes                                                                                                                               |
+| -------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | yes            | `^[a-z0-9][a-z0-9-]*$`, unique in the workspace                                                                                     |
+| `version`      | yes            | semver                                                                                                                              |
+| `core`         | yes            | semver range of compatible `@openfleet-tools/cli` versions. `update` disables the extension when the new core is outside the range. |
+| `mode`         | yes            | `phase` or `augment`                                                                                                                |
+| `slot`         | `phase` only   | `pre-spec`, `post-plan`, `post-test` or `post-run`                                                                                  |
+| `role`         | `augment` only | `coordinator`, `planner`, `implementer` or `tester`                                                                                 |
+| `instructions` | no             | Markdown file. Default `instructions.md`.                                                                                           |
+| `commands`     | no             | `{ "<command>": "<skill>.md" }`. The command name must not collide with a built-in command.                                         |
+| `permissions`  | no             | Subset of `read`, `write`, `shell`, `web`. `read` is always included.                                                               |
 
 ## Modes
 
@@ -50,12 +50,12 @@ Each `commands` entry becomes a skill. `npx openfleet <command> [args]` launches
 
 Permissions are mapped to Copilot tool aliases in the generated agent's `tools` allow-list:
 
-| Permission | Tools |
-|---|---|
-| `read` | `read`, `search` |
-| `write` | `edit` |
-| `shell` | `execute` |
-| `web` | `web` |
+| Permission | Tools            |
+| ---------- | ---------------- |
+| `read`     | `read`, `search` |
+| `write`    | `edit`           |
+| `shell`    | `execute`        |
+| `web`      | `web`            |
 
 `npx openfleet add` prints the declared permissions so you can review them.
 

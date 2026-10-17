@@ -140,7 +140,8 @@ export function validateManifest(dir: string): ExtensionManifest {
   if (m.description !== undefined && typeof m.description !== "string") fail(dir, `"description" must be a string`);
   if (m.mode !== "phase" && m.mode !== "augment") fail(dir, `"mode" must be "phase" or "augment"`);
   if (m.mode === "phase" && !SLOTS.includes(m.slot as Slot)) fail(dir, `"slot" must be one of ${SLOTS.join(", ")}`);
-  if (m.mode === "augment" && !ROLES.includes(m.role as ExtRole)) fail(dir, `"role" must be one of ${ROLES.join(", ")}`);
+  if (m.mode === "augment" && !ROLES.includes(m.role as ExtRole))
+    fail(dir, `"role" must be one of ${ROLES.join(", ")}`);
   if (m.mode === "phase" && m.role !== undefined) fail(dir, `"role" is only valid for mode "augment"`);
   if (m.mode === "augment" && m.slot !== undefined) fail(dir, `"slot" is only valid for mode "phase"`);
   relFile(dir, m.instructions ?? "instructions.md", "instructions");

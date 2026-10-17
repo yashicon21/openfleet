@@ -51,7 +51,8 @@ export function cmdState(args: string[], flags: { patch?: string; actor?: string
   const ws = requireWorkspace();
   const name = validateProjectName(args[0]);
   const p = projectPaths(ws, name);
-  const state = flags.patch !== undefined ? patchState(p, parseJson(flags.patch, "--patch"), flags.actor) : readState(p);
+  const state =
+    flags.patch !== undefined ? patchState(p, parseJson(flags.patch, "--patch"), flags.actor) : readState(p);
   out(JSON.stringify(state, null, 2));
   return 0;
 }
@@ -113,7 +114,7 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
       branch,
       ...(base ? { baseBranch: base } : {}),
       ...(baseSha ? { baseSha } : {}),
-      ...(flags.package ?? prev?.package ? { package: flags.package ?? prev?.package } : {}),
+      ...((flags.package ?? prev?.package) ? { package: flags.package ?? prev?.package } : {}),
     };
   });
   if (!existed) {

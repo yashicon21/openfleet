@@ -23,7 +23,13 @@ describe("events", () => {
     expect([a.seq, b.seq]).toEqual([1, 2]);
     const lines = fs.readFileSync(p.events, "utf8").trim().split("\n");
     expect(lines).toHaveLength(2);
-    expect(JSON.parse(lines[1]!)).toMatchObject({ v: 1, seq: 2, actor: "coordinator", type: "spec.approved", payload: { x: 1 } });
+    expect(JSON.parse(lines[1]!)).toMatchObject({
+      v: 1,
+      seq: 2,
+      actor: "coordinator",
+      type: "spec.approved",
+      payload: { x: 1 },
+    });
   });
 
   it("knows the hands-off event types", () => {
@@ -71,7 +77,10 @@ describe("events", () => {
     fs.writeFileSync(file, script);
     await Promise.all(
       [0, 1, 2, 3].map(
-        () => new Promise<void>((resolve, reject) => fork(file, [JSON.stringify(p)]).on("exit", (c) => (c ? reject(new Error(`exit ${c}`)) : resolve()))),
+        () =>
+          new Promise<void>((resolve, reject) =>
+            fork(file, [JSON.stringify(p)]).on("exit", (c) => (c ? reject(new Error(`exit ${c}`)) : resolve())),
+          ),
       ),
     );
     const seqs = readEvents(p).map((e) => e.seq);
@@ -83,19 +92,29 @@ describe("events", () => {
 
 describe("state", () => {
   it("mergePatch follows RFC 7396", () => {
-    expect(mergePatch({ a: 1, b: { c: 2, d: 3 } }, { b: { c: null, e: 4 }, f: [1] })).toEqual({ a: 1, b: { d: 3, e: 4 }, f: [1] });
+    expect(mergePatch({ a: 1, b: { c: 2, d: 3 } }, { b: { c: null, e: 4 }, f: [1] })).toEqual({
+      a: 1,
+      b: { d: 3, e: 4 },
+      f: [1],
+    });
     expect(mergePatch({ a: [1, 2] }, { a: [3] })).toEqual({ a: [3] });
   });
 
   it("emits phase.changed events for status and child phase transitions", () => {
     const p = project();
     patchState(p, { status: "running", children: { api: { repo: "api" } } });
-    updateState(p, (s) => {
-      s.children.api!.phase = "planning";
-    }, "coordinator");
+    updateState(
+      p,
+      (s) => {
+        s.children.api!.phase = "planning";
+      },
+      "coordinator",
+    );
     const s = readState(p);
     expect(s.children.api).toMatchObject({ repo: "api", phase: "planning", retries: 0, dependsOn: [], agentIds: {} });
-    const changes = readEvents(p).filter((e) => e.type === "phase.changed").map((e) => [e.target, e.payload.from, e.payload.to]);
+    const changes = readEvents(p)
+      .filter((e) => e.type === "phase.changed")
+      .map((e) => [e.target, e.payload.from, e.payload.to]);
     expect(changes).toEqual([
       [null, "specifying", "running"],
       ["api", null, "pending"],
@@ -112,9 +131,14 @@ describe("state", () => {
   it("rejects unknown project statuses and child phases", () => {
     const p = project();
     expect(() => patchState(p, { status: "awaiting-approval" })).toThrow(/Unknown project status "awaiting-approval"/);
-    expect(() => patchState(p, { children: { api: { phase: "escalated" } } })).toThrow(/Unknown phase "escalated" for child api/);
+    expect(() => patchState(p, { children: { api: { phase: "escalated" } } })).toThrow(
+      /Unknown phase "escalated" for child api/,
+    );
     expect(readState(p).status).toBe("specifying");
-    patchState(p, { status: "running", children: { api: { phase: "failed" }, web: { phase: "blocked", dependsOn: ["api"] } } });
+    patchState(p, {
+      status: "running",
+      children: { api: { phase: "failed" }, web: { phase: "blocked", dependsOn: ["api"] } },
+    });
     expect(readState(p).children.web!.phase).toBe("blocked");
   });
 
