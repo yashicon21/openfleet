@@ -52,7 +52,7 @@ step "Scaffolding OpenFleet workspace (local build)"
 WS="$DEMO_DIR/fleet"
 # Force npm: under `pnpm demo` the inherited user agent would pick pnpm, which
 # would treat the demo dir as part of this pnpm workspace.
-npm_config_user_agent="npm/10" node "$REPO_ROOT/packages/create-openfleet/dist/index.js" "$WS" --cli "file:$REPO_ROOT/packages/cli" \
+npm_config_user_agent="npm/10" node "$REPO_ROOT/packages/create/dist/index.js" "$WS" --cli "file:$REPO_ROOT/packages/cli" \
   >"$DEMO_DIR/setup.log" 2>&1 || { cat "$DEMO_DIR/setup.log" >&2; exit 1; }
 
 cat >"$WS/openfleet/repos.json" <<'JSON'

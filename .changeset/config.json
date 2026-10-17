@@ -6,7 +6,7 @@
   "changelog": ["@changesets/changelog-github", { "repo": "yashicon21/openfleet" }],
   "commit": false,
   "ignore": [],
-  "fixed": [["@openfleet-tools/cli", "create-openfleet"]],
+  "fixed": [["@openfleet-tools/cli", "@openfleet-tools/create"]],
   "linked": [],
   "updateInternalDependencies": "patch"
 }

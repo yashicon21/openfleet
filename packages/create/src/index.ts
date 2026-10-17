@@ -43,9 +43,9 @@ export function ensurePackageJson(dir: string): boolean {
   return true;
 }
 
-const HELP = `create-openfleet — set up an OpenFleet workspace
+const HELP = `@openfleet-tools/create — set up an OpenFleet workspace
 
-Usage: npm create openfleet@latest [dir] [-- --cli <spec>] [--skip-install]
+Usage: npm create @openfleet-tools@latest [dir] [-- --cli <spec>] [--skip-install]
 
   dir              Target directory (default: current directory)
   --cli <spec>     @openfleet-tools/cli version or spec to install (default: ^${ownVersion()})
@@ -74,7 +74,7 @@ export function main(argv = process.argv.slice(2)): number {
   process.stdout.write(`Installing ${spec} with ${pm}…\n`);
   const install = spawnSync(pm, installArgs(pm, spec), { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });
   if (install.status !== 0) {
-    process.stderr.write(`create-openfleet: ${pm} install failed.\n`);
+    process.stderr.write(`@openfleet-tools/create: ${pm} install failed.\n`);
     return install.status ?? 1;
   }
   const bin = path.join(dir, "node_modules", ".bin", process.platform === "win32" ? "openfleet.cmd" : "openfleet");
@@ -91,7 +91,7 @@ if (invoked) {
   try {
     process.exitCode = main();
   } catch (err) {
-    process.stderr.write(`create-openfleet: ${(err as Error).message}\n`);
+    process.stderr.write(`@openfleet-tools/create: ${(err as Error).message}\n`);
     process.exitCode = 1;
   }
 }

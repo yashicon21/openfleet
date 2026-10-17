@@ -13,7 +13,7 @@ The script:
 3. Creates two git repos from [`template/`](template), each with an initial commit on `main` and a passing `npm test` (`node:test`, no dependencies):
    - `api`: an HTTP service with `GET /greeting` → `{ "message": "Hello" }`.
    - `web`: a client that fetches `/greeting` and renders the message (its tests mock the API).
-4. Scaffolds an OpenFleet workspace in `fleet/` with the local build (`create-openfleet --cli file:…/packages/cli`) and pre-seeds `openfleet/repos.json` with both repos and their test commands.
+4. Scaffolds an OpenFleet workspace in `fleet/` with the local build (`@openfleet-tools/create --cli file:…/packages/cli`) and pre-seeds `openfleet/repos.json` with both repos and their test commands.
 5. Prints the next commands.
 
 ## Run it

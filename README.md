@@ -25,7 +25,7 @@ Requirements: Node.js 20+, git, [Copilot CLI](https://github.com/github/copilot-
 
 ```sh
 mkdir my-fleet && cd my-fleet
-npm create openfleet@latest        # or: npx create-openfleet
+npm create @openfleet-tools@latest   # or: npx @openfleet-tools/create
 npx openfleet new better-auth "Move every service to better-auth"
 ```
 
@@ -121,15 +121,15 @@ pnpm typecheck
 Packages:
 
 - `packages/cli` is `@openfleet-tools/cli`: the `openfleet` binary, plus `core/` (Copilot plugin: agents, skills, hooks).
-- `packages/create-openfleet` is the `npm create openfleet` initializer.
+- `packages/create` is `@openfleet-tools/create`: the `npm create @openfleet-tools` initializer.
 
-To try a local build, run `node packages/create-openfleet/dist/index.js ../my-fleet --cli file:$PWD/packages/cli`. Set `OPENFLEET_COPILOT_BIN` to use a different `copilot` binary.
+To try a local build, run `node packages/create/dist/index.js ../my-fleet --cli file:$PWD/packages/cli`. Set `OPENFLEET_COPILOT_BIN` to use a different `copilot` binary.
 
 Design notes are in [docs/design.md](docs/design.md), and the flow is in [docs/flow.mmd](docs/flow.mmd).
 
 ## Releasing
 
-Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli` and `create-openfleet` are a `fixed` group, so they always share a version. `create-openfleet` installs `@openfleet-tools/cli@^<its own version>` by default.
+Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli` and `@openfleet-tools/create` are a `fixed` group, so they always share a version. `@openfleet-tools/create` installs `@openfleet-tools/cli@^<its own version>` by default.
 
 1. In a PR that changes a package, run `pnpm changeset` and commit the generated file. CI warns (without failing) when a PR has no changeset; use `pnpm changeset --empty` for changes that need no release.
 2. On every push to `main`, [`release.yml`](.github/workflows/release.yml) opens or updates a **Version Packages** PR that bumps the versions and writes the `CHANGELOG.md` files.
@@ -143,7 +143,7 @@ Trusted publishing can only be configured for a package that already exists on n
 
    ```sh
    cd "$(mktemp -d)"
-   for name in @openfleet-tools/cli create-openfleet; do
+   for name in @openfleet-tools/cli @openfleet-tools/create; do
      printf '{"name":"%s","version":"0.0.0","description":"Placeholder. See https://openfleet.tools","repository":{"type":"git","url":"git+https://github.com/yashicon21/openfleet.git"}}\n' "$name" > package.json
      npm publish --access public
    done
@@ -158,6 +158,11 @@ Trusted publishing can only be configured for a package that already exists on n
    A new trusted publisher must complete a publish within 2 days, or it expires and must be recreated. So configure it just before you merge the first Version Packages PR.
 3. Optional, recommended: in each package's **Settings → Publishing access**, choose **Require two-factor authentication and disallow tokens**.
 4. In the GitHub repo, under **Settings → Actions → General**, enable **Allow GitHub Actions to create and approve pull requests**.
+5. The initializer used to be published as `create-openfleet`. Deprecate it so users are pointed to the new name:
+
+   ```sh
+   npm deprecate create-openfleet "Renamed to @openfleet-tools/create — use: npm create @openfleet-tools"
+   ```
 
 `pnpm release` builds and runs `changeset publish` for a manual local publish. CI does not use it.
 
