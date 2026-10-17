@@ -38,7 +38,7 @@ export interface ExtensionManifest {
   name: string;
   version: string;
   description?: string;
-  /** Semver range of compatible @openfleet/cli core versions. */
+  /** Semver range of compatible @openfleet-tools/cli core versions. */
   core: string;
   mode: "phase" | "augment";
   /** Required for mode "phase". */

@@ -29,7 +29,7 @@ my-extension/
 |---|---|---|
 | `name` | yes | `^[a-z0-9][a-z0-9-]*$`, unique in the workspace |
 | `version` | yes | semver |
-| `core` | yes | semver range of compatible `@openfleet/cli` versions. `update` disables the extension when the new core is outside the range. |
+| `core` | yes | semver range of compatible `@openfleet-tools/cli` versions. `update` disables the extension when the new core is outside the range. |
 | `mode` | yes | `phase` or `augment` |
 | `slot` | `phase` only | `pre-spec`, `post-plan`, `post-test` or `post-run` |
 | `role` | `augment` only | `coordinator`, `planner`, `implementer` or `tester` |

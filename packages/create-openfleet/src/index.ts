@@ -43,8 +43,8 @@ const HELP = `create-openfleet — set up an OpenFleet workspace
 Usage: npm create openfleet@latest [dir] [-- --cli <spec>] [--skip-install]
 
   dir              Target directory (default: current directory)
-  --cli <spec>     @openfleet/cli version or spec to install (default: ^${ownVersion()})
-  --skip-install   Do not install @openfleet/cli or run \`openfleet init\`
+  --cli <spec>     @openfleet-tools/cli version or spec to install (default: ^${ownVersion()})
+  --skip-install   Do not install @openfleet-tools/cli or run \`openfleet init\`
 `;
 
 export function main(argv = process.argv.slice(2)): number {
@@ -61,11 +61,11 @@ export function main(argv = process.argv.slice(2)): number {
   fs.mkdirSync(dir, { recursive: true });
   if (ensurePackageJson(dir)) process.stdout.write(`Created ${path.join(dir, "package.json")}\n`);
   if (values["skip-install"]) {
-    process.stdout.write("Skipped install. Run `npm i -D @openfleet/cli && npx openfleet init` when ready.\n");
+    process.stdout.write("Skipped install. Run `npm i -D @openfleet-tools/cli && npx openfleet init` when ready.\n");
     return 0;
   }
   const raw = values.cli ?? `^${ownVersion()}`;
-  const spec = /^(file:|link:|https?:|git\+|@openfleet\/cli)/.test(raw) ? raw : `@openfleet/cli@${raw}`;
+  const spec = /^(file:|link:|https?:|git\+|@openfleet-tools\/cli)/.test(raw) ? raw : `@openfleet-tools/cli@${raw}`;
   const pm = detectPackageManager(dir);
   process.stdout.write(`Installing ${spec} with ${pm}…\n`);
   const install = spawnSync(pm, installArgs(pm, spec), { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });

@@ -11,7 +11,7 @@
 - **Extension** = instruction-only add-on.
 
 ## Distribution & CLI
-- npm name `openfleet` is taken → `create-openfleet` (init) + scoped `@openfleet/cli`; claim `@openfleet` npm org. After init, `npx openfleet …` resolves to the local install.
+- npm name `openfleet` is taken → `create-openfleet` (init) + scoped `@openfleet-tools/cli`; npm org `@openfleet-tools` (matches https://openfleet.tools). After init, `npx openfleet …` resolves to the local install.
 - Commands (v1): `init`, `update`, `new <name>`, `resume <name>`, `status [name]`, `list`, `clean <name>` (worktrees, optional branches), `add <git-url|path>`, `remove <ext>`, plus extension-declared commands.
 - CLI launches Copilot itself (`copilot --agent openfleet-coordinator` + plugin dir = `openfleet/core`). No global install. Same wrapper later launches `claude`.
 - Launch permissions: interactive (not `--autopilot`), `--allow-all-tools`; path verification stays on with `--add-dir` for the workspace root, the project's `worktrees/`, `openfleet/repos/` and the local repos in `repos.json`; URLs still prompt (no `--allow-all-urls`). `--ask` on `new`/`resume`/extension commands keeps per-tool prompts; args after `--` (e.g. `--yolo`) pass through.
