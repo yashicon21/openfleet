@@ -244,7 +244,7 @@ function fetchSource(source: string, cwd: string): Fetched {
     return { dir: tmp, source: url, sha, cleanup };
   } catch (err) {
     cleanup();
-    const stderr = String((err as { stderr?: unknown }).stderr ?? (err as Error).message).trim();
+    const stderr = String((err as { stderr?: string | Buffer }).stderr ?? (err as Error).message).trim();
     throw new UserError(`Failed to fetch extension from ${source}: ${stderr}`);
   }
 }

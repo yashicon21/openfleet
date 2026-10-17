@@ -119,7 +119,7 @@ describe("hooks", () => {
     const main = path.join(ws.core, "lib", "hooks", "main.js");
     const run = (event: string, input: string) =>
       execFileSync(process.execPath, [main, event], { input, env: { ...process.env, ...env }, encoding: "utf8" });
-    expect(JSON.parse(run("sessionStart", JSON.stringify({ sessionId: "s" }))).additionalContext).toContain("demo");
+    expect((JSON.parse(run("sessionStart", JSON.stringify({ sessionId: "s" }))) as { additionalContext: string }).additionalContext).toContain("demo");
     expect(run("postToolUse", "not json")).toBe("");
     expect(readEvents(p).some((e) => e.type === "session.started")).toBe(true);
   });

@@ -8,9 +8,7 @@ import {
   ROLES,
   SLOTS,
   toolsFor,
-  type ExtRole,
   type LoadedExtension,
-  type Slot,
 } from "./extensions.js";
 import type { CoreIndex } from "./coreindex.js";
 import { copyDir, readJson, writeFileAtomic, writeJson } from "./fsutil.js";

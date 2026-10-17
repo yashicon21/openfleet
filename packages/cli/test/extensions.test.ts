@@ -116,7 +116,7 @@ describe("add / sync / remove", () => {
     expect(() => addExtension(ws, ext, "2.0.0")).toThrow(/requires core/);
     addExtension(ws, ext, "0.1.0");
     expect(disableIncompatible(ws, "0.2.0")).toEqual(["old"]);
-    expect(readLock(ws).extensions[0]).toMatchObject({ enabled: false, disabledReason: expect.stringMatching(/requires core/) });
+    expect(readLock(ws).extensions[0]).toMatchObject({ enabled: false, disabledReason: expect.stringMatching(/requires core/) as string });
     syncExtensions(ws);
     expect(readCoreIndex(ws)!.slots["post-run"]).toEqual([]);
   });

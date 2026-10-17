@@ -9,6 +9,8 @@ import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
 import { gitRepo, tmpDir, writeExtension } from "./helpers.js";
 
+type Launch = { args: string[]; ws: string; project: string };
+
 const BIN = fileURLToPath(new URL("../dist/bin.js", import.meta.url));
 const CREATE = fileURLToPath(new URL("../../create/dist/index.js", import.meta.url));
 
@@ -62,7 +64,7 @@ describe("openfleet CLI", () => {
     const r = cli(root, ["new", "dark-mode", "Add", "dark", "mode", "--", "--model", "x"], env);
     expect(r.stderr).toBe("");
     expect(r.code).toBe(0);
-    const launch = JSON.parse(fs.readFileSync(out, "utf8"));
+    const launch = readJson<Launch>(out);
     const state = readJson<ProjectState>(path.join(root, "openfleet/projects/dark-mode/state.json"));
     expect(launch.args).toEqual(expect.arrayContaining(["--agent", "openfleet:openfleet-coordinator", "--session-id", state.sessionId, "--add-dir", repo, "--model", "x"]));
     expect(launch.args[launch.args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "openfleet/core"));
@@ -73,13 +75,13 @@ describe("openfleet CLI", () => {
     expect(cli(root, ["new", "dark-mode"], env).stderr).toMatch(/already exists/);
 
     expect(cli(root, ["resume", "dark-mode", "--ask", "--", "--yolo"], env).code).toBe(0);
-    const resumed = JSON.parse(fs.readFileSync(out, "utf8"));
+    const resumed = readJson<Launch>(out);
     expect(resumed.args).not.toContain("--allow-all-tools");
     expect(resumed.args.at(-1)).toBe("--yolo");
 
     const wt = cli(root, ["worktree", "dark-mode", "web", "--repo", "web", "--branch", "openfleet/dark-mode"]);
     expect(wt.code).toBe(0);
-    const child = JSON.parse(wt.stdout);
+    const child = JSON.parse(wt.stdout) as { worktree: string };
     expect(fs.existsSync(path.join(child.worktree, "README.md"))).toBe(true);
     expect(cli(root, ["worktree", "dark-mode", "web", "--repo", "web", "--branch", "openfleet/dark-mode"]).code).toBe(0);
 
@@ -89,7 +91,7 @@ describe("openfleet CLI", () => {
     const assumption = { child: "web", question: "Default theme?", decision: "light", rationale: "Matches the current UI", contractChange: false };
     expect(cli(root, ["event", "dark-mode", "--type", "assumption", "--target", "web", "--payload", JSON.stringify(assumption)]).code).toBe(0);
     const ev = cli(root, ["event", "dark-mode", "--type", "question.asked", "--actor", "web/planner", "--target", "web", "--payload", '{"text":"Which theme?"}']);
-    expect(JSON.parse(ev.stdout).seq).toBeGreaterThan(0);
+    expect((JSON.parse(ev.stdout) as { seq: number }).seq).toBeGreaterThan(0);
 
     const status = cli(root, ["status", "dark-mode"]);
     expect(status.stdout).toMatch(/web\s+planning/);
@@ -129,13 +131,13 @@ describe("openfleet CLI", () => {
 
     const out = path.join(tmp, "launch.json");
     expect(cli(root, ["report", "--since", "yesterday"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code).toBe(0);
-    const launch = JSON.parse(fs.readFileSync(out, "utf8"));
+    const launch = readJson<Launch>(out);
     expect(launch.args[launch.args.indexOf("--agent") + 1]).toBe("openfleet:openfleet-ext-audit");
     expect(launch.args[launch.args.indexOf("-i") + 1]).toContain("--since yesterday");
     expect(launch.args).toContain("--allow-all-tools");
 
     expect(cli(root, ["report", "--ask"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code).toBe(0);
-    const asked = JSON.parse(fs.readFileSync(out, "utf8"));
+    const asked = readJson<Launch>(out);
     expect(asked.args).not.toContain("--allow-all-tools");
     expect(asked.args[asked.args.indexOf("-i") + 1]).not.toContain("--ask");
 

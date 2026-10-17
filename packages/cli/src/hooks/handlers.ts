@@ -155,7 +155,7 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     if (!childId) return;
     const child = s.children[childId]!;
     delete child.pendingSpawn;
-    child.role = role as Role;
+    child.role = role;
   });
   appendEvent(p, {
     ts: ts(payload),

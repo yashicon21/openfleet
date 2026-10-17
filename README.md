@@ -116,7 +116,11 @@ See [docs/extensions.md](docs/extensions.md).
 pnpm install
 pnpm test        # builds, then runs vitest
 pnpm typecheck
+pnpm lint        # ESLint (typescript-eslint, type-aware)
+pnpm format      # Prettier; `pnpm format:check` is what CI runs
 ```
+
+`pnpm install` sets up [husky](https://typicode.github.io/husky/) git hooks. On commit, [lint-staged](https://github.com/lint-staged/lint-staged) runs `eslint --fix` and Prettier on the staged files, and [commitlint](https://commitlint.js.org/) checks the message. Use [Conventional Commits](https://www.conventionalcommits.org/) with a sentence-case subject and a header of at most 72 characters, for example `feat: Add draft PR support`. Set `HUSKY=0` to skip the hooks.
 
 Packages:
 

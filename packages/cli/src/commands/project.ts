@@ -187,7 +187,7 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
         appendEvent(p, { actor: "cli", type: "worktree.removed", target: id, payload: { worktree: c.worktree } });
       } catch (err) {
         failures++;
-        const msg = String((err as { stderr?: unknown }).stderr ?? (err as Error).message).trim();
+        const msg = String((err as { stderr?: string | Buffer }).stderr ?? (err as Error).message).trim();
         warn(`Could not remove worktree for ${id}: ${msg}${opts.force ? "" : " (use --force to discard uncommitted changes)"}`);
         continue;
       }
@@ -198,7 +198,7 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
         out(`Deleted branch ${c.branch} in ${c.repoPath}`);
       } catch (err) {
         failures++;
-        const msg = String((err as { stderr?: unknown }).stderr ?? (err as Error).message).trim();
+        const msg = String((err as { stderr?: string | Buffer }).stderr ?? (err as Error).message).trim();
         warn(`Could not delete branch ${c.branch}: ${msg}`);
       }
     }

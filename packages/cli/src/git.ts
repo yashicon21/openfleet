@@ -97,7 +97,7 @@ export function filePatch(worktree: string, file: string): string {
     return "";
   } catch (err) {
     // `git diff --no-index` exits 1 when files differ; stdout holds the patch.
-    return String((err as { stdout?: unknown }).stdout ?? "");
+    return String((err as { stdout?: string | Buffer }).stdout ?? "");
   }
 }
 
