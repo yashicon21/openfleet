@@ -1,0 +1,21 @@
+{
+  "name": "create-openfleet",
+  "version": "0.1.0",
+  "description": "Scaffold an OpenFleet workspace: npx create-openfleet",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-openfleet": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  }
+}

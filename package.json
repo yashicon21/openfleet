@@ -1,0 +1,22 @@
+{
+  "name": "openfleet-monorepo",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.34.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm run build && vitest run",
+    "clean": "pnpm -r run clean",
+    "demo": "bash examples/demo/setup.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

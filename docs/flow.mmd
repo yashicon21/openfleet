@@ -20,15 +20,14 @@ flowchart LR
     X0["ext: pre-spec"]
     C2["<b>1C · Write spec</b><br/>goal · repos · contracts · order<br/>acceptance · branches · done-mode"]
     F1["spec.md · contracts/<br/>repos.json (updated)"]
-    HR["<b>Review & approve spec</b>"]
-    DR{"Refine?"}
+    HR["<b>Final grill question</b><br/>spec summary:<br/>anything to change?"]
+    CA["<b>1D · Apply answer</b><br/>update spec · spec.approved<br/>status: running"]
     H1 --> C1
     C1 <--> HA
-    C1 --> X0 --> C2 --> F1 --> HR --> DR
-    DR -- Yes --> C1
+    C1 --> X0 --> C2 --> F1 --> HR --> CA
   end
 
-  subgraph S2["2 · Plan (per repo, parallel)"]
+  subgraph S2["2 · Plan (per repo, parallel, hands-off)"]
     direction TB
     C3["<b>2A · Create worktrees<br/>+ branches</b>"]
     F2["worktrees/&lt;repo&gt;/<br/>state.json"]
@@ -40,37 +39,41 @@ flowchart LR
     DV -- Yes --> X1
   end
 
-  subgraph S3["3 · Implement & Test (per repo, parallel)"]
+  subgraph S3["3 · Implement & Test (per repo, parallel, hands-off)"]
     direction TB
     XA["ext: augment roles"]
     I["<b>3A · Implementer</b><br/>code + contract tests"]
     DQ{"Ambiguity?"}
     CQ{"Coordinator:<br/>answered by spec?"}
-    HQ["Answer question"]
+    CD["Coordinator decides<br/>log assumption"]
     CB["Broadcast contract change<br/>to affected repos"]
     T["<b>3B · Tester</b><br/>build · test · contract tests"]
     DT{"Pass?"}
     DN{"Retries &lt; 3?"}
-    HE["Resolve escalation"]
+    DG{"Guided attempt<br/>used?"}
+    CG["Coordinator reviews<br/>findings + diff,<br/>writes guidance"]
+    CF["<b>Child failed</b><br/>dependents blocked<br/>others continue"]
     X2["ext: post-test"]
     XA -.-> I
     I --> DQ
     DQ -- Yes --> CQ
     CQ -- Yes --> I
-    CQ -- No --> HQ --> CB --> I
+    CQ -- No --> CD --> CB --> I
     DQ -- No --> T --> DT
     DT -- No --> DN
     DN -- Yes --> I
-    DN -- No --> HE --> I
+    DN -- No --> DG
+    DG -- No --> CG --> I
+    DG -- Yes --> CF
     DT -- Yes --> X2
   end
 
   subgraph S4["4 · Finish"]
     direction TB
-    DA{"All repos done?"}
+    DA{"All repos done<br/>or failed?"}
     X3["<b>ext: post-run</b><br/>pattern-extractor · audit"]
     FX["pattern report<br/>audit summary"]
-    C5["<b>4A · Finalize</b><br/>staged changes or<br/>cross-linked draft PRs"]
+    C5["<b>4A · Finalize</b><br/>staged changes or<br/>cross-linked draft PRs<br/>summary: assumptions + failures"]
     HF["<b>4B · Review</b><br/>diffs / PRs"]
     DP{"Pass?"}
     HC["<b>Done</b><br/>npx openfleet clean &lt;name&gt;"]
@@ -82,9 +85,10 @@ flowchart LR
   EV[("<b>events.jsonl + patches/</b><br/>core hooks capture every agent,<br/>message & file change")]
 
   F0b --> H1
-  DR -- No --> C3
+  CA --> C3
   X1 --> I
   X2 --> DA
+  CF --> DA
   DP -- "No: resume / new project" --> H1
   FX -. "make it a project" .-> H1
 
@@ -96,9 +100,9 @@ flowchart LR
   classDef ext fill:#bfe3d6,stroke:#3f8f75,color:#000
   classDef dec fill:#222,stroke:#000,color:#fff
   class H0,H0b,H1,HC human
-  class HA,HR,HQ,HE,HF loop
-  class C0,C1,C2,C3,CB,C5,P,I,T ai
+  class HA,HR,HF loop
+  class C0,C1,C2,CA,C3,CD,CB,CG,CF,C5,P,I,T ai
   class F0,F1,F2 file
   class F0b,FX,EV cond
   class X0,X1,XA,X2,X3 ext
-  class DR,DV,CQ,DA,DQ,DT,DN,DP dec
+  class DV,CQ,DA,DQ,DT,DN,DG,DP dec

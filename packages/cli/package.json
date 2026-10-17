@@ -1,0 +1,38 @@
+{
+  "name": "@openfleet/cli",
+  "version": "0.1.0",
+  "description": "Coordinate one change across many repos with GitHub Copilot CLI.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "openfleet": "dist/bin.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "core"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "copilot",
+    "multi-repo",
+    "agents",
+    "coordination"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/bin.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "semver": "^7.8.5"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.8.0"
+  }
+}
