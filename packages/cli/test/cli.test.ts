@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { cliSpec } from "../../create-openfleet/src/index.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
@@ -120,7 +121,7 @@ describe("openfleet CLI", () => {
     const root = path.join(tmp, "ws");
     fs.mkdirSync(root);
     cli(root, ["init"]);
-    const ext = writeExtension(path.join(tmp, "ext"), { name: "audit", version: "1.0.0", core: ">=0.1.0", mode: "phase", slot: "post-run", commands: { report: "report.md" } }, { "report.md": "Report." });
+    const ext = writeExtension(path.join(tmp, "ext"), { name: "audit", version: "1.0.0", core: ">=0.0.0", mode: "phase", slot: "post-run", commands: { report: "report.md" } }, { "report.md": "Report." });
     const add = cli(root, ["add", ext]);
     expect(add.code).toBe(0);
     expect(add.stdout).toContain("Added extension audit@1.0.0");
@@ -153,6 +154,19 @@ describe("openfleet CLI", () => {
 });
 
 describe("create-openfleet", () => {
+  it("defaults --cli to the CLI version it is released with", () => {
+    const root = fileURLToPath(new URL("../../..", import.meta.url));
+    const cliVersion = readJson<{ version: string }>(path.join(root, "packages/cli/package.json")).version;
+    expect(readJson<{ version: string }>(path.join(root, "packages/create-openfleet/package.json")).version).toBe(cliVersion);
+    expect(cliSpec()).toBe(`@openfleet-tools/cli@^${cliVersion}`);
+    expect(cliSpec("1.2.3")).toBe("@openfleet-tools/cli@1.2.3");
+    expect(cliSpec("file:../cli")).toBe("file:../cli");
+    const config = readJson<{ fixed: string[][] }>(path.join(root, ".changeset/config.json"));
+    expect(config.fixed).toContainEqual(expect.arrayContaining(["@openfleet-tools/cli", "create-openfleet"]));
+    const help = spawnSync(process.execPath, [CREATE, "--help"], { encoding: "utf8" });
+    expect(help.stdout).toContain(`(default: ^${cliVersion})`);
+  });
+
   it("creates a package.json and skips install when asked", () => {
     const dir = path.join(tmpDir(), "my-fleet");
     const r = spawnSync(process.execPath, [CREATE, dir, "--skip-install"], { encoding: "utf8" });

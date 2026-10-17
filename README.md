@@ -127,6 +127,40 @@ To try a local build, run `node packages/create-openfleet/dist/index.js ../my-fl
 
 Design notes are in [docs/design.md](docs/design.md), and the flow is in [docs/flow.mmd](docs/flow.mmd).
 
+## Releasing
+
+Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli` and `create-openfleet` are a `fixed` group, so they always share a version. `create-openfleet` installs `@openfleet-tools/cli@^<its own version>` by default.
+
+1. In a PR that changes a package, run `pnpm changeset` and commit the generated file. CI warns (without failing) when a PR has no changeset; use `pnpm changeset --empty` for changes that need no release.
+2. On every push to `main`, [`release.yml`](.github/workflows/release.yml) opens or updates a **Version Packages** PR that bumps the versions and writes the `CHANGELOG.md` files.
+3. Merging that PR publishes both packages to npm with [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, provenance, no `NPM_TOKEN`) and creates GitHub Releases.
+
+### One-time setup
+
+Trusted publishing can only be configured for a package that already exists on npm. So each package needs one manual placeholder publish at `0.0.0` before the first CI release. The repo is at `0.0.0` with an initial `minor` changeset, so the first Version Packages PR releases `0.1.0`.
+
+1. Publish placeholders from an empty directory, signed in with `npm login` as a member of the `openfleet-tools` npm org:
+
+   ```sh
+   cd "$(mktemp -d)"
+   for name in @openfleet-tools/cli create-openfleet; do
+     printf '{"name":"%s","version":"0.0.0","description":"Placeholder. See https://openfleet.tools","repository":{"type":"git","url":"git+https://github.com/yashicon21/openfleet.git"}}\n' "$name" > package.json
+     npm publish --access public
+   done
+   ```
+
+2. For **each** package on npmjs.com, go to **Settings → Trusted publishing → GitHub Actions** and enter:
+   - Organization or user: `yashicon21`
+   - Repository: `openfleet`
+   - Workflow filename: `release.yml`
+   - Environment: leave empty
+
+   A new trusted publisher must complete a publish within 2 days, or it expires and must be recreated. So configure it just before you merge the first Version Packages PR.
+3. Optional, recommended: in each package's **Settings → Publishing access**, choose **Require two-factor authentication and disallow tokens**.
+4. In the GitHub repo, under **Settings → Actions → General**, enable **Allow GitHub Actions to create and approve pull requests**.
+
+`pnpm release` builds and runs `changeset publish` for a manual local publish. CI does not use it.
+
 ## License
 
 [MIT](LICENSE)

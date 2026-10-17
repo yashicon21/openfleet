@@ -12,9 +12,14 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "pnpm run build && vitest run",
     "clean": "pnpm -r run clean",
-    "demo": "bash examples/demo/setup.sh"
+    "demo": "bash examples/demo/setup.sh",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@types/node": "^20.19.0",
     "typescript": "^5.9.3",
     "vitest": "^5.0.4"

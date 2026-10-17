@@ -12,6 +12,11 @@ export function ownVersion(): string {
   return (JSON.parse(fs.readFileSync(pkg, "utf8")) as { version: string }).version;
 }
 
+/** Package spec for @openfleet-tools/cli. Defaults to the caller's own version, which `fixed` keeps in step with the CLI. */
+export function cliSpec(raw = `^${ownVersion()}`): string {
+  return /^(file:|link:|https?:|git\+|@openfleet-tools\/cli)/.test(raw) ? raw : `@openfleet-tools/cli@${raw}`;
+}
+
 export function detectPackageManager(dir: string, userAgent = process.env.npm_config_user_agent ?? ""): PM {
   for (const [file, pm] of [
     ["pnpm-lock.yaml", "pnpm"],
@@ -64,8 +69,7 @@ export function main(argv = process.argv.slice(2)): number {
     process.stdout.write("Skipped install. Run `npm i -D @openfleet-tools/cli && npx openfleet init` when ready.\n");
     return 0;
   }
-  const raw = values.cli ?? `^${ownVersion()}`;
-  const spec = /^(file:|link:|https?:|git\+|@openfleet-tools\/cli)/.test(raw) ? raw : `@openfleet-tools/cli@${raw}`;
+  const spec = cliSpec(values.cli);
   const pm = detectPackageManager(dir);
   process.stdout.write(`Installing ${spec} with ${pm}…\n`);
   const install = spawnSync(pm, installArgs(pm, spec), { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });
