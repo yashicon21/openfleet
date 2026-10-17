@@ -49,7 +49,7 @@ export function requireWorkspace(start = process.cwd()): Workspace {
   const ws = findWorkspace(start);
   if (!ws) {
     throw new UserError(
-      `No OpenFleet workspace found from ${start}. Run \`npx create-openfleet\` (or \`npx openfleet init\`) first.`,
+      `No OpenFleet workspace found from ${start}. Run \`npm create @openfleet-tools\` (or \`npx openfleet init\`) first.`,
     );
   }
   return ws;

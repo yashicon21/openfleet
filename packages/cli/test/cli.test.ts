@@ -3,14 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { cliSpec } from "../../create-openfleet/src/index.js";
+import { cliSpec } from "../../create/src/index.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
 import { gitRepo, tmpDir, writeExtension } from "./helpers.js";
 
 const BIN = fileURLToPath(new URL("../dist/bin.js", import.meta.url));
-const CREATE = fileURLToPath(new URL("../../create-openfleet/dist/index.js", import.meta.url));
+const CREATE = fileURLToPath(new URL("../../create/dist/index.js", import.meta.url));
 
 function fakeCopilot(dir: string): string {
   const file = path.join(dir, "fake-copilot.mjs");
@@ -153,16 +153,16 @@ describe("openfleet CLI", () => {
   });
 });
 
-describe("create-openfleet", () => {
+describe("@openfleet-tools/create", () => {
   it("defaults --cli to the CLI version it is released with", () => {
     const root = fileURLToPath(new URL("../../..", import.meta.url));
     const cliVersion = readJson<{ version: string }>(path.join(root, "packages/cli/package.json")).version;
-    expect(readJson<{ version: string }>(path.join(root, "packages/create-openfleet/package.json")).version).toBe(cliVersion);
+    expect(readJson<{ version: string }>(path.join(root, "packages/create/package.json")).version).toBe(cliVersion);
     expect(cliSpec()).toBe(`@openfleet-tools/cli@^${cliVersion}`);
     expect(cliSpec("1.2.3")).toBe("@openfleet-tools/cli@1.2.3");
     expect(cliSpec("file:../cli")).toBe("file:../cli");
     const config = readJson<{ fixed: string[][] }>(path.join(root, ".changeset/config.json"));
-    expect(config.fixed).toContainEqual(expect.arrayContaining(["@openfleet-tools/cli", "create-openfleet"]));
+    expect(config.fixed).toContainEqual(expect.arrayContaining(["@openfleet-tools/cli", "@openfleet-tools/create"]));
     const help = spawnSync(process.execPath, [CREATE, "--help"], { encoding: "utf8" });
     expect(help.stdout).toContain(`(default: ^${cliVersion})`);
   });
