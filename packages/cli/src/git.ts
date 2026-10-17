@@ -61,10 +61,7 @@ function parseNumstat(out: string): Map<string, { added: number; removed: number
  * files, without touching the real index.
  */
 export function snapshotWorktree(worktree: string, base = "HEAD"): Snapshot {
-  const tmpIndex = path.join(
-    fs.mkdtempSync(path.join(os.tmpdir(), "openfleet-idx-")),
-    "index",
-  );
+  const tmpIndex = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "openfleet-idx-")), "index");
   const env = { ...process.env, GIT_INDEX_FILE: tmpIndex };
   try {
     git(worktree, ["read-tree", base], { env });
@@ -97,7 +94,7 @@ export function filePatch(worktree: string, file: string): string {
     return "";
   } catch (err) {
     // `git diff --no-index` exits 1 when files differ; stdout holds the patch.
-    return String((err as { stdout?: unknown }).stdout ?? "");
+    return String((err as { stdout?: string | Buffer }).stdout ?? "");
   }
 }
 

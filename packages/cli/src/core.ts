@@ -2,16 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { qualifiedAgentName } from "./attribution.js";
-import {
-  loadExtensions,
-  permissionsOf,
-  ROLES,
-  SLOTS,
-  toolsFor,
-  type ExtRole,
-  type LoadedExtension,
-  type Slot,
-} from "./extensions.js";
+import { loadExtensions, permissionsOf, ROLES, SLOTS, toolsFor, type LoadedExtension } from "./extensions.js";
 import type { CoreIndex } from "./coreindex.js";
 import { copyDir, readJson, writeFileAtomic, writeJson } from "./fsutil.js";
 import type { Workspace } from "./workspace.js";
@@ -35,7 +26,6 @@ export function installedCoreVersion(ws: Workspace): string | undefined {
 
 const AGENT_PREFIX = "openfleet-";
 const MAX_AGENT_PROMPT = 30_000;
-
 
 /**
  * Replace `<ws>/openfleet/core` with the assets shipped in this package plus
@@ -90,7 +80,8 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
   fs.rmSync(agentsDir, { recursive: true, force: true });
   fs.mkdirSync(agentsDir, { recursive: true });
   for (const entry of fs.existsSync(skillsDir) ? fs.readdirSync(skillsDir) : []) {
-    if (entry.startsWith(`${AGENT_PREFIX}ext-`)) fs.rmSync(path.join(skillsDir, entry), { recursive: true, force: true });
+    if (entry.startsWith(`${AGENT_PREFIX}ext-`))
+      fs.rmSync(path.join(skillsDir, entry), { recursive: true, force: true });
   }
 
   const index: CoreIndex = {
@@ -110,7 +101,9 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
       index.augments[role].push(ext.manifest.name);
     }
     if (body.length > MAX_AGENT_PROMPT) {
-      warn(`Agent ${file} is ${body.length} chars (Copilot limit ${MAX_AGENT_PROMPT}); augment extensions may be truncated.`);
+      warn(
+        `Agent ${file} is ${body.length} chars (Copilot limit ${MAX_AGENT_PROMPT}); augment extensions may be truncated.`,
+      );
     }
     writeFileAtomic(path.join(agentsDir, file), body);
   }

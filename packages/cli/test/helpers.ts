@@ -46,7 +46,11 @@ export function workspace(repos: Record<string, object> = {}): Workspace {
   return ws;
 }
 
-export function writeExtension(dir: string, manifest: Record<string, unknown>, files: Record<string, string> = {}): string {
+export function writeExtension(
+  dir: string,
+  manifest: Record<string, unknown>,
+  files: Record<string, string> = {},
+): string {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "openfleet.extension.json"), JSON.stringify(manifest, null, 2));
   const all = { "instructions.md": `# ${String(manifest.name)}\nDo the thing.\n`, ...files };

@@ -38,7 +38,11 @@ export function installArgs(pm: PM, spec: string): string[] {
 export function ensurePackageJson(dir: string): boolean {
   const file = path.join(dir, "package.json");
   if (fs.existsSync(file)) return false;
-  const name = path.basename(dir).toLowerCase().replace(/[^a-z0-9-._~]/g, "-") || "openfleet-workspace";
+  const name =
+    path
+      .basename(dir)
+      .toLowerCase()
+      .replace(/[^a-z0-9-._~]/g, "-") || "openfleet-workspace";
   fs.writeFileSync(file, JSON.stringify({ name, private: true }, null, 2) + "\n");
   return true;
 }
@@ -72,7 +76,11 @@ export function main(argv = process.argv.slice(2)): number {
   const spec = cliSpec(values.cli);
   const pm = detectPackageManager(dir);
   process.stdout.write(`Installing ${spec} with ${pm}…\n`);
-  const install = spawnSync(pm, installArgs(pm, spec), { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });
+  const install = spawnSync(pm, installArgs(pm, spec), {
+    cwd: dir,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
   if (install.status !== 0) {
     process.stderr.write(`@openfleet-tools/create: ${pm} install failed.\n`);
     return install.status ?? 1;

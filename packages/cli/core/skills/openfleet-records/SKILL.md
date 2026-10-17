@@ -57,17 +57,17 @@ npx openfleet event <project> --type <type> [--actor <actor>] [--target <child i
 
 Events the coordinator must log:
 
-| When | type | payload |
-| --- | --- | --- |
-| You send a child a message (spawn prompt, answer, broadcast, retry) | `message.sent` | `{"from":"coordinator","to":"<child>/<role>","text":"<full message>"}` |
-| A child replies | `message.sent` | `{"from":"<child>/<role>","to":"coordinator","text":"<full reply>"}` |
-| A question arrives | `question.asked` | `{"id":"q3","from":"<child>/<role>","text":"…"}` |
-| A question is answered | `question.answered` | `{"id":"q3","answeredBy":"spec\|coordinator","text":"…"}` |
-| You decide something the spec does not cover | `assumption` | `{"child":"<child id>","question":"…","decision":"…","rationale":"…","contractChange":false}` |
-| `spec.md` is written or changed | `spec.written` | `{"path":"spec.md","summary":"…"}` |
-| The user answers the spec review question (end of the grill) | `spec.approved` | `{"changes":"<what changed, or none>"}` |
-| A plan is received, accepted or bounced | `plan.submitted` / `plan.validated` / `plan.rejected` | `{"plan":"plans/<child>.md","reasons":[…]}` |
-| A contract changes | `contract.changed` | `{"contract":"contracts/…","affected":["…"],"summary":"…"}` |
-| A child fails after the guided attempt | `child.failed` | `{"reason":"…","retries":4,"findings":["…"],"worktree":"…","blocked":["…"]}` |
-| An extension agent finishes | `extension.ran` | `{"extension":"…","slot":"…","summary":"…"}` |
-| The run is finished | `run.completed` | `{"mode":"staged\|draft-pr","children":{…}}` |
+| When                                                                | type                                                  | payload                                                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| You send a child a message (spawn prompt, answer, broadcast, retry) | `message.sent`                                        | `{"from":"coordinator","to":"<child>/<role>","text":"<full message>"}`                        |
+| A child replies                                                     | `message.sent`                                        | `{"from":"<child>/<role>","to":"coordinator","text":"<full reply>"}`                          |
+| A question arrives                                                  | `question.asked`                                      | `{"id":"q3","from":"<child>/<role>","text":"…"}`                                              |
+| A question is answered                                              | `question.answered`                                   | `{"id":"q3","answeredBy":"spec\|coordinator","text":"…"}`                                     |
+| You decide something the spec does not cover                        | `assumption`                                          | `{"child":"<child id>","question":"…","decision":"…","rationale":"…","contractChange":false}` |
+| `spec.md` is written or changed                                     | `spec.written`                                        | `{"path":"spec.md","summary":"…"}`                                                            |
+| The user answers the spec review question (end of the grill)        | `spec.approved`                                       | `{"changes":"<what changed, or none>"}`                                                       |
+| A plan is received, accepted or bounced                             | `plan.submitted` / `plan.validated` / `plan.rejected` | `{"plan":"plans/<child>.md","reasons":[…]}`                                                   |
+| A contract changes                                                  | `contract.changed`                                    | `{"contract":"contracts/…","affected":["…"],"summary":"…"}`                                   |
+| A child fails after the guided attempt                              | `child.failed`                                        | `{"reason":"…","retries":4,"findings":["…"],"worktree":"…","blocked":["…"]}`                  |
+| An extension agent finishes                                         | `extension.ran`                                       | `{"extension":"…","slot":"…","summary":"…"}`                                                  |
+| The run is finished                                                 | `run.completed`                                       | `{"mode":"staged\|draft-pr","children":{…}}`                                                  |

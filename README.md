@@ -10,14 +10,14 @@ OpenFleet is built from Copilot primitives (custom agents, subagents, hooks, ski
 
 ## How it differs from `/fleet`
 
-| | Copilot `/fleet` | OpenFleet |
-|---|---|---|
-| Scope | Parallel subagents inside **one** session and repo | One change across **many** repos and packages |
-| Isolation | Shared working tree | One git worktree and branch per repo/package |
-| Process | Free-form | Spec → plan → implement → test, with retries |
-| Contracts | — | Shared contract fixtures in `contracts/`, contract tests per repo |
-| Record | Session transcript | `events.jsonl` with attribution, patches and diff snapshots |
-| Resume | Session resume | Project state in `state.json`; `openfleet resume <name>` |
+|           | Copilot `/fleet`                                   | OpenFleet                                                         |
+| --------- | -------------------------------------------------- | ----------------------------------------------------------------- |
+| Scope     | Parallel subagents inside **one** session and repo | One change across **many** repos and packages                     |
+| Isolation | Shared working tree                                | One git worktree and branch per repo/package                      |
+| Process   | Free-form                                          | Spec → plan → implement → test, with retries                      |
+| Contracts | —                                                  | Shared contract fixtures in `contracts/`, contract tests per repo |
+| Record    | Session transcript                                 | `events.jsonl` with attribution, patches and diff snapshots       |
+| Resume    | Session resume                                     | Project state in `state.json`; `openfleet resume <name>`          |
 
 ## Quick start
 
@@ -61,26 +61,29 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
   "v": 1,
   "repos": {
     "api": { "path": "../api", "defaultBranch": "main", "build": "pnpm build", "test": "pnpm test", "confirmed": true },
-    "web": { "url": "git@github.com:acme/web.git", "packages": { "ui": { "path": "packages/ui", "test": "pnpm -F ui test" } } }
+    "web": {
+      "url": "git@github.com:acme/web.git",
+      "packages": { "ui": { "path": "packages/ui", "test": "pnpm -F ui test" } }
+    }
   }
 }
 ```
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `npx openfleet init` | Create `openfleet/` in the current directory and install core |
-| `npx openfleet update` | Replace `openfleet/core` with the installed CLI version; disable incompatible extensions |
-| `npx openfleet new <name> ["<request>"] [--ask]` | Create a project and launch the coordinator |
-| `npx openfleet resume <name> [--fresh] [--ask]` | Continue a project (`--fresh` starts a new Copilot session) |
-| `npx openfleet status [name] [--json]` | Children, phases, retries and open questions |
-| `npx openfleet list` | All projects |
-| `npx openfleet clean <name> [--branches] [--force]` | Remove the project's worktrees (and branches) |
-| `npx openfleet add <git-url[#ref]\|path>` | Install or update an extension and print its permissions |
-| `npx openfleet remove <name>` | Uninstall an extension |
-| `npx openfleet extensions` | List installed extensions |
-| `npx openfleet <ext-command> [--ask]` | Run a command declared by an extension |
+| Command                                             | What it does                                                                             |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npx openfleet init`                                | Create `openfleet/` in the current directory and install core                            |
+| `npx openfleet update`                              | Replace `openfleet/core` with the installed CLI version; disable incompatible extensions |
+| `npx openfleet new <name> ["<request>"] [--ask]`    | Create a project and launch the coordinator                                              |
+| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project (`--fresh` starts a new Copilot session)                              |
+| `npx openfleet status [name] [--json]`              | Children, phases, retries and open questions                                             |
+| `npx openfleet list`                                | All projects                                                                             |
+| `npx openfleet clean <name> [--branches] [--force]` | Remove the project's worktrees (and branches)                                            |
+| `npx openfleet add <git-url[#ref]\|path>`           | Install or update an extension and print its permissions                                 |
+| `npx openfleet remove <name>`                       | Uninstall an extension                                                                   |
+| `npx openfleet extensions`                          | List installed extensions                                                                |
+| `npx openfleet <ext-command> [--ask]`               | Run a command declared by an extension                                                   |
 
 Arguments after `--` go to `copilot` unchanged, for example `npx openfleet new x -- --model claude-sonnet-5.5`.
 
@@ -116,7 +119,11 @@ See [docs/extensions.md](docs/extensions.md).
 pnpm install
 pnpm test        # builds, then runs vitest
 pnpm typecheck
+pnpm lint        # ESLint (typescript-eslint, type-aware)
+pnpm format      # Prettier; `pnpm format:check` is what CI runs
 ```
+
+`pnpm install` sets up [husky](https://typicode.github.io/husky/) git hooks. On commit, [lint-staged](https://github.com/lint-staged/lint-staged) runs `eslint --fix` and Prettier on the staged files, and [commitlint](https://commitlint.js.org/) checks the message. Use [Conventional Commits](https://www.conventionalcommits.org/) with a sentence-case subject and a header of at most 72 characters, for example `feat: Add draft PR support`. Set `HUSKY=0` to skip the hooks.
 
 Packages:
 
@@ -156,6 +163,7 @@ Trusted publishing can only be configured for a package that already exists on n
    - Environment: leave empty
 
    A new trusted publisher must complete a publish within 2 days, or it expires and must be recreated. So configure it just before you merge the first Version Packages PR.
+
 3. Optional, recommended: in each package's **Settings → Publishing access**, choose **Require two-factor authentication and disallow tokens**.
 4. In the GitHub repo, under **Settings → Actions → General**, enable **Allow GitHub Actions to create and approve pull requests**.
 5. The initializer used to be published as `create-openfleet`. Deprecate it so users are pointed to the new name:

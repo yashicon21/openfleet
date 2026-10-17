@@ -84,16 +84,24 @@ export function cmdNew(args: string[], passthrough: string[], opts: { ask?: bool
   });
 }
 
-export function cmdResume(args: string[], passthrough: string[], opts: { fresh?: boolean; ask?: boolean } = {}): number {
+export function cmdResume(
+  args: string[],
+  passthrough: string[],
+  opts: { fresh?: boolean; ask?: boolean } = {},
+): number {
   const ws = requireWorkspace();
   const name = validateProjectName(args[0]);
   const p = projectPaths(ws, name);
   let state = readState(p);
   if (opts.fresh || !state.sessionId) {
     const sessionId = crypto.randomUUID();
-    state = updateState(p, (s) => {
-      s.sessionId = sessionId;
-    }, "cli");
+    state = updateState(
+      p,
+      (s) => {
+        s.sessionId = sessionId;
+      },
+      "cli",
+    );
   }
   warnOverlaps(ws, name);
   out(`Resuming project ${name} (status: ${state.status})…`);
@@ -115,7 +123,14 @@ function pad(s: string, n: number): string {
 
 function table(rows: string[][]): string {
   const widths = rows[0]!.map((_, i) => Math.max(...rows.map((r) => (r[i] ?? "").length)));
-  return rows.map((r) => r.map((c, i) => pad(c, widths[i]!)).join("  ").trimEnd()).join("\n");
+  return rows
+    .map((r) =>
+      r
+        .map((c, i) => pad(c, widths[i]!))
+        .join("  ")
+        .trimEnd(),
+    )
+    .join("\n");
 }
 
 export function cmdList(): number {
@@ -131,7 +146,9 @@ export function cmdList(): number {
     const children = Object.values(s.children);
     const done = children.filter((c) => c.phase === "done").length;
     const failed = children.filter((c) => c.phase === "failed" || c.phase === "blocked").length;
-    const progress = children.length ? `${done}/${children.length} done${failed ? `, ${failed} failed/blocked` : ""}` : "-";
+    const progress = children.length
+      ? `${done}/${children.length} done${failed ? `, ${failed} failed/blocked` : ""}`
+      : "-";
     rows.push([name, s.status, progress, s.updatedAt]);
   }
   out(table(rows));
@@ -166,7 +183,9 @@ export function cmdStatus(args: string[], opts: { json?: boolean } = {}): number
   }
   const events = readEvents(p);
   out("");
-  out(`${events.length} events recorded${events.length ? `, last: ${events.at(-1)!.type} at ${events.at(-1)!.ts}` : ""}.`);
+  out(
+    `${events.length} events recorded${events.length ? `, last: ${events.at(-1)!.type} at ${events.at(-1)!.ts}` : ""}.`,
+  );
   warnOverlaps(ws, name);
   return 0;
 }
@@ -179,7 +198,11 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
   let failures = 0;
   for (const [id, c] of Object.entries(s.children)) {
     if (c.worktree && fs.existsSync(c.worktree)) {
-      const repoPath = c.repoPath ?? tryGit(c.worktree, ["rev-parse", "--path-format=absolute", "--git-common-dir"])?.trim().replace(/\/\.git$/, "");
+      const repoPath =
+        c.repoPath ??
+        tryGit(c.worktree, ["rev-parse", "--path-format=absolute", "--git-common-dir"])
+          ?.trim()
+          .replace(/\/\.git$/, "");
       try {
         if (!repoPath) throw new Error("unknown source repo");
         removeWorktree(repoPath, c.worktree, opts.force);
@@ -187,8 +210,10 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
         appendEvent(p, { actor: "cli", type: "worktree.removed", target: id, payload: { worktree: c.worktree } });
       } catch (err) {
         failures++;
-        const msg = String((err as { stderr?: unknown }).stderr ?? (err as Error).message).trim();
-        warn(`Could not remove worktree for ${id}: ${msg}${opts.force ? "" : " (use --force to discard uncommitted changes)"}`);
+        const msg = String((err as { stderr?: string | Buffer }).stderr ?? (err as Error).message).trim();
+        warn(
+          `Could not remove worktree for ${id}: ${msg}${opts.force ? "" : " (use --force to discard uncommitted changes)"}`,
+        );
         continue;
       }
     }
@@ -198,17 +223,21 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
         out(`Deleted branch ${c.branch} in ${c.repoPath}`);
       } catch (err) {
         failures++;
-        const msg = String((err as { stderr?: unknown }).stderr ?? (err as Error).message).trim();
+        const msg = String((err as { stderr?: string | Buffer }).stderr ?? (err as Error).message).trim();
         warn(`Could not delete branch ${c.branch}: ${msg}`);
       }
     }
   }
   if (fs.existsSync(p.worktrees) && fs.readdirSync(p.worktrees).length === 0) fs.rmdirSync(p.worktrees);
-  updateState(p, (st) => {
-    for (const c of Object.values(st.children)) {
-      if (c.worktree && !fs.existsSync(c.worktree)) delete c.worktree;
-    }
-  }, "cli");
+  updateState(
+    p,
+    (st) => {
+      for (const c of Object.values(st.children)) {
+        if (c.worktree && !fs.existsSync(c.worktree)) delete c.worktree;
+      }
+    },
+    "cli",
+  );
   out(failures ? `Cleaned ${name} with ${failures} problem(s).` : `Cleaned ${name}.`);
   return failures ? 1 : 0;
 }

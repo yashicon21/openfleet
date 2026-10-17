@@ -30,7 +30,7 @@ export function withLock<T>(lockFile: string, fn: () => T): T {
         continue;
       }
       if (Date.now() - start > TIMEOUT_MS) {
-        throw new Error(`Timed out waiting for lock ${lockFile}`);
+        throw new Error(`Timed out waiting for lock ${lockFile}`, { cause: err });
       }
       sleep(5 + Math.random() * 20);
     }

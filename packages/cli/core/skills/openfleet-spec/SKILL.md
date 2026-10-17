@@ -11,21 +11,26 @@ Write the spec to `openfleet/projects/<project>/spec.md` with exactly these sect
 # <Project title>
 
 ## Goal
+
 What changes and why, in 2–5 sentences.
 
 ## Children
-| Child id | Repo | Package | Path / URL | Branch | Depends on |
-| --- | --- | --- | --- | --- | --- |
-| api | api | — | ../api | openfleet/<project> | — |
-| web:ui | web | packages/ui | ../web | openfleet/<project>-ui | api |
+
+| Child id | Repo | Package     | Path / URL | Branch                 | Depends on |
+| -------- | ---- | ----------- | ---------- | ---------------------- | ---------- |
+| api      | api  | —           | ../api     | openfleet/<project>    | —          |
+| web:ui   | web  | packages/ui | ../web     | openfleet/<project>-ui | api        |
 
 ## Contracts
-| Contract | File | Producer | Consumers |
-| --- | --- | --- | --- |
-| Session token payload | contracts/session-token.json | api | web:ui |
+
+| Contract              | File                         | Producer | Consumers |
+| --------------------- | ---------------------------- | -------- | --------- |
+| Session token payload | contracts/session-token.json | api      | web:ui    |
 
 ## Per-child requirements
+
 ### api
+
 - **Scope:** …
 - **Build:** `pnpm build`
 - **Test:** `pnpm test`
@@ -34,15 +39,19 @@ What changes and why, in 2–5 sentences.
 - **Contract tests:** produces `session-token.json`: the API response must validate against the fixture.
 
 ### web:ui
+
 …
 
 ## Ordering
+
 The DAG in plain words, or "All children run in parallel."
 
 ## Completion mode
+
 `staged` | `draft-pr`
 
 ## Out of scope
+
 - …
 ```
 

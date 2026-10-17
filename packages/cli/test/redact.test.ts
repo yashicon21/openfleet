@@ -4,7 +4,10 @@ import { redact, redactString } from "../src/redact.js";
 describe("redactString", () => {
   it.each([
     ["github classic token", "token ghp_abcdefghijklmnopqrstuvwxyz0123456789 end"],
-    ["github fine-grained token", "github_pat_11ABCDEFG0123456789_abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOP"],
+    [
+      "github fine-grained token",
+      "github_pat_11ABCDEFG0123456789_abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOP",
+    ],
     ["aws access key", "AKIAIOSFODNN7EXAMPLE"],
     ["openai style key", "sk-proj-abcdefghijklmnopqrstuvwxyz123456"],
     ["bearer header", "Authorization: Bearer abc.def.ghi-123456789"],
