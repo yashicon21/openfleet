@@ -134,6 +134,8 @@ To try a local build, run `node packages/create/dist/index.js ../my-fleet --cli 
 
 Design notes are in [docs/design.md](docs/design.md), and the flow is in [docs/flow.mmd](docs/flow.mmd).
 
+The website ([openfleet.tools](https://openfleet.tools)) is a single static page in `site/index.html`, with no build step. Pushes to `main` that touch `site/` deploy it to GitHub Pages through [`pages.yml`](.github/workflows/pages.yml).
+
 ## Releasing
 
 Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli` and `@openfleet-tools/create` are a `fixed` group, so they always share a version. `@openfleet-tools/create` installs `@openfleet-tools/cli@^<its own version>` by default.
