@@ -29,6 +29,42 @@
       href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap"
     />
     <style>
+      .of-mq-wrap {
+        position: relative;
+      }
+      .of-mq.paused .of-track {
+        animation-play-state: paused;
+      }
+      .of-mq-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 2px solid #2b1e1b;
+        border-radius: 8px;
+        background: #0e0e10;
+        color: #f4f4f6;
+        cursor: pointer;
+      }
+      .of-mq-toggle:hover {
+        background: #1c1b21;
+      }
+      .of-mq-toggle .i-play,
+      .of-mq-toggle[aria-pressed="true"] .i-pause {
+        display: none;
+      }
+      .of-mq-toggle[aria-pressed="true"] .i-play {
+        display: block;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .of-mq-toggle {
+          display: none;
+        }
+      }
       .of-qs-list {
         margin: 0;
         padding: 22px 24px 26px;
@@ -2103,93 +2139,100 @@
           </div>
         </section>
 
-        <div aria-hidden="true" style="overflow: hidden; display: flex; flex-direction: column">
-          <div style="background: #48a6ee; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i></span
-              ><span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-              ></span>
+        <div class="of-mq-wrap">
+          <div class="of-mq" aria-hidden="true" style="overflow: hidden; display: flex; flex-direction: column">
+            <div style="background: #48a6ee; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i></span
+                ><span
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                ></span>
+              </div>
+            </div>
+            <div style="background: #ee5ad6; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track of-rev"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
+                  REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE
+                  CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i></span
+                ><span
+                  >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
+                  REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE
+                  CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i
+                ></span>
+              </div>
+            </div>
+            <div style="background: #edeb3c; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
+                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                    class="of-sep"
+                  ></i
+                  >DRAFT PRS<i class="of-sep"></i></span
+                ><span
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
+                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                    class="of-sep"
+                  ></i
+                  >DRAFT PRS<i class="of-sep"></i
+                ></span>
+              </div>
             </div>
           </div>
-          <div style="background: #ee5ad6; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track of-rev"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i></span
-              ><span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i
-              ></span>
-            </div>
-          </div>
-          <div style="background: #edeb3c; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
-                  class="of-sep"
-                ></i
-                >DRAFT PRS<i class="of-sep"></i></span
-              ><span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
-                  class="of-sep"
-                ></i
-                >DRAFT PRS<i class="of-sep"></i
-              ></span>
-            </div>
-          </div>
+          <button class="of-mq-toggle" type="button" aria-pressed="false" aria-label="Pause the scrolling banner">
+            <svg class="i-pause" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+              <rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+            </svg>
+            <svg class="i-play" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4 2.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 4 2.5Z" fill="currentColor" />
+            </svg>
+          </button>
         </div>
 
         <section id="run" aria-labelledby="run-h" class="rp-sec">
@@ -4166,15 +4209,44 @@
 
         var playing = false;
         var replayLabel = replay.querySelector(".of-rlabel");
-        function play(lead) {
+        var cursor = 0;
+        function runFrom(from, lead) {
           timers.forEach(clearTimeout);
           timers = [];
           playing = true;
           root.classList.add("of-live");
-          show(0);
-          for (var i = 1; i < STEPS.length; i++) {
-            timers.push(setTimeout(show.bind(null, i), (lead || 0) + i * 1100));
+          cursor = from;
+          show(from);
+          for (var i = from + 1; i < STEPS.length; i++) {
+            timers.push(
+              setTimeout(
+                function (k) {
+                  cursor = k;
+                  show(k);
+                }.bind(null, i),
+                (lead || 0) + (i - from) * 1100,
+              ),
+            );
           }
+        }
+        function play(lead) {
+          runFrom(0, lead);
+        }
+        // Pause the hero run while it's off screen and pick up from the same step when it's back.
+        var held = false;
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) {
+              if (!e.isIntersecting && playing) {
+                timers.forEach(clearTimeout);
+                timers = [];
+                held = true;
+              } else if (e.isIntersecting && held) {
+                held = false;
+                runFrom(cursor, 300);
+              }
+            });
+          }).observe(rows);
         }
 
         replay.addEventListener("click", function () {
@@ -4649,21 +4721,32 @@
           }
           raf = requestAnimationFrame(tick);
         }
-        function play() {
-          if (reduce) {
-            set(END);
+        var stepTimer = 0;
+        // Reduced motion: the replay runs as eight still frames instead of continuous movement.
+        function stepTick() {
+          set(t + END / 8);
+          if (t >= END) {
+            playing = false;
             label();
             return;
           }
+          stepTimer = setTimeout(stepTick, 900);
+        }
+        function play() {
           if (t >= END) set(0);
           playing = true;
           label();
+          if (reduce) {
+            stepTimer = setTimeout(stepTick, 900);
+            return;
+          }
           last = performance.now();
           raf = requestAnimationFrame(tick);
         }
         function pause() {
           playing = false;
           cancelAnimationFrame(raf);
+          clearTimeout(stepTimer);
           label();
         }
         btn.addEventListener("click", function () {
@@ -4685,23 +4768,35 @@
           frame(t);
         };
         if (narrowMq.addEventListener) narrowMq.addEventListener("change", onChange);
-        if (!reduce && "IntersectionObserver" in window) {
-          var io = new IntersectionObserver(
+        if ("IntersectionObserver" in window) {
+          var started = false;
+          new IntersectionObserver(
             function (entries) {
               entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                  io.disconnect();
+                // First arrival plays the run once (with motion allowed); leaving pauses it.
+                if (e.isIntersecting && !started && !reduce) {
+                  started = true;
                   play();
-                }
+                } else if (!e.isIntersecting && playing) pause();
               });
             },
             { threshold: 0.3 },
-          );
-          io.observe(fig);
+          ).observe(fig);
         }
       })();
     </script>
     <script>
+      (function () {
+        var t = document.querySelector(".of-mq-toggle"),
+          m = document.querySelector(".of-mq");
+        if (!t || !m) return;
+        t.addEventListener("click", function () {
+          var paused = t.getAttribute("aria-pressed") !== "true";
+          t.setAttribute("aria-pressed", String(paused));
+          t.setAttribute("aria-label", paused ? "Play the scrolling banner" : "Pause the scrolling banner");
+          m.classList.toggle("paused", paused);
+        });
+      })();
       // Mobile menu: close on Escape (returning focus to the toggle) and after following a link.
       (function () {
         var menu = document.querySelector(".of-menu");
