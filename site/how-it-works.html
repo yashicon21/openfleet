@@ -675,6 +675,61 @@
       .dot3 i:nth-child(3) {
         background: var(--yellow);
       }
+      .key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--muted);
+        margin-top: -4px;
+      }
+      .key span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .k {
+        width: 18px;
+        height: 12px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+      .k-cyan {
+        background: var(--cyan);
+      }
+      .k-mag {
+        background: var(--magenta);
+      }
+      .k-yel {
+        background: var(--yellow);
+      }
+      .k-warn {
+        background: #fff1cc;
+        box-shadow: inset 0 0 0 2px #8a5300;
+      }
+      .k-you {
+        border: 2px dashed var(--fg);
+      }
+      .k-gate {
+        border: 2px solid var(--fg);
+      }
+      .k-done {
+        background: var(--card);
+      }
+      .k-tick {
+        width: 3px;
+        background: var(--fg);
+        border-radius: 1px;
+      }
+      .k-pass {
+        background: var(--success);
+        box-shadow: 0 0 0 2px var(--card);
+      }
+      .k-contract {
+        background: var(--counter);
+        box-shadow: 0 0 0 2px var(--card);
+      }
       .controls {
         display: flex;
         align-items: center;
@@ -783,6 +838,25 @@
       .f-card {
         fill: var(--card);
       }
+      .f-fg {
+        fill: var(--fg);
+      }
+      .f-muted {
+        fill: var(--muted);
+      }
+      .f-none {
+        fill: none;
+      }
+      .f-warn {
+        fill: #fff1cc;
+      }
+      .s-warn {
+        stroke: #8a5300;
+      }
+      /* "You" is always a dashed white outline: the one human in the run. */
+      .s-dash {
+        stroke-dasharray: 6 4;
+      }
       .f-ink {
         fill: var(--ink);
       }
@@ -862,7 +936,9 @@
         color: var(--fg);
       }
       .log li:first-child b {
-        color: var(--yellow);
+        color: var(--fg);
+        text-decoration: underline 2px var(--line);
+        text-underline-offset: 4px;
       }
       .log li em {
         font-style: normal;
@@ -1022,10 +1098,11 @@
         transition: width 300ms cubic-bezier(0.3, 1.5, 0.5, 1);
       }
       .frow .bar i.a {
-        background: var(--magenta);
+        background: var(--fg);
       }
       .frow .bar i.r {
-        background: var(--cyan);
+        background: transparent;
+        box-shadow: inset 0 0 0 2px var(--muted);
       }
       .frow .n {
         text-align: right;
@@ -1035,8 +1112,16 @@
       .frow.off {
         opacity: 0.18;
       }
-      .frow.new .path {
-        color: var(--yellow);
+      .frow .nf {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--ground);
+        background: var(--fg);
+        border-radius: 3px;
+        padding: 0 4px;
+        margin-right: 6px;
       }
       .totals {
         display: flex;
@@ -1068,6 +1153,17 @@
         color: var(--muted);
         align-items: center;
         flex-wrap: wrap;
+      }
+      .legend .legend-nf {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--ground);
+        background: var(--fg);
+        border-radius: 3px;
+        padding: 0 4px;
+        margin-right: 6px;
       }
       .legend i {
         display: inline-block;
@@ -1670,8 +1766,24 @@
         color: var(--fg);
       }
       .phases td.cur {
+        background: var(--ground);
+        color: var(--fg);
+        box-shadow: inset 0 0 0 2px var(--fg);
+      }
+      .phases td.cur.ph-planning {
         background: var(--cyan);
         color: var(--ink);
+        box-shadow: none;
+      }
+      .phases td.cur.ph-implementing {
+        background: var(--magenta);
+        color: var(--ink);
+        box-shadow: none;
+      }
+      .phases td.cur.ph-testing {
+        background: var(--yellow);
+        color: var(--ink);
+        box-shadow: none;
       }
       .phases td.done {
         background: var(--card);
@@ -1716,7 +1828,11 @@
         color: var(--success);
       }
       .cells i.bad {
-        background: #eb6834;
+        background: #fff1cc;
+        box-shadow: inset 0 0 0 2px #8a5300;
+      }
+      .trow h3 b.warn {
+        color: #8a5300;
       }
       @media (max-width: 860px) {
         .tally7 {
@@ -2003,6 +2119,11 @@
               /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
+          <p class="key">
+            <span><i class="k k-cyan"></i>planner</span><span><i class="k k-mag"></i>implementer</span
+            ><span><i class="k k-yel"></i>tester</span><span><i class="k k-warn"></i>failed</span
+            ><span><i class="k k-you"></i>you</span><span><i class="k k-tick"></i>coordinator event</span>
+          </p>
           <div class="split">
             <div class="scroll-x">
               <svg
@@ -2020,8 +2141,7 @@
           <div class="timebar" id="timebar" aria-hidden="true"></div>
           <div class="timelegend" id="timelegend"></div>
           <p class="figcap">
-            Bars are sub-agents from spawn to stop: cyan planners, magenta implementers, yellow testers. The pale bar on
-            sdk-python is the tester whose run failed. Dots are file edits and test runs. The yellow segment is the only
+            Bars are sub-agents from spawn to stop; dots are file edits and test runs. The dashed segment is the only
             time the run waited on a person.
           </p>
         </figure>
@@ -2055,6 +2175,11 @@
               /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
+          <p class="key">
+            <span><i class="k k-cyan"></i>planner</span><span><i class="k k-mag"></i>implementer</span
+            ><span><i class="k k-yel"></i>tester</span><span><i class="k k-gate"></i>coordinator check</span
+            ><span><i class="k k-done"></i>done</span>
+          </p>
           <div class="scroll-x">
             <table class="phases">
               <caption class="sr-only">
@@ -2108,6 +2233,11 @@
               /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
+          <p class="key">
+            <span><i class="k k-cyan"></i>planner</span><span><i class="k k-mag"></i>implementer</span
+            ><span><i class="k k-yel"></i>tester</span><span><i class="k k-warn"></i>failed</span
+            ><span><i class="k k-you"></i>you</span><span><i class="k k-done"></i>done</span>
+          </p>
           <div class="scroll-x">
             <svg
               id="hub"
@@ -2143,13 +2273,13 @@
             </div>
           </div>
           <div class="totals">
-            <div><b style="color: var(--magenta)" id="tot-add">+314</b><span>LINES ADDED</span></div>
-            <div><b style="color: var(--cyan)" id="tot-rem">−106</b><span>LINES REMOVED</span></div>
+            <div><b style="color: var(--fg)" id="tot-add">+314</b><span>LINES ADDED</span></div>
+            <div><b style="color: var(--muted)" id="tot-rem">−106</b><span>LINES REMOVED</span></div>
             <div><b id="tot-files">24</b><span>FILES TOUCHED</span></div>
             <div class="legend">
-              <span><i style="background: var(--magenta)"></i>added</span
-              ><span><i style="background: var(--cyan)"></i>removed</span
-              ><span style="color: var(--yellow)">yellow path = new file</span>
+              <span><i style="background: var(--fg)"></i>added</span
+              ><span><i style="box-shadow: inset 0 0 0 2px var(--muted)"></i>removed</span
+              ><span><span class="legend-nf">NEW</span>new file</span>
             </div>
           </div>
           <div class="diffgrid" id="diff"></div>
@@ -2178,6 +2308,11 @@
               <button class="btn" type="button" id="fixplay">▶ PLAY</button>
             </div>
           </div>
+          <p class="key">
+            <span><i class="k k-gate"></i>contract updated</span><span><i class="k k-mag"></i>implementer asked</span
+            ><span><i class="k k-warn"></i>failed</span><span><i class="k k-you"></i>for you</span
+            ><span><i class="k k-done"></i>done</span>
+          </p>
           <div class="scroll-x">
             <svg
               id="fix"
@@ -2208,10 +2343,14 @@
               ><span class="clock" id="tests-total">177/177</span>
             </div>
           </div>
+          <p class="key">
+            <span><i class="k k-pass"></i>own tests</span><span><i class="k k-contract"></i>contract tests</span
+            ><span><i class="k k-warn"></i>failed</span>
+          </p>
           <div class="tally7" id="tally"></div>
           <p class="figcap">
-            Blue cells are contract tests; green are each repo’s own tests. The amber cell is sdk-python’s failing test
-            on its first run.
+            Contract tests check every consuming repo against the same rows in <code>account.json</code>. sdk-python’s
+            first run fails one test; the retry passes.
           </p>
         </figure>
 
@@ -2802,8 +2941,8 @@
                 BY +
                 '" width="' +
                 Math.max(2, w - 2) +
-                '" height="26" rx="6" class="' +
-                (you ? "f-yel" : "f-raised") +
+                '" height="26" rx="6" stroke-width="2" class="' +
+                (you ? "f-none s-fg s-dash" : "f-raised") +
                 ' ph" data-a="' +
                 p[1] +
                 '"/>';
@@ -2824,7 +2963,7 @@
                   (x(p[1]) + w / 2) +
                   '" y="' +
                   (BY + 40) +
-                  '" font-size="11" text-anchor="middle" class="t-yel disp-t">YOU · ' +
+                  '" font-size="12" text-anchor="middle" class="t-fg disp-t">YOU · ' +
                   (p[2] - p[1]).toFixed(0) +
                   "s</text>";
             });
@@ -2851,7 +2990,7 @@
                 '" font-size="' +
                 (coord ? (N ? 11 : 12) : N ? 14 : 15) +
                 '" ' +
-                (coord ? 'letter-spacing="1" class="t-yel disp-t"' : 'class="t-fg mono-t"') +
+                (coord ? 'letter-spacing="1" class="t-fg disp-t"' : 'class="t-fg mono-t"') +
                 ">" +
                 (coord ? "COORDINATOR" : lane) +
                 "</text>";
@@ -2860,7 +2999,7 @@
                   return e.actor === "coordinator" || e.actor === "cli";
                 }).forEach(function (e) {
                   h +=
-                    '<rect class="f-yel ev" data-t="' +
+                    '<rect class="f-fg ev" data-t="' +
                     e.t +
                     '" x="' +
                     (x(e.t) - 1) +
@@ -3004,7 +3143,7 @@
                 e.style.opacity = +e.dataset.t <= t ? 1 : 0;
               });
               hist.forEach(function (r) {
-                r.setAttribute("class", (+r.dataset.t <= t ? "f-mag" : "f-line") + " hist");
+                r.setAttribute("class", (+r.dataset.t <= t ? "f-muted" : "f-line") + " hist");
               });
               phs.forEach(function (r) {
                 r.style.opacity = +r.dataset.a <= t ? 1 : 0.25;
@@ -3107,7 +3246,8 @@
                 spent += end - x.t;
               });
               var isCur = current[r].p === p && p !== "done";
-              td.className = (reached ? "on" : "") + (isCur ? " cur" : "") + (p === "done" && reached ? " done" : "");
+              td.className =
+                "ph-" + p + (reached ? " on" : "") + (isCur ? " cur" : "") + (p === "done" && reached ? " done" : "");
               var txt = "";
               if (reached && p !== "done") txt = spent < 0.95 ? "<1s" : Math.round(spent) + "s";
               if (reached && p === "done") txt = "✓";
@@ -3166,22 +3306,22 @@
           };
           var packets = [];
           E.forEach(function (e) {
-            if (e.type === "message.sent") packets.push({ t: e.t, from: "c", to: e.target, cls: "yel" });
+            if (e.type === "message.sent") packets.push({ t: e.t, from: "c", to: e.target, cls: "fg" });
             if (e.type === "agent.stopped")
               packets.push({
                 t: e.t,
                 from: e.target,
                 to: "c",
                 cls: /failing/.test(e.detail)
-                  ? "yel"
+                  ? "warn"
                   : e.actor.split("/").pop() === "planner"
                     ? "cyan"
                     : e.actor.split("/").pop() === "implementer"
                       ? "mag"
                       : "yel",
               });
-            if (e.type === "spec.written") packets.push({ t: e.t, from: "c", to: "you", cls: "yel" });
-            if (e.type === "spec.approved") packets.push({ t: e.t - 3, from: "you", to: "c", cls: "yel" });
+            if (e.type === "spec.written") packets.push({ t: e.t, from: "c", to: "you", cls: "fg" });
+            if (e.type === "spec.approved") packets.push({ t: e.t - 3, from: "you", to: "c", cls: "fg" });
           });
           var lastRep;
           function build() {
@@ -3229,7 +3369,7 @@
                 '" text-anchor="middle" font-size="' +
                 (k === "you" ? 14 : N ? 15 : 17) +
                 '" class="' +
-                (k === "you" ? "t-yel disp-t" : "t-fg mono-t") +
+                (k === "you" ? "t-fg disp-t" : "t-fg mono-t") +
                 ' nl">' +
                 (k === "you" ? "YOU" : k) +
                 "</text>";
@@ -3242,11 +3382,7 @@
             });
             var R = C.r + 10;
             h += '<circle cx="' + C.x + '" cy="' + C.y + '" r="' + C.r + '" class="f-card s-ink" stroke-width="3"/>';
-            [
-              ["s-cyan", -90],
-              ["s-mag", 30],
-              ["s-yel", 150],
-            ].forEach(function (a) {
+            [].forEach(function (a) {
               h +=
                 '<circle cx="' +
                 C.x +
@@ -3327,9 +3463,9 @@
                   var a1 = projT("→ awaiting-approval"),
                     a2 = projT("→ running");
                   var busy = t >= a1 && t < a2;
-                  rect.setAttribute("class", (busy ? "f-yel" : "f-raised") + " s-line nb");
-                  lab.setAttribute("class", (busy ? "t-ink" : "t-yel") + " disp-t nl");
-                  st.setAttribute("class", (busy ? "t-ink" : "t-muted") + " mono-t ns");
+                  rect.setAttribute("class", "f-raised " + (busy ? "s-fg" : "s-line") + " s-dash nb");
+                  lab.setAttribute("class", "t-fg disp-t nl");
+                  st.setAttribute("class", (busy ? "t-fg" : "t-muted") + " mono-t ns");
                   st.textContent = t < a1 ? "answering questions" : busy ? "reviewing spec…" : "approved";
                   return;
                 }
@@ -3449,6 +3585,7 @@
                     '"><span class="path" title="' +
                     esc(f.path) +
                     '">' +
+                    (f.isNew ? '<b class="nf">NEW</b>' : "") +
                     esc(f.path) +
                     '</span><span class="bar"><i class="a" style="width:' +
                     (f.a / MAX) * 100 +
@@ -3598,13 +3735,13 @@
               c.w +
               '" height="' +
               c.h +
-              '" rx="16" class="f-raised s-yel cbox" stroke-width="2"/>';
+              '" rx="16" class="f-raised s-fg cbox" stroke-width="2"/>';
             h +=
               '<text x="' +
               (c.x + 18) +
               '" y="' +
               (c.y + 30) +
-              '" font-size="14" class="t-yel mono-t">contracts/account.json</text>';
+              '" font-size="14" class="t-fg mono-t">contracts/account.json</text>';
             h +=
               '<text x="' +
               (c.x + 18) +
@@ -3689,7 +3826,7 @@
             h +=
               '<path class="fade ord" d="' +
               ord +
-              '" fill="none" class="s-yel" stroke="#EDEB3C" stroke-width="2" stroke-dasharray="6 6" style="opacity:0"/>';
+              '" fill="none" class="s-muted" stroke="#A8A6AF" stroke-width="2" stroke-dasharray="6 6" style="opacity:0"/>';
             setBox(svg, L.w, L.h, L.minW);
             svg.innerHTML = h;
             show(cur);
@@ -3708,14 +3845,14 @@
               var id = r.replace("/", "-");
               var link = q(".link-" + id);
               var lit = i === 0 || (i === 1 && CONSUMERS.indexOf(r) >= 0);
-              link.setAttribute("stroke", i === 1 && CONSUMERS.indexOf(r) >= 0 ? "#48A6EE" : "#45434C");
+              link.setAttribute("stroke", i === 1 && CONSUMERS.indexOf(r) >= 0 ? "#F4F4F6" : "#45434C");
               link.style.opacity = lit || i >= 2 ? 1 : 0.4;
               var box = svg.querySelector('.chipbox[data-r="' + r + '"] .cb');
               var cs = q(".cs-" + id);
               var cls = "f-raised s-line cb",
                 status = "";
               if (i === 1 && CONSUMERS.indexOf(r) >= 0) {
-                cls = "f-raised s-cyan cb";
+                cls = "f-raised s-fg cb";
                 status = "contract updated";
               }
               if (i === 1 && r === "api") {
@@ -3723,31 +3860,29 @@
                 status = "asked a question";
               }
               if (i === 2 && r === "sdk-python") {
-                cls = "f-raised s-yel cb";
-                status = "1 failing · retry";
+                cls = "f-warn s-warn cb";
+                status = "1 failing";
               }
               if (i === 3 && r === "sdk-python") {
-                cls = "f-yel s-ink cb";
-                status = "keeps alias";
+                cls = "f-raised s-fg s-dash cb";
+                status = "assumption";
               }
               if (i === 4 && r === "sdk-js") {
                 cls = "f-card s-ink cb";
                 status = "done";
               }
               if (i === 4 && r === "mobile") {
-                cls = "f-raised s-yel cb";
+                cls = "f-raised s-fg cb";
                 status = "after sdk-js";
               }
               if (i === 0 && r === "mobile") status = "waits on sdk-js";
               box.setAttribute("class", cls);
               cs.textContent = status;
-              var ink = cls.indexOf("f-yel") === 0 || cls.indexOf("f-card") === 0;
+              var ink = cls.indexOf("f-warn") === 0 || cls.indexOf("f-card") === 0;
               q(".cn-" + id).setAttribute("class", "mono-t cn-" + id + (ink ? " t-ink" : " t-fg"));
               cs.setAttribute(
                 "class",
-                "mono-t cs cs-" +
-                  id +
-                  (cls.indexOf("f-yel") === 0 || cls.indexOf("f-card") === 0 ? " t-ink" : " t-muted"),
+                "mono-t cs cs-" + id + (ink ? " t-ink" : cls.indexOf("s-dash") > 0 ? " t-fg" : " t-muted"),
               );
             });
             q(".cdep").style.opacity = i >= 1 ? 1 : 0;
@@ -3834,12 +3969,14 @@
                       if (python && i === n - 2) {
                         c.classList.add("bad");
                         score.textContent = "22/23 · 1 FAILING";
+                        score.classList.add("warn");
                         timers.push(
                           setTimeout(function () {
                             cells.forEach(function (x) {
                               x.classList.remove("bad");
                               x.classList.add("on");
                             });
+                            score.classList.remove("warn");
                             score.textContent = "RETRY · " + n + "/" + n + " PASS";
                           }, step * 1400),
                         );

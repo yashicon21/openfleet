@@ -265,7 +265,9 @@ Three stacked full-bleed bands in cyan, magenta and yellow, each scrolling a lin
 
 ### Run Diagrams (signature)
 
-Replayable figures that show a run: a swimlane with one lane per repo and bars coloured by role (cyan planner, magenta implementer, yellow tester, pale amber failed run), a coordinator hub with packets flying to repos, phase tables, diff bars (magenta added, cyan removed) and test tallies (green unit, counter-blue contract cells). Each sits in a figure panel with a display-caps title, a replay button, a scrubber and a yellow LCD clock. Diagrams are drawn as inline SVG and HTML from tokens, never as raster images, and every one has a static end state for reduced motion.
+Replayable figures that show a run: a swimlane with one lane per repo, a coordinator hub with packets flying to repos, a phase table, a diff by file, a decisions stepper and a test tally. Each sits in a figure panel with a display-caps title, a replay button, a scrubber, a yellow LCD clock and a one-line key under the header. Diagrams are drawn as inline SVG and HTML from tokens, never as raster images, and every one has a static end state for reduced motion.
+
+**The One Meaning Rule.** Inside a diagram, each colour means one thing on every figure: luck cyan = planner, luck magenta = implementer, luck yellow = tester. The coordinator and contracts are on-ground white; **you** (the person) is always a dashed white outline; done is card paper; a failure is warning amber (#8A5300 on #FFF1CC) with the word FAIL or FAILING. Diff bars are neutral (white for added, a muted outline for removed) with a NEW tag for new files; test tallies use success green for a repo's own tests and counter blue for contract tests. Brand colour in a figure's chrome (the title dots, the clock) is frame, not data.
 
 ### Stat Tiles
 
