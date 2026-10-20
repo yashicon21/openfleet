@@ -504,6 +504,7 @@
         margin-inline: auto;
       }
       .wide {
+        width: 100%;
         max-width: 1120px;
         margin-inline: auto;
       }
@@ -3464,7 +3465,9 @@
                 (p.x + 14) +
                 '" y="' +
                 (p.y + 28) +
-                '" font-size="15" class="t-fg mono-t">' +
+                '" font-size="15" class="t-fg mono-t cn-' +
+                id +
+                '">' +
                 r +
                 "</text>";
               h +=
@@ -3549,11 +3552,11 @@
               }
               if (i === 2 && r === "sdk-python") {
                 cls = "f-raised s-yel cb";
-                status = "1 failing · retry 1/3";
+                status = "1 failing · retry";
               }
               if (i === 3 && r === "sdk-python") {
                 cls = "f-yel s-ink cb";
-                status = "assumption: keep alias";
+                status = "keeps alias";
               }
               if (i === 4 && r === "sdk-js") {
                 cls = "f-card s-ink cb";
@@ -3561,11 +3564,13 @@
               }
               if (i === 4 && r === "mobile") {
                 cls = "f-raised s-yel cb";
-                status = "starts after sdk-js";
+                status = "after sdk-js";
               }
               if (i === 0 && r === "mobile") status = "waits on sdk-js";
               box.setAttribute("class", cls);
               cs.textContent = status;
+              var ink = cls.indexOf("f-yel") === 0 || cls.indexOf("f-card") === 0;
+              q(".cn-" + id).setAttribute("class", "mono-t cn-" + id + (ink ? " t-ink" : " t-fg"));
               cs.setAttribute(
                 "class",
                 "mono-t cs cs-" +
