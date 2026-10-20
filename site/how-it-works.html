@@ -6,7 +6,7 @@
     <title>How it works · OpenFleet</title>
     <meta
       name="description"
-      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos with 23 agents, a contract change, a retry and an assumption."
+      content="An illustrative OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
     />
     <meta name="theme-color" content="#0E0E10" />
     <link rel="canonical" href="https://openfleet.tools/how-it-works.html" />
@@ -18,7 +18,7 @@
     <meta property="og:title" content="How it works · OpenFleet" />
     <meta
       property="og:description"
-      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos with 23 agents, a contract change, a retry and an assumption."
+      content="An illustrative OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
     />
     <meta property="og:url" content="https://openfleet.tools/how-it-works.html" />
     <meta name="twitter:card" content="summary" />
@@ -1282,6 +1282,74 @@
         display: inline-block;
         margin-top: 4px;
       }
+      .closer {
+        width: 100%;
+        padding-top: 56px;
+      }
+      .closer-cmd {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 6px 6px 16px;
+        border-radius: 8px;
+        background: var(--raised);
+        border: 1px solid var(--line);
+        font-family: var(--mono);
+        font-size: 17px;
+      }
+      .closer-cmd > span {
+        color: var(--magenta);
+      }
+      .closer-cmd code {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        color: var(--fg);
+        background: none;
+        padding: 0;
+        line-height: 44px;
+      }
+      .closer-cmd .of-copy {
+        flex: none;
+        height: 44px;
+        min-width: 88px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2e2d35;
+        color: var(--fg);
+        cursor: pointer;
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+      }
+      .closer-btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+      }
+      .closer-go {
+        display: inline-flex;
+        align-items: center;
+        height: 56px;
+        padding: 0 28px;
+        border-radius: 8px;
+        background: var(--cyan);
+        border: 2px solid var(--ink);
+        box-shadow: 0 4px 0 0 var(--ink);
+        color: var(--ink);
+        text-decoration: none;
+        font-family: var(--display);
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
+      .closer-go:focus-visible,
+      .closer-cmd .of-copy:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 3px;
+      }
       .source {
         border-top: 2px solid var(--line);
         padding-top: 20px;
@@ -1810,8 +1878,8 @@
     <div class="marquee" aria-hidden="true">
       <div class="band c">
         <span
-          >ACCOUNT-ID · EXAMPLE RUN · 203 EVENTS · 23 AGENTS · 7 REPOS · 4:40 · ACCOUNT-ID · EXAMPLE RUN · 203 EVENTS ·
-          23 AGENTS · 7 REPOS · 4:40 ·</span
+          >ACCOUNT-ID · ILLUSTRATIVE RUN · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS · ACCOUNT-ID · ILLUSTRATIVE RUN · 7
+          REPOS · 23 SUB-AGENTS · 203 EVENTS ·</span
         >
       </div>
       <div class="band m">
@@ -1822,45 +1890,47 @@
       </div>
       <div class="band y">
         <span
-          >7 DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS · 7 DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS · 7
-          DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS ·</span
+          >1 TEST FAILED · 1 RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU · 1 TEST FAILED · 1
+          RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU ·</span
         >
       </div>
     </div>
 
     <header class="wrap">
       <div class="wide hero">
-        <p class="kicker">HOW IT WORKS · AN EXAMPLE RUN</p>
-        <h1>Seven repos, 23 agents, <span class="lcd">4:40</span></h1>
+        <p class="kicker">HOW IT WORKS · AN ILLUSTRATIVE RUN</p>
+        <h1>A test failed. Here’s how the run handled it.</h1>
         <p class="dek">
-          One prompt: rename <code>user_id</code> to <code>account_id</code> in the API, both SDKs and every client.
-          This page walks through the run event by event: who did what, to which repo, and when.
+          One prompt: rename <code>user_id</code> to <code>account_id</code> across seven repos. Along the way a test
+          failed, the repo went back with the findings, and the coordinator made one call the spec didn’t cover, then
+          logged it for you to confirm. Here is every step, straight from the event log.
         </p>
         <p class="note-mock">
-          This run is illustrative: the timings and events are mocked, but every event type is one OpenFleet really
-          logs. For a real run you can replay yourself, try <code>pnpm demo</code>.
+          This run is illustrative: its timings and events are mocked, but every event type is one OpenFleet really
+          logs. To replay a real run yourself, try <code>pnpm demo</code>.
         </p>
-        <p class="byline">project account-id · example run · 0:00 → 4:40</p>
+        <p class="byline">illustrative run · project account-id · 0:00 → 4:40</p>
       </div>
-      <div class="wide stats">
+      <div class="wide stats" role="group" aria-label="The illustrative run at a glance">
         <div class="stat"><b>4:40</b><span>START TO DONE</span></div>
-        <div class="stat"><b>203</b><span>EVENTS LOGGED</span></div>
-        <div class="stat"><b>23</b><span>SUB-AGENTS</span></div>
-        <div class="stat"><b>+314/−106</b><span>LINES, 24 FILES</span></div>
-        <div class="stat"><b>177/177</b><span>TESTS PASS</span></div>
+        <div class="stat"><b>1 + 23</b><span>COORDINATOR + SUB-AGENTS</span></div>
+        <div class="stat"><b>1</b><span>FAILED TEST, FIXED ON RETRY</span></div>
+        <div class="stat"><b>1</b><span>ASSUMPTION FOR YOU</span></div>
+        <div class="stat"><b>0</b><span>PRS MERGED WITHOUT YOU</span></div>
       </div>
     </header>
 
     <main class="wrap" id="content">
       <article>
         <section class="col prose">
-          <h2><small>01 · THE WHOLE RUN</small>Under five minutes, 23 agents</h2>
+          <h2><small>01 · THE WHOLE RUN</small>One conversation, then hands-off</h2>
           <p>
             OpenFleet writes every step of a run to <code>events.jsonl</code>: who did what, to which repo, and when.
-            The <strong>coordinator</strong> is the agent you talk to. It spends the first forty seconds with you,
-            settling questions and writing a spec. After you approve, it creates a worktree for each repo and hands each
-            one to three short-lived sub-agents in turn: a <strong>planner</strong>, an <strong>implementer</strong> and
-            a <strong>tester</strong>.
+            The <strong>coordinator</strong> is the agent you talk to. For the first forty seconds it
+            <strong>grills</strong> you: it asks every question it needs answered, then writes a spec. Once you approve
+            the spec, you are done talking. It creates a git worktree for each repo and hands each one to three
+            short-lived sub-agents in turn: a <strong>planner</strong>, an <strong>implementer</strong> and a
+            <strong>tester</strong>.
           </p>
           <p>
             Press replay to watch all 203 events land. Six repos start within ten seconds of each other.
@@ -1911,10 +1981,12 @@
         <section class="col prose">
           <h2><small>02 · STATE</small>Every repo walks the same path</h2>
           <p>
-            The coordinator moves each repo through the same phases, and almost always forwards. The one exception is
-            <code>sdk-python</code>: after a failed test it goes back from testing to implementing (the ↺), with the
-            tester’s findings attached. <code>mobile</code> spends most of the run in pending, waiting on
-            <code>sdk-js</code>.
+            The coordinator moves each repo through the same phases: pending, planning, <strong>plan-review</strong>
+            (it checks the plan against the spec before any code is written), implementing, testing,
+            <strong>post-test</strong> (it checks the test results before calling the repo done), and done. Almost
+            always forwards: the one exception is <code>sdk-python</code>, which goes back from testing to implementing
+            (the ↺) with the tester’s findings attached. <code>mobile</code> spends most of the run in pending, waiting
+            on <code>sdk-js</code>.
           </p>
         </section>
 
@@ -1957,8 +2029,7 @@
           </div>
           <p class="figcap">
             <b id="phase-now" class="mono"></b> Each cell shows how long that repo spent in the phase; the highlighted
-            cell is where it is now. Plan-review and post-test are gates the coordinator stamps once it has checked the
-            plan or the tests.
+            cell is where it is now.
           </p>
         </figure>
 
@@ -2040,11 +2111,12 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>05 · THE DECISIONS</small>A contract change, a retry and an assumption</h2>
+          <h2><small>05 · THE DECISIONS</small>Five moments the coordinator stepped in</h2>
           <p>
-            Most of a run is agents working alone. The interesting moments are where the coordinator has to step in:
-            answering a question, sending a repo back after a failed test, or making a call the spec didn’t cover. Step
-            through the four that shaped this run.
+            Most of a run is agents working alone. These five moments are where the coordinator stepped in: pinning a
+            contract, answering a question, sending a repo back after a failed test, making a call the spec didn’t
+            cover, and holding an ordering. Watch step 4: the coordinator decided something on its own, and wrote it
+            down for you to confirm before anything merges.
           </p>
         </section>
 
@@ -2096,7 +2168,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>07 · WHAT’S LEFT</small>Seven draft PRs, linked</h2>
+          <h2><small>07 · WHAT’S LEFT</small>Nothing merges without you</h2>
           <p>
             The run ends in <strong>draft PR</strong> mode, as agreed in the grill. The coordinator commits each
             worktree to its <code>openfleet/account-id</code> branch, pushes it and opens a draft PR. Every PR links to
@@ -2132,6 +2204,23 @@
             </div>
           </div>
         </div>
+
+        <section class="col prose closer" aria-labelledby="closer-h">
+          <h2 id="closer-h">Run it on your own repos</h2>
+          <p>
+            One command sets up a workspace; the next opens the grill for your change. You answer the questions once,
+            then come back to tested work in every repo.
+          </p>
+          <div class="closer-cmd">
+            <span aria-hidden="true">$</span><code>npm create @openfleet-tools@latest</code
+            ><button class="of-copy" type="button" id="closer-copy" aria-label="Copy setup command">
+              <span id="closer-copy-label" aria-live="polite">COPY</span>
+            </button>
+          </div>
+          <div class="closer-btns">
+            <a class="of-btn closer-go" href="index.html#quickstart">START YOUR OWN RUN</a>
+          </div>
+        </section>
 
         <p class="col source">
           Every event on this page is mocked for illustration. The event types and fields follow the
@@ -3695,6 +3784,24 @@
             );
           });
         })();
+      })();
+    </script>
+    <script>
+      (function () {
+        var b = document.getElementById("closer-copy");
+        var l = document.getElementById("closer-copy-label");
+        var t;
+        if (!b) return;
+        b.addEventListener("click", function () {
+          if (!navigator.clipboard) return;
+          navigator.clipboard.writeText("npm create @openfleet-tools@latest").then(function () {
+            l.textContent = "COPIED";
+            clearTimeout(t);
+            t = setTimeout(function () {
+              l.textContent = "COPY";
+            }, 1800);
+          });
+        });
       })();
     </script>
   </body>
