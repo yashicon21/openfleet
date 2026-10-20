@@ -10,6 +10,8 @@ import { UserError, type Workspace } from "./workspace.js";
 
 export const MANIFEST = "openfleet.extension.json";
 export const SLOTS = ["pre-spec", "post-plan", "post-test", "post-run"] as const;
+/** Slots that run once per child. `pre-spec` and `post-run` run once per project. */
+export const CHILD_SLOTS: readonly Slot[] = ["post-plan", "post-test"];
 export const ROLES = ["coordinator", "planner", "implementer", "tester"] as const;
 export const PERMISSIONS = ["read", "write", "shell", "web"] as const;
 export const BUILTIN_COMMANDS = [
@@ -26,6 +28,7 @@ export const BUILTIN_COMMANDS = [
   "event",
   "state",
   "worktree",
+  "ext",
   "help",
   "version",
 ];
@@ -34,23 +37,46 @@ export type Slot = (typeof SLOTS)[number];
 export type ExtRole = (typeof ROLES)[number];
 export type Permission = (typeof PERMISSIONS)[number];
 
+export const MANIFEST_VERSION = 2;
+export const DEFAULT_TIMEOUT_MINUTES = 30;
+
+export interface PhaseEntry {
+  slot: Slot;
+  /** Markdown instructions (relative path). */
+  instructions: string;
+  /** Default false (advisory). A blocking failure fails the child. */
+  blocking?: boolean;
+  /** Run only if at least one of these paths exists in the child's worktree. */
+  when?: { files: string[] };
+  /** Default 30. */
+  timeoutMinutes?: number;
+}
+
+export interface AugmentEntry {
+  role: ExtRole;
+  /** Markdown instructions (relative path), appended to the role's agent prompt. */
+  instructions: string;
+}
+
+export interface SettingDecl {
+  default: string;
+  description?: string;
+}
+
 export interface ExtensionManifest {
+  manifest: typeof MANIFEST_VERSION;
   name: string;
   version: string;
   description?: string;
   /** Semver range of compatible @openfleet-tools/cli core versions. */
   core: string;
-  mode: "phase" | "augment";
-  /** Required for mode "phase". */
-  slot?: Slot;
-  /** Required for mode "augment". */
-  role?: ExtRole;
-  /** Markdown instructions (relative path). Defaults to "instructions.md". */
-  instructions?: string;
+  phases?: PhaseEntry[];
+  augments?: AugmentEntry[];
   /** CLI command name -> Markdown skill (relative path). */
   commands?: Record<string, string>;
-  /** Defaults to ["read"]. */
+  /** Defaults to ["read"]. Applies to every phase agent and command of the extension. */
   permissions?: Permission[];
+  settings?: Record<string, SettingDecl>;
 }
 
 export interface LockEntry {
@@ -73,6 +99,7 @@ export interface LockFile {
 }
 
 const NAME = /^[a-z0-9][a-z0-9-]{0,62}$/;
+const SETTING_KEY = /^[A-Za-z][A-Za-z0-9_-]{0,62}$/;
 const ALLOWED_EXT = new Set([".md", ".json", ".txt", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"]);
 const ALLOWED_BARE = new Set(["LICENSE", "LICENCE", "NOTICE", "COPYING", ".gitignore", ".gitattributes"]);
 
@@ -125,6 +152,65 @@ export function assertInstructionOnly(dir: string): void {
   }
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** Build the v2 equivalent of a v1 manifest, for the rejection message. */
+function v1Equivalent(m: Record<string, unknown>): string {
+  const { mode, slot, role, instructions, ...rest } = m;
+  const rel = typeof instructions === "string" ? instructions : "instructions.md";
+  const v2: Record<string, unknown> = { manifest: MANIFEST_VERSION, ...rest };
+  if (mode === "augment") v2.augments = [{ role, instructions: rel }];
+  else v2.phases = [{ slot, instructions: rel }];
+  return JSON.stringify(v2, null, 2);
+}
+
+function validatePhase(dir: string, raw: unknown, i: number): PhaseEntry {
+  const at = `phases[${i}]`;
+  if (!isObject(raw)) fail(dir, `"${at}" must be an object`);
+  for (const k of Object.keys(raw)) {
+    if (!["slot", "instructions", "blocking", "when", "timeoutMinutes"].includes(k))
+      fail(dir, `unknown field "${at}.${k}"`);
+  }
+  if (!SLOTS.includes(raw.slot as Slot)) fail(dir, `"${at}.slot" must be one of ${SLOTS.join(", ")}`);
+  relFile(dir, raw.instructions, `${at}.instructions`);
+  if (raw.blocking !== undefined && typeof raw.blocking !== "boolean") fail(dir, `"${at}.blocking" must be a boolean`);
+  if (raw.blocking === true && !CHILD_SLOTS.includes(raw.slot as Slot)) {
+    fail(dir, `"${at}.blocking" is only supported in the per-child slots ${CHILD_SLOTS.join(", ")}`);
+  }
+  if (raw.when !== undefined) {
+    const files = isObject(raw.when) ? raw.when.files : undefined;
+    if (
+      !isObject(raw.when) ||
+      Object.keys(raw.when).some((k) => k !== "files") ||
+      !Array.isArray(files) ||
+      !files.length ||
+      !files.every((f) => typeof f === "string" && f && !path.isAbsolute(f) && !f.split(/[\\/]/).includes(".."))
+    ) {
+      fail(dir, `"${at}.when" must be { "files": [<relative paths>] }`);
+    }
+  }
+  if (
+    raw.timeoutMinutes !== undefined &&
+    (typeof raw.timeoutMinutes !== "number" || !Number.isInteger(raw.timeoutMinutes) || raw.timeoutMinutes < 1)
+  ) {
+    fail(dir, `"${at}.timeoutMinutes" must be a positive integer`);
+  }
+  return raw as unknown as PhaseEntry;
+}
+
+function validateAugment(dir: string, raw: unknown, i: number): AugmentEntry {
+  const at = `augments[${i}]`;
+  if (!isObject(raw)) fail(dir, `"${at}" must be an object`);
+  for (const k of Object.keys(raw)) {
+    if (!["role", "instructions"].includes(k)) fail(dir, `unknown field "${at}.${k}"`);
+  }
+  if (!ROLES.includes(raw.role as ExtRole)) fail(dir, `"${at}.role" must be one of ${ROLES.join(", ")}`);
+  relFile(dir, raw.instructions, `${at}.instructions`);
+  return raw as unknown as AugmentEntry;
+}
+
 export function validateManifest(dir: string): ExtensionManifest {
   const file = path.join(dir, MANIFEST);
   if (!isFile(file)) fail(dir, `missing ${MANIFEST}`);
@@ -134,21 +220,29 @@ export function validateManifest(dir: string): ExtensionManifest {
   } catch (err) {
     fail(dir, `${MANIFEST} is not valid JSON (${(err as Error).message})`);
   }
+  if (m.manifest !== MANIFEST_VERSION) {
+    if (m.manifest === undefined && (m.mode !== undefined || m.slot !== undefined || m.role !== undefined)) {
+      fail(
+        dir,
+        `manifest version 1 ("mode"/"slot"/"role") is no longer supported. Use manifest version 2, for example:\n${v1Equivalent(m)}`,
+      );
+    }
+    fail(dir, `"manifest" must be ${MANIFEST_VERSION}`);
+  }
+  for (const k of ["mode", "slot", "role", "instructions"]) {
+    if (m[k] !== undefined) fail(dir, `"${k}" is not a manifest v2 field; use "phases" and "augments"`);
+  }
   if (typeof m.name !== "string" || !NAME.test(m.name)) fail(dir, `"name" must match ${NAME}`);
   if (typeof m.version !== "string" || !semver.valid(m.version)) fail(dir, `"version" must be a semver version`);
   if (typeof m.core !== "string" || !semver.validRange(m.core)) fail(dir, `"core" must be a semver range`);
   if (m.description !== undefined && typeof m.description !== "string") fail(dir, `"description" must be a string`);
-  if (m.mode !== "phase" && m.mode !== "augment") fail(dir, `"mode" must be "phase" or "augment"`);
-  if (m.mode === "phase" && !SLOTS.includes(m.slot as Slot)) fail(dir, `"slot" must be one of ${SLOTS.join(", ")}`);
-  if (m.mode === "augment" && !ROLES.includes(m.role as ExtRole))
-    fail(dir, `"role" must be one of ${ROLES.join(", ")}`);
-  if (m.mode === "phase" && m.role !== undefined) fail(dir, `"role" is only valid for mode "augment"`);
-  if (m.mode === "augment" && m.slot !== undefined) fail(dir, `"slot" is only valid for mode "phase"`);
-  relFile(dir, m.instructions ?? "instructions.md", "instructions");
+  if (m.phases !== undefined && !Array.isArray(m.phases)) fail(dir, `"phases" must be an array`);
+  if (m.augments !== undefined && !Array.isArray(m.augments)) fail(dir, `"augments" must be an array`);
+  const phases = ((m.phases ?? []) as unknown[]).map((p, i) => validatePhase(dir, p, i));
+  const augments = ((m.augments ?? []) as unknown[]).map((a, i) => validateAugment(dir, a, i));
+  if (!phases.length && !augments.length) fail(dir, `at least one "phases" or "augments" entry is required`);
   if (m.commands !== undefined) {
-    if (typeof m.commands !== "object" || m.commands === null || Array.isArray(m.commands)) {
-      fail(dir, `"commands" must be an object of name -> skill.md`);
-    }
+    if (!isObject(m.commands)) fail(dir, `"commands" must be an object of name -> skill.md`);
     for (const [cmd, skill] of Object.entries(m.commands)) {
       if (!NAME.test(cmd)) fail(dir, `command name "${cmd}" must match ${NAME}`);
       if (BUILTIN_COMMANDS.includes(cmd)) fail(dir, `command "${cmd}" collides with a built-in command`);
@@ -160,8 +254,87 @@ export function validateManifest(dir: string): ExtensionManifest {
       fail(dir, `"permissions" must be a subset of ${PERMISSIONS.join(", ")}`);
     }
   }
+  if (m.settings !== undefined) {
+    if (!isObject(m.settings)) fail(dir, `"settings" must be an object of key -> { default, description }`);
+    for (const [key, decl] of Object.entries(m.settings)) {
+      if (!SETTING_KEY.test(key)) fail(dir, `setting key "${key}" must match ${SETTING_KEY}`);
+      if (!isObject(decl) || typeof decl.default !== "string") fail(dir, `"settings.${key}.default" must be a string`);
+      if (decl.description !== undefined && typeof decl.description !== "string") {
+        fail(dir, `"settings.${key}.description" must be a string`);
+      }
+    }
+  }
   assertInstructionOnly(dir);
   return m as unknown as ExtensionManifest;
+}
+
+/** Generated agent name for each phase entry, in manifest order. Unique per entry. */
+export function phaseAgentNames(m: ExtensionManifest): string[] {
+  const seen: Record<string, number> = {};
+  return (m.phases ?? []).map((p) => {
+    const n = (seen[p.slot] = (seen[p.slot] ?? 0) + 1);
+    return `openfleet-ext-${m.name}-${p.slot}${n > 1 ? `-${n}` : ""}`;
+  });
+}
+
+// ---------------------------------------------------------------- settings
+
+export const SETTINGS_FILE = "extensions.config.json";
+
+export type ExtensionsConfig = Record<string, Record<string, string>>;
+
+export function readExtensionsConfig(ws: Workspace): ExtensionsConfig {
+  const file = path.join(ws.dir, SETTINGS_FILE);
+  if (!isFile(file)) return {};
+  let raw: unknown;
+  try {
+    raw = readJson<unknown>(file);
+  } catch (err) {
+    throw new UserError(`openfleet/${SETTINGS_FILE} is not valid JSON (${(err as Error).message})`);
+  }
+  if (!isObject(raw)) throw new UserError(`openfleet/${SETTINGS_FILE} must be an object of extension -> settings`);
+  for (const [ext, values] of Object.entries(raw)) {
+    if (!isObject(values) || !Object.values(values).every((v) => typeof v === "string")) {
+      throw new UserError(`openfleet/${SETTINGS_FILE}: "${ext}" must be an object of key -> string value`);
+    }
+  }
+  return raw as ExtensionsConfig;
+}
+
+/** Declared defaults overlaid with workspace overrides. Rejects override keys the manifest does not declare. */
+export function resolveSettings(m: ExtensionManifest, config: ExtensionsConfig): Record<string, string> {
+  const decls = m.settings ?? {};
+  const overrides = config[m.name] ?? {};
+  for (const key of Object.keys(overrides)) {
+    if (!(key in decls)) {
+      const known = Object.keys(decls);
+      throw new UserError(
+        `openfleet/${SETTINGS_FILE}: extension "${m.name}" does not declare setting "${key}"` +
+          (known.length ? ` (declared: ${known.join(", ")})` : " (it declares no settings)"),
+      );
+    }
+  }
+  return Object.fromEntries(Object.entries(decls).map(([k, d]) => [k, overrides[k] ?? d.default]));
+}
+
+function cell(s: string): string {
+  return s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+
+/** Markdown `## Settings` section for an extension's prompts, or "" when it declares none. */
+export function settingsSection(m: ExtensionManifest, values: Record<string, string>): string {
+  const keys = Object.keys(m.settings ?? {});
+  if (!keys.length) return "";
+  const rows = keys.map((k) => `| \`${k}\` | ${cell(values[k] ?? "")} | ${cell(m.settings![k]!.description ?? "")} |`);
+  return [
+    `## Settings`,
+    "",
+    `Resolved settings for extension \`${m.name}\` (workspace overrides from \`openfleet/${SETTINGS_FILE}\`):`,
+    "",
+    "| Key | Value | Description |",
+    "| --- | ----- | ----------- |",
+    ...rows,
+  ].join("\n");
 }
 
 export function permissionsOf(m: ExtensionManifest): Permission[] {

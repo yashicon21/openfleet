@@ -45,6 +45,16 @@ npx openfleet worktree <project> <child id> --repo <repos.json key> --branch <br
 
 This command creates `openfleet/projects/<project>/worktrees/<child id>/` from the repo's local checkout (it clones `url` first if there is no local `path`). It also records `worktree`, `branch`, `baseSha` and `repoPath` on the child and logs `worktree.created`. If the worktree already exists, the command does nothing.
 
+## Extension slots
+
+```sh
+npx openfleet ext plan <project> <slot> [--child <id>]                                   # entries to run; logs extension.skipped
+npx openfleet ext result <project> <ext> --slot <slot> [--child <id>] --report '<json>'  # logs extension.ran (+ extension.outputs)
+npx openfleet ext fail <project> <ext> --slot <slot> [--child <id>] --reason '<text>'    # child failed, dependents blocked
+```
+
+`ext result` stores the report's `outputs` in `children.<id>.outputs.<ext>` and its `followUps` in `children.<id>.followUps.<ext>` (or the project-level `followUps` without `--child`). An output named `prUrl` also sets `children.<id>.prUrl`. Do not write these fields with `state --patch`.
+
 ## Events
 
 ```sh
@@ -69,5 +79,7 @@ Events the coordinator must log:
 | A plan is received, accepted or bounced                             | `plan.submitted` / `plan.validated` / `plan.rejected` | `{"plan":"plans/<child>.md","reasons":[…]}`                                                   |
 | A contract changes                                                  | `contract.changed`                                    | `{"contract":"contracts/…","affected":["…"],"summary":"…"}`                                   |
 | A child fails after the guided attempt                              | `child.failed`                                        | `{"reason":"…","retries":4,"findings":["…"],"worktree":"…","blocked":["…"]}`                  |
-| An extension agent finishes                                         | `extension.ran`                                       | `{"extension":"…","slot":"…","summary":"…"}`                                                  |
+| An extension agent finishes                                         | `extension.ran` (+ `extension.outputs`)               | logged by `npx openfleet ext result` (see below)                                              |
+| An extension entry is skipped by `when.files`                       | `extension.skipped`                                   | logged by `npx openfleet ext plan`                                                            |
+| A blocking extension entry fails twice                              | `extension.failed` (+ `child.failed`)                 | logged by `npx openfleet ext fail`                                                            |
 | The run is finished                                                 | `run.completed`                                       | `{"mode":"staged\|draft-pr","children":{…}}`                                                  |

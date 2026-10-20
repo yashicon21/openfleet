@@ -41,7 +41,7 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
 
    If the plan passes, log `plan.validated`.
 
-4. Run the `post-plan` extension agents, if any.
+4. Run the `post-plan` slot for the child (see "Extension slots" below).
 
 ### Implement
 
@@ -50,7 +50,7 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
 ### Test
 
 6. When the implementer reports `done`, patch `{"phase":"testing","pendingSpawn":"tester"}` and spawn `openfleet:openfleet-tester`: "Verify child `<id>` of project `<project>`."
-7. **Pass** (`status: "done"`): patch `{"phase":"post-test"}` and run the `post-test` extension agents. Then patch `{"phase":"done"}`.
+7. **Pass** (`status: "done"`): patch `{"phase":"post-test"}` and run the `post-test` slot for the child (see "Extension slots" below). Patch `{"phase":"done"}` only after every `post-test` entry has finished. If a blocking entry failed twice, the child is already `failed`; do not mark it `done`.
 8. **Fail**: increment `retries`.
    - If `retries < 3`: patch `{"phase":"implementing","retries":n,"pendingSpawn":"implementer"}` and spawn a **new** implementer with the findings (step 5).
    - If `retries` reaches 3: **guided attempt.** Do not ask the user. Review the problem yourself:
@@ -59,6 +59,19 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
      3. Write concrete guidance: the cause, the approach to take, the files to change, and what to stop doing. If the fix needs a decision the spec does not cover, make it and log an `assumption` (see section 4).
      4. Patch `{"phase":"implementing","retries":3,"pendingSpawn":"implementer"}` and spawn **one** more new implementer with your guidance and the latest findings. Log the prompt as `message.sent`.
    - If the guided attempt also fails (`retries` reaches 4): the child has **failed**. Follow "Failed children" below.
+
+### Extension slots
+
+For `post-plan` and `post-test`, per child:
+
+1. `npx openfleet ext plan <project> <slot> --child <id>`. Run only the entries under `run`; skipped entries are already logged as `extension.skipped`.
+2. For each entry, in order: spawn its `agent` with "Run `<slot>` for child `<id>` of project `<project>`. Worktree: `<worktree>`." Wait for it with `read_agent`. If it is still running after `timeoutMinutes`, stop it and treat the attempt as failed.
+3. Record its `openfleet-report` block: `npx openfleet ext result <project> <extension> --slot <slot> --child <id> --report '<json from the block>'`. Pass `outputs` and `followUps` through exactly as reported; the helper validates them (flat string values only). An output named `prUrl` becomes the child's `prUrl`.
+4. If the attempt failed (report `status: "failed"`, no report, or a timeout):
+   - **advisory** entry: record it and continue.
+   - **blocking** entry: spawn one **fresh** agent for the same entry and try again. If the retry also fails, run `npx openfleet ext fail <project> <extension> --slot <slot> --child <id> --reason '<why>'` and stop this child's pipeline. The helper marks the child `failed`, marks its not-yet-done dependents `blocked`, and logs `extension.failed` and `child.failed`.
+
+Dependents are scheduled only when this child is `done`, so they start after every blocking `post-test` entry succeeds. The spawn hook then injects the recorded outputs into their planner, implementer and tester prompts under **Upstream outputs** (direct and transitive dependencies). You do not need to relay them yourself.
 
 ### Failed children
 

@@ -40,6 +40,7 @@ openfleet/
   core/                  # installed by the CLI; replaced by `update` (gitignored)
   extensions/            # instruction-only extensions (commit this)
   extensions.lock.json   # source + pinned SHA per extension (commit this)
+  extensions.config.json # optional per-workspace extension settings (commit this)
   repos.json             # known repos/packages, build and test commands (commit this)
   projects/<name>/
     spec.md  state.json  events.jsonl  contracts/  plans/
@@ -102,7 +103,7 @@ See [docs/events.md](https://github.com/yashicon21/openfleet/blob/main/docs/even
 
 ## Extensions
 
-Extensions are **instruction-only**: a folder with `openfleet.extension.json` and Markdown, and no executable code. An extension can run as its own agent at a phase slot (`pre-spec`, `post-plan`, `post-test`, `post-run`), augment a role's instructions, and add CLI commands. Write and shell access must be declared, and the generated agent's tool allow-list enforces it.
+Extensions are **instruction-only**: a folder with `openfleet.extension.json` and Markdown, and no executable code. An extension (manifest v2) can run agents at phase slots (`pre-spec`, `post-plan`, `post-test`, `post-run`), augment a role's instructions, and add CLI commands. Phase entries can be blocking, can run only when certain files exist, and can report outputs (such as a published version or a PR URL) that OpenFleet injects into dependent repos' prompts. Settings can be overridden per workspace in `openfleet/extensions.config.json`. Write and shell access must be declared, and the generated agent's tool allow-list enforces it.
 
 See [docs/extensions.md](https://github.com/yashicon21/openfleet/blob/main/docs/extensions.md).
 

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import { appendEvent, readEvents } from "../events.js";
 import { deleteBranch, removeWorktree, tryGit } from "../git.js";
+import { syncExtensions } from "../core.js";
 import { launch } from "../launcher.js";
 import { newState, readState, updateState, type ProjectState } from "../state.js";
 import { writeJson } from "../fsutil.js";
@@ -64,6 +65,8 @@ export function cmdNew(args: string[], passthrough: string[], opts: { ask?: bool
   const ws = requireWorkspace();
   const [rawName, ...promptParts] = args;
   const name = validateProjectName(rawName);
+  // Re-sync so edits to openfleet/extensions.config.json reach the generated agents.
+  syncExtensions(ws, warn);
   const state = createProject(ws, name);
   const request = promptParts.join(" ").trim();
   out(`Created project ${name} at ${projectPaths(ws, name).dir}. Launching the coordinator…`);
@@ -93,6 +96,7 @@ export function cmdResume(
   const name = validateProjectName(args[0]);
   const p = projectPaths(ws, name);
   let state = readState(p);
+  syncExtensions(ws, warn);
   if (opts.fresh || !state.sessionId) {
     const sessionId = crypto.randomUUID();
     state = updateState(

@@ -49,7 +49,12 @@ export interface ChildState {
   dependsOn: string[];
   agentIds: Partial<Record<Role, string>>;
   plan?: string;
+  /** Set by finalize, or mid-run by an extension output named `prUrl`. Finalize then updates this PR. */
   prUrl?: string;
+  /** Extension outputs, keyed by extension name. Injected into dependents' prompts by the spawn hook. */
+  outputs?: Record<string, Record<string, string>>;
+  /** Extension follow-ups for people after the run, keyed by extension name. */
+  followUps?: Record<string, string[]>;
   lastSnapshot?: string;
   notes?: string;
 }
@@ -77,6 +82,37 @@ export interface ProjectState {
   /** Keyed by child id: `<repo>` or `<repo>:<package>`. */
   children: Record<string, ChildState>;
   questions: Question[];
+  /** Follow-ups from project-level extension slots (`pre-spec`, `post-run`), keyed by extension name. */
+  followUps?: Record<string, string[]>;
+}
+
+/** Every child that depends on `id`, directly or transitively. */
+export function dependentsOf(state: ProjectState, id: string): string[] {
+  const out = new Set<string>();
+  const queue = [id];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const [cid, c] of Object.entries(state.children)) {
+      if (!out.has(cid) && cid !== id && (c.dependsOn ?? []).includes(cur)) {
+        out.add(cid);
+        queue.push(cid);
+      }
+    }
+  }
+  return [...out];
+}
+
+/** Every child that `id` depends on, directly or transitively, nearest first. */
+export function dependenciesOf(state: ProjectState, id: string): string[] {
+  const out: string[] = [];
+  const queue = [...(state.children[id]?.dependsOn ?? [])];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    if (cur === id || out.includes(cur)) continue;
+    out.push(cur);
+    queue.push(...(state.children[cur]?.dependsOn ?? []));
+  }
+  return out;
 }
 
 export function newState(name: string, sessionId?: string): ProjectState {

@@ -54,9 +54,56 @@ export function writeExtension(
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "openfleet.extension.json"), JSON.stringify(manifest, null, 2));
   const all = { "instructions.md": `# ${String(manifest.name)}\nDo the thing.\n`, ...files };
+  for (const entry of [
+    ...((manifest.phases as { instructions?: string }[]) ?? []),
+    ...((manifest.augments as { instructions?: string }[]) ?? []),
+  ]) {
+    const rel = entry.instructions;
+    if (rel && !rel.includes("..") && !(rel in all)) (all as Record<string, string>)[rel] = `# ${rel}\nDo the thing.\n`;
+  }
   for (const [name, body] of Object.entries(all)) {
     fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
     fs.writeFileSync(path.join(dir, name), body);
   }
   return dir;
+}
+
+/**
+ * Generic fixture shaped like a real use case: a blocking post-test phase that
+ * publishes something and reports outputs (including `prUrl`), an implementer
+ * augment that consumes upstream outputs, follow-ups and settings.
+ */
+export function publishFixture(dir: string, overrides: Record<string, unknown> = {}): string {
+  return writeExtension(
+    dir,
+    {
+      manifest: 2,
+      name: "publish",
+      version: "1.0.0",
+      core: ">=0.0.0 <1.0.0",
+      description: "Publish a preview build after tests pass",
+      permissions: ["shell"],
+      phases: [
+        {
+          slot: "post-test",
+          instructions: "publish.md",
+          blocking: true,
+          when: { files: [".changeset/config.json"] },
+          timeoutMinutes: 45,
+        },
+      ],
+      augments: [{ role: "implementer", instructions: "pin.md" }],
+      settings: {
+        label: { default: "preview", description: "Label that triggers the preview workflow" },
+        workflow: { default: "preview.yml", description: "Workflow to wait for" },
+      },
+      commands: { "publish-status": "status.md" },
+      ...overrides,
+    },
+    {
+      "publish.md": "# Publish\nCommit, push, open a draft PR, wait for the preview workflow, report the version.\n",
+      "pin.md": "Pin upstream preview versions from Upstream outputs exactly.\n",
+      "status.md": "# Status\nShow preview builds.\n",
+    },
+  );
 }

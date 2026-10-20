@@ -8,7 +8,9 @@ import { fileChangesFromTool, runHook } from "../src/hooks/handlers.js";
 import { addWorktree, headSha } from "../src/git.js";
 import { patchState, readState } from "../src/state.js";
 import { projectPaths, type Workspace } from "../src/workspace.js";
-import { gitRepo, tmpDir, workspace } from "./helpers.js";
+import { installedCoreVersion, syncExtensions } from "../src/core.js";
+import { addExtension } from "../src/extensions.js";
+import { gitRepo, publishFixture, tmpDir, workspace } from "./helpers.js";
 
 function setup() {
   const repo = gitRepo(path.join(tmpDir(), "api"), { "src/a.ts": "export const a = 1;\n" });
@@ -99,6 +101,49 @@ describe("hooks", () => {
     expect(child.role).toBe("implementer");
     expect(readEvents(p).at(-1)).toMatchObject({ type: "agent.spawned", actor: "api/implementer", target: "api" });
     expect(types(ws)).toContain("agent.spawned");
+  });
+
+  it("injects upstream outputs from direct and transitive dependencies", () => {
+    const { p, env } = setup();
+    patchState(p, {
+      children: {
+        lib: {
+          repo: "lib",
+          phase: "done",
+          outputs: { publish: { version: "1.2.0-preview.3", prUrl: "https://x/pr/1" } },
+        },
+        mid: { repo: "mid", phase: "done", dependsOn: ["lib"], outputs: { notes: { "a|b": "line1\nline2" } } },
+        other: { repo: "other", phase: "done", outputs: { publish: { version: "9.9.9" } } },
+        api: { dependsOn: ["mid"], pendingSpawn: "planner" },
+      },
+    });
+    const out = runHook("subagentStart", { agentName: "openfleet:openfleet-planner" }, env);
+    const ctx = out.additionalContext!;
+    expect(ctx).toContain("## Upstream outputs");
+    expect(ctx).toContain("| lib | publish | `version` | 1.2.0-preview.3 |");
+    expect(ctx).toContain("| lib | publish | `prUrl` | https://x/pr/1 |");
+    expect(ctx).toContain("| mid | notes | `a\\|b` | line1 line2 |");
+    expect(ctx).not.toContain("9.9.9");
+    patchState(p, { children: { lib: { pendingSpawn: "implementer" } } });
+    expect(runHook("subagentStart", { agentName: "openfleet-implementer" }, env).additionalContext).not.toContain(
+      "Upstream outputs",
+    );
+  });
+
+  it("attributes phase extension agents to their extension", () => {
+    const { ws, p, env } = setup();
+    addExtension(ws, publishFixture(tmpDir()), installedCoreVersion(ws)!);
+    syncExtensions(ws);
+    runHook("subagentStart", { agentName: "openfleet:openfleet-ext-publish-post-test" }, env);
+    runHook("subagentStop", { agentName: "openfleet:openfleet-ext-publish-post-test", response: "ok" }, env);
+    expect(
+      readEvents(p)
+        .slice(-2)
+        .map((e) => [e.type, e.actor]),
+    ).toEqual([
+      ["agent.spawned", "ext:publish"],
+      ["agent.stopped", "ext:publish"],
+    ]);
   });
 
   it("captures file edits with per-file patches and attribution", () => {

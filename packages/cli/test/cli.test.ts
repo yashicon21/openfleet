@@ -7,7 +7,7 @@ import { cliSpec } from "../../create/src/index.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
-import { gitRepo, tmpDir, writeExtension } from "./helpers.js";
+import { gitRepo, publishFixture, tmpDir, writeExtension } from "./helpers.js";
 
 type Launch = { args: string[]; ws: string; project: string };
 
@@ -213,11 +213,11 @@ describe("openfleet CLI", () => {
     const ext = writeExtension(
       path.join(tmp, "ext"),
       {
+        manifest: 2,
         name: "audit",
         version: "1.0.0",
         core: ">=0.0.0",
-        mode: "phase",
-        slot: "post-run",
+        phases: [{ slot: "post-run", instructions: "instructions.md" }],
         commands: { report: "report.md" },
       },
       { "report.md": "Report." },
@@ -225,6 +225,7 @@ describe("openfleet CLI", () => {
     const add = cli(root, ["add", ext]);
     expect(add.code).toBe(0);
     expect(add.stdout).toContain("Added extension audit@1.0.0");
+    expect(add.stdout).toContain("Phase: post-run (advisory) runs as agent openfleet:openfleet-ext-audit-post-run.");
     expect(cli(root, ["extensions"]).stdout).toContain("audit@1.0.0");
 
     const out = path.join(tmp, "launch.json");
@@ -243,6 +244,152 @@ describe("openfleet CLI", () => {
 
     expect(cli(root, ["remove", "audit"]).code).toBe(0);
     expect(cli(root, ["report"]).stderr).toMatch(/Unknown command "report"/);
+  });
+
+  it("rejects a version 1 extension with the v2 equivalent", () => {
+    const tmp = tmpDir();
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    cli(root, ["init"]);
+    const ext = writeExtension(path.join(tmp, "v1"), {
+      name: "v1",
+      version: "1.0.0",
+      core: "*",
+      mode: "augment",
+      role: "tester",
+    });
+    const r = cli(root, ["add", ext]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/manifest version 1/);
+    expect(r.stderr).toContain('"manifest": 2');
+  });
+
+  it("runs extension slots: when.files, outputs, prUrl, follow-ups and blocking failures", () => {
+    const tmp = tmpDir();
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    const lib = gitRepo(path.join(tmp, "lib"), { ".changeset/config.json": "{}\n", "package.json": "{}\n" });
+    const web = gitRepo(path.join(tmp, "web"), { "package.json": "{}\n" });
+    cli(root, ["init"]);
+    fs.writeFileSync(
+      path.join(root, "openfleet/repos.json"),
+      JSON.stringify({ v: 1, repos: { lib: { path: lib }, web: { path: web } } }),
+    );
+    expect(cli(root, ["add", publishFixture(path.join(tmp, "publish"))]).stdout).toContain(
+      "Phase: post-test (blocking, when .changeset/config.json) runs as agent openfleet:openfleet-ext-publish-post-test.",
+    );
+    const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
+    expect(cli(root, ["new", "pin"], env).code).toBe(0);
+    for (const [id, deps] of [
+      ["lib", []],
+      ["web", ["lib"]],
+      ["app", ["web"]],
+    ] as const) {
+      const repo = id === "app" ? "web" : id;
+      expect(cli(root, ["worktree", "pin", id, "--repo", repo, "--branch", `openfleet/pin-${id}`]).code).toBe(0);
+      cli(root, ["state", "pin", "--patch", JSON.stringify({ children: { [id]: { dependsOn: deps } } })]);
+    }
+
+    const plan = (child: string) =>
+      JSON.parse(cli(root, ["ext", "plan", "pin", "post-test", "--child", child]).stdout) as {
+        run: { agent: string; blocking: boolean; timeoutMinutes: number }[];
+        skipped: { reason: string }[];
+      };
+    expect(plan("lib").run).toEqual([
+      expect.objectContaining({
+        agent: "openfleet:openfleet-ext-publish-post-test",
+        blocking: true,
+        timeoutMinutes: 45,
+      }),
+    ]);
+    expect(plan("web")).toMatchObject({ run: [], skipped: [{ reason: "none of .changeset/config.json exist" }] });
+
+    const report = {
+      status: "done",
+      summary: "Published a preview",
+      outputs: { prUrl: "https://example.test/lib/pull/7", version: "1.3.0-preview.1" },
+      followUps: ["Replace preview pins after release"],
+    };
+    const r = cli(root, [
+      "ext",
+      "result",
+      "pin",
+      "publish",
+      "--slot",
+      "post-test",
+      "--child",
+      "lib",
+      "--report",
+      JSON.stringify(report),
+    ]);
+    expect(r.code).toBe(0);
+    const state = () =>
+      readJson<ProjectState & { followUps?: object }>(path.join(root, "openfleet/projects/pin/state.json"));
+    expect(state().children.lib).toMatchObject({
+      prUrl: "https://example.test/lib/pull/7",
+      outputs: { publish: report.outputs },
+      followUps: { publish: report.followUps },
+    });
+    const bad = cli(root, [
+      "ext",
+      "result",
+      "pin",
+      "publish",
+      "--slot",
+      "post-test",
+      "--child",
+      "lib",
+      "--report",
+      '{"outputs":{"v":{"nested":1}}}',
+    ]);
+    expect(bad.stderr).toMatch(/flat values only/);
+    expect(
+      cli(root, ["ext", "result", "pin", "publish", "--slot", "post-run", "--report", '{"outputs":{"a":"b"}}']).stderr,
+    ).toMatch(/need --child/);
+    cli(root, [
+      "ext",
+      "result",
+      "pin",
+      "publish",
+      "--slot",
+      "post-run",
+      "--report",
+      '{"summary":"x","followUps":["Tidy up"]}',
+    ]);
+    expect(state().followUps).toEqual({ publish: ["Tidy up"] });
+
+    expect(
+      cli(root, [
+        "ext",
+        "fail",
+        "pin",
+        "publish",
+        "--slot",
+        "post-test",
+        "--child",
+        "lib",
+        "--reason",
+        "workflow timed out",
+      ]).code,
+    ).toBe(0);
+    const after = state();
+    expect(after.children.lib!.phase).toBe("failed");
+    expect(after.children.web).toMatchObject({ phase: "blocked", notes: "dependency lib failed" });
+    expect(after.children.app!.phase).toBe("blocked");
+
+    const events = readEvents({ events: path.join(root, "openfleet/projects/pin/events.jsonl") } as never);
+    const ofType = (t: string) => events.filter((e) => e.type === t);
+    expect(ofType("extension.skipped")).toHaveLength(1);
+    expect(ofType("extension.ran").map((e) => e.payload.status)).toEqual(["done", "done"]);
+    expect(ofType("extension.outputs")[0]).toMatchObject({
+      target: "lib",
+      payload: { extension: "publish", outputs: report.outputs },
+    });
+    expect(ofType("extension.failed")[0]).toMatchObject({
+      target: "lib",
+      payload: { blocked: ["web", "app"], attempts: 2 },
+    });
+    expect(ofType("child.failed")[0]!.payload.reason).toMatch(/extension publish \(post-test\) failed/);
   });
 
   it("update reinstalls core and keeps user data", () => {

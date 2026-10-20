@@ -9,7 +9,7 @@ Use this skill when the project `status` is `finalizing`. Finalizing is still ha
 
 ## 1. Post-run extensions
 
-Run each `post-run` agent from `openfleet/core/extensions.json` in order (for example, audit or pattern-extractor). Pass each one the project name. Log `extension.ran` for each. Collect any report paths they produce for the summary.
+Run `npx openfleet ext plan <project> post-run` and spawn each entry under `run` in order (for example, an audit). Pass each one the project name. Record each report with `npx openfleet ext result <project> <extension> --slot post-run --report '<json>'`. `post-run` entries are advisory. Collect any report paths they produce for the summary.
 
 ## 2. Run summary
 
@@ -21,24 +21,35 @@ Write `openfleet/projects/<project>/summary.md`:
 - **Assumptions:** every `assumption` event, as a list of child, question, decision and rationale. Mark the ones that changed a contract. The user did not see these during the run, so make this list complete.
 - The contracts, and any contract changes during the run.
 - The questions asked and how they were answered.
-- Extension reports.
+- Extension reports, including `extension.skipped` and `extension.failed` events.
+- **Follow-ups:** every entry in `children.<id>.followUps` (per child, grouped by extension) and the project-level `followUps`. People must act on these after the run, so list them all.
 
 ## 3. Completion mode
 
+### Children that already have a PR
+
+An extension can open a PR mid-run (it reports an output named `prUrl`, which is recorded as the child's `prUrl`). For each `done` child that already has `prUrl`, in **either** mode, because those changes are already pushed:
+
+1. `cd <worktree> && git add -A`. If anything is staged, commit it (`git commit -m "<type>: <Subject>"`).
+2. `git push origin <branch>` to the **same** branch. Never open a second PR for the child.
+3. Update the existing PR body with `gh pr edit <prUrl> --body-file <tmp>`: the child's summary, acceptance criteria and results, a link to `summary.md`, the **Related PRs** list, and a **Follow-ups** list with the child's `followUps`.
+
+Then handle the remaining `done` children with the completion mode below.
+
 ### `staged` (default)
 
-For each `done` child, run `cd <worktree> && git add -A`. Do **not** commit. Tell the user where each worktree is, and show `git -C <worktree> diff --cached --stat`. Leave `failed` and `blocked` worktrees untouched.
+For each `done` child without a `prUrl`, run `cd <worktree> && git add -A`. Do **not** commit. Tell the user where each worktree is, and show `git -C <worktree> diff --cached --stat`. Leave `failed` and `blocked` worktrees untouched.
 
 ### `draft-pr`
 
-For each `done` child (skip `failed` and `blocked` children; they get no PR):
+For each `done` child without a `prUrl` (skip `failed` and `blocked` children; they get no PR):
 
 1. `cd <worktree> && git add -A && git commit -m "<type>: <Subject>"`. Use a Conventional Commit with a sentence-case subject that describes this child's change.
 2. `git push -u origin <branch>`.
-3. Open a draft PR: `gh pr create --draft --base <default branch> --head <branch> --title "<title>" --body-file <tmp>`. The body has the child's summary, its acceptance criteria and their results, and a link to `summary.md`.
+3. Open a draft PR: `gh pr create --draft --base <default branch> --head <branch> --title "<title>" --body-file <tmp>`. The body has the child's summary, its acceptance criteria and their results, a link to `summary.md`, and a **Follow-ups** list with the child's `followUps` (if any).
 4. Record `prUrl` on the child.
 
-When all PRs exist, edit each PR body (`gh pr edit <url> --body-file …`) to add a **Related PRs** list that links every other PR in the run. Record each `prUrl` in `summary.md`.
+When all PRs exist (including PRs opened mid-run), edit each PR body (`gh pr edit <url> --body-file …`) to add a **Related PRs** list that links every other PR in the run. Record each `prUrl` in `summary.md`.
 
 If a push or PR command fails, record the error in `summary.md` and in the final report. Do not retry destructively, and do not stop the other children.
 
@@ -48,6 +59,7 @@ Log `run.completed` with the mode and per-child outcome. Patch `{"status":"done"
 
 - where to review (worktrees or PR links),
 - every assumption you made (child, question, decision),
+- every extension follow-up, per child,
 - failed and blocked children with their findings and worktree paths,
 - `npx openfleet clean <project>` removes the worktrees after merging (`--branches` also deletes the local branches),
 - `npx openfleet resume <project>` continues with failed children or review feedback; or they can start a new project.
