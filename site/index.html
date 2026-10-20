@@ -29,6 +29,22 @@
       href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap"
     />
     <style>
+      .of-legend {
+        display: flex;
+        gap: 4px 14px;
+        flex-wrap: wrap;
+      }
+      .of-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .of-lg i {
+        width: 14px;
+        height: 8px;
+        border-radius: 3px;
+        display: inline-block;
+      }
       [hidden] {
         display: none !important;
       }
@@ -333,6 +349,7 @@
         }
         .of-legend {
           padding-left: 90px !important;
+          gap: 4px 10px !important;
         }
         .of-term {
           font-size: 15px !important;
@@ -599,7 +616,9 @@
         display: block;
       }
       .rp-log li:first-child b {
-        color: #edeb3c;
+        color: #f4f4f6;
+        text-decoration: underline 2px #45434c;
+        text-underline-offset: 4px;
       }
       .rp-log li em {
         font-style: normal;
@@ -1166,7 +1185,7 @@
                       white-space: nowrap;
                     "
                     ><span class="of-slug">account-id · </span
-                    ><span style="color: #edeb3c"><span id="of-done">1</span>/7</span> done</span
+                    ><span style="color: #edeb3c"><span id="of-done">2</span>/7</span> done</span
                   >
                   <button
                     id="of-replay"
@@ -1226,7 +1245,9 @@
                     color: #5f5754;
                   "
                 >
-                  Plan · Implement · Test
+                  <span class="of-lg"><i style="background: #48a6ee"></i>Plan</span
+                  ><span class="of-lg"><i style="background: #ee5ad6"></i>Implement</span
+                  ><span class="of-lg"><i style="background: #edeb3c"></i>Test</span>
                 </div>
                 <ul
                   id="of-rows"
@@ -1258,7 +1279,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1268,7 +1289,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1278,7 +1299,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
@@ -1291,8 +1312,9 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #2b1e1b;
-                        color: #edeb3c;
+                        box-shadow: inset 0 0 0 2px #2b1e1b;
+                        background: #eef0f2;
+                        color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
                         letter-spacing: 0.04em;
@@ -1303,7 +1325,7 @@
                         height="11"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke="#EDEB3C"
+                        stroke="#2B1E1B"
                         stroke-width="3.5"
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -1348,7 +1370,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1358,18 +1380,18 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
                       ><span
-                        class="of-sg of-cur"
+                        class="of-sg"
                         style="
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                          background: #edeb3c;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1381,14 +1403,27 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        box-shadow: inset 0 0 0 2px #2b1e1b;
+                        background: #eef0f2;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >TEST<span
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#2B1E1B"
+                        stroke-width="3.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12.5l4.5 4.5L19 7.5"></path></svg
+                      >DONE<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1397,7 +1432,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: testing</span
+                        >: plan, implement and test complete</span
                       ></span
                     >
                   </li>
@@ -1426,7 +1461,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1436,7 +1471,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1446,7 +1481,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span></span
@@ -1517,7 +1552,17 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1527,18 +1572,8 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1550,14 +1585,14 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >IMPLEMENT<span
+                      >TEST<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1566,7 +1601,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: implementing</span
+                        >: testing</span
                       ></span
                     >
                   </li>
@@ -1595,7 +1630,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1605,7 +1640,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span
@@ -1628,7 +1663,7 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
@@ -1668,6 +1703,76 @@
                       >web/ui</span
                     ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
                       ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg of-cur"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #ee5ad6;
+                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #dfe2e6;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span></span
+                    ><span
+                      class="of-st"
+                      style="
+                        margin-left: auto;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 4px 9px;
+                        border-radius: 8px;
+                        background: #dfe2e6;
+                        color: #2b1e1b;
+                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                        font-size: 11px;
+                        letter-spacing: 0.04em;
+                        white-space: nowrap;
+                      "
+                      >IMPLEMENT<span
+                        style="
+                          position: absolute;
+                          width: 1px;
+                          height: 1px;
+                          overflow: hidden;
+                          clip: rect(0 0 0 0);
+                          white-space: nowrap;
+                        "
+                        >: implementing</span
+                      ></span
+                    >
+                  </li>
+                  <li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 0">
+                    <span
+                      class="of-rname"
+                      style="
+                        width: 92px;
+                        flex: none;
+                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                        font-size: 17px;
+                      "
+                      >mobile</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      ><span
                         class="of-sg of-cur"
                         style="
                           flex: 1;
@@ -1706,7 +1811,7 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
@@ -1723,76 +1828,6 @@
                           white-space: nowrap;
                         "
                         >: planning</span
-                      ></span
-                    >
-                  </li>
-                  <li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 0">
-                    <span
-                      class="of-rname"
-                      style="
-                        width: 92px;
-                        flex: none;
-                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
-                      "
-                      >mobile</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span></span
-                    ><span
-                      class="of-st"
-                      style="
-                        margin-left: auto;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 5px;
-                        padding: 4px 9px;
-                        border-radius: 8px;
-                        background: #dfe2e6;
-                        color: #5f5754;
-                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
-                        letter-spacing: 0.04em;
-                        white-space: nowrap;
-                      "
-                      >AFTER SDK-JS<span
-                        style="
-                          position: absolute;
-                          width: 1px;
-                          height: 1px;
-                          overflow: hidden;
-                          clip: rect(0 0 0 0);
-                          white-space: nowrap;
-                        "
-                        >: blocked until sdk-js finishes</span
                       ></span
                     >
                   </li>
@@ -1817,11 +1852,11 @@
                 >
                   <div aria-hidden="true" style="color: #a8a6af">events.jsonl</div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #48a6ee">contract.changed</span
+                    <span style="color: #f4f4f6">contract.changed</span
                     ><span style="min-width: 0; overflow-wrap: anywhere">contracts/account.json → 5 repos</span>
                   </div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #edeb3c">assumption</span
+                    <span style="color: #f4f4f6">assumption</span
                     ><span style="min-width: 0; overflow-wrap: anywhere"
                       >sdk-python keeps user_id as a deprecated alias</span
                     >
@@ -1970,7 +2005,8 @@
               ><span><i style="background: #ee5ad6"></i>Implement</span
               ><span><i style="background: #edeb3c"></i>Test</span
               ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
-              ><span><i class="rp-dash"></i>Waiting on another repo</span>
+              ><span><i class="rp-dash"></i>Waiting on another repo</span
+              ><span><i style="border: 2px dashed #f4f4f6; background: none"></i>You</span>
             </div>
           </figure>
         </section>
@@ -2060,9 +2096,10 @@
                   >1</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #48a6ee;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2117,9 +2154,10 @@
                   >2</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #48a6ee;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2177,7 +2215,8 @@
                   style="
                     padding: 4px 10px;
                     border-radius: 8px;
-                    background: #edeb3c;
+                    background: #dfe2e6;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2230,10 +2269,10 @@
                   >4</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #2b1e1b;
-                    color: #edeb3c;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2700,8 +2739,8 @@
                   transform-origin: left top;
                 "
               >{"seq": 7,
- "actor": <span style="color: #EDEB3C;">"api/implementer"</span>,
- "type": <span style="color: #48A6EE;">"file.edited"</span>}</pre>
+ "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
+ "type": <span style="color: #F4F4F6;">"file.edited"</span>}</pre>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
                   style="
@@ -3812,8 +3851,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         ];
         var EVENTS_AT_STEP = [0, 0, 1, 1, 2, 2, 2, 3];
         var EVENTS = [
-          { color: "#48A6EE", type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { color: "#EDEB3C", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
+          { color: "#F4F4F6", type: "contract.changed", text: "contracts/account.json → 5 repos" },
+          { color: "#F4F4F6", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
           { color: "#F4F4F6", type: "run.completed", text: "7 draft PRs opened, cross-linked" },
         ];
         var SR =
@@ -3821,18 +3860,19 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         var MONO = "font-family: 'Share Tech Mono', ui-monospace, monospace;";
         var DISP = "font-family: 'Russo One', 'Arial Black', sans-serif;";
         var TICK =
-          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#EDEB3C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2B1E1B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
         var RETRY =
           '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8A5300" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3-6.2"></path><path d="M20 4v5h-5"></path></svg>';
 
+        var ROLE_BG = ["#48A6EE", "#EE5AD6", "#EDEB3C"];
         function segment(p, k) {
           var bg = "#DFE2E6";
           var ring = "0px";
           var cls = "of-sg";
           if (p === 4 || p > k + 1) {
-            bg = "#2B1E1B";
+            bg = ROLE_BG[k];
           } else if (p === k + 1) {
-            bg = "#48A6EE";
+            bg = ROLE_BG[k];
             ring = "2px";
             cls = "of-sg of-cur";
           }
@@ -3860,8 +3900,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 done += 1;
                 label = "DONE";
                 sr = ": plan, implement and test complete";
-                bg = "#2B1E1B";
-                fg = "#EDEB3C";
+                bg = "#EEF0F2";
+                fg = "#2B1E1B";
                 icon = TICK;
               } else if (retry) {
                 label = "RETRY 1/3";
@@ -3877,10 +3917,11 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               } else {
                 label = ["", "PLAN", "IMPLEMENT", "TEST"][p];
                 sr = ["", ": planning", ": implementing", ": testing"][p];
-                bg = "#48A6EE";
+                bg = "#DFE2E6";
                 fg = "#2B1E1B";
               }
               var border = i === phases.length - 1 ? "0" : "2px solid #DFE2E6";
+              var chipEdge = p === 4 ? "box-shadow: inset 0 0 0 2px #2B1E1B; " : "";
               return (
                 '<li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: ' +
                 border +
@@ -3892,7 +3933,9 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 segment(p, 0) +
                 segment(p, 1) +
                 segment(p, 2) +
-                '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; background: ' +
+                '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; ' +
+                chipEdge +
+                "background: " +
                 bg +
                 "; color: " +
                 fg +
@@ -3978,6 +4021,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!reduce && window.scrollY < window.innerHeight) {
           play(500);
+        } else {
+          show(4);
         }
       })();
       (function () {
@@ -4061,8 +4106,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           ["FINALIZE", 272, 280, "raised"],
         ];
         var MARKS = [
-          { t: 120, label: "contract.changed", color: "#48A6EE" },
-          { t: 176, label: "assumption", color: "#EDEB3C" },
+          { t: 120, label: "contract.changed", color: "#F4F4F6" },
+          { t: 176, label: "assumption", color: "#F4F4F6" },
         ];
         var END = 280;
         var COLORS = { p: "#48A6EE", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC" };
@@ -4147,7 +4192,10 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               width: Math.max(2, w),
               height: 26,
               rx: 6,
-              fill: you ? "#EDEB3C" : "#26252C",
+              fill: you ? "none" : "#26252C",
+              stroke: you ? "#F4F4F6" : "none",
+              "stroke-width": you ? 2 : 0,
+              "stroke-dasharray": you ? "6 4" : "none",
             });
             projEls.push({ r: r, a: p[1] });
             if (w > 70)
@@ -4168,8 +4216,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 {
                   x: x(p[1]) + w / 2,
                   y: PY + 42,
-                  "font-size": 11,
-                  fill: "#EDEB3C",
+                  "font-size": 12,
+                  fill: "#F4F4F6",
                   "text-anchor": "middle",
                   style: "font-family: 'Russo One', sans-serif",
                 },
