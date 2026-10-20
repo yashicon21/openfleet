@@ -5,6 +5,7 @@ colors:
   ground: "#0E0E10"
   ground-raised: "#1C1B21"
   ground-raised-2: "#26252C"
+  ground-raised-3: "#2E2D35"
   ground-line: "#45434C"
   on-ground: "#F4F4F6"
   on-ground-muted: "#A8A6AF"
@@ -31,16 +32,42 @@ typography:
     fontSize: "clamp(32px, 4.6vw, 56px)"
     fontWeight: 400
     lineHeight: 1.02
+  page-title:
+    fontFamily: "Russo One, Arial Black, Impact, sans-serif"
+    fontSize: "clamp(44px, 8vw, 88px)"
+    fontWeight: 400
+    lineHeight: 0.98
+    letterSpacing: "-0.01em"
+  section-title:
+    fontFamily: "Russo One, Arial Black, Impact, sans-serif"
+    fontSize: "34px"
+    fontWeight: 400
+    lineHeight: "40px"
   title:
     fontFamily: "Russo One, Arial Black, Impact, sans-serif"
     fontSize: "22px"
     fontWeight: 400
     lineHeight: 1.2
+  title-sm:
+    fontFamily: "Russo One, Arial Black, Impact, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.3
+  lead:
+    fontFamily: "Saira Semi Condensed, Arial Narrow, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 500
+    lineHeight: "30px"
   body:
     fontFamily: "Saira Semi Condensed, Arial Narrow, system-ui, sans-serif"
     fontSize: "18px"
     fontWeight: 500
     lineHeight: "30px"
+  caption:
+    fontFamily: "Saira Semi Condensed, Arial Narrow, system-ui, sans-serif"
+    fontSize: "14px"
+    fontWeight: 500
+    lineHeight: "22px"
   label:
     fontFamily: "Russo One, Arial Black, Impact, sans-serif"
     fontSize: "12px"
@@ -52,8 +79,24 @@ typography:
     fontSize: "17px"
     fontWeight: 400
     lineHeight: "26px"
+  mono-sm:
+    fontFamily: "Share Tech Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: "18px"
+  lcd:
+    fontFamily: "Share Tech Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontSize: "28px"
+    fontWeight: 400
+    lineHeight: 1
+  lcd-sm:
+    fontFamily: "Share Tech Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontSize: "24px"
+    fontWeight: 400
+    lineHeight: 1
 rounded:
   xs: "3px"
+  inner: "6px"
   sm: "8px"
   md: "16px"
   lg: "28px"
@@ -161,6 +204,7 @@ A dark arcade ground with bright paper cards and a three-colour signature that i
 - **Arcade Ground** (#0E0E10): page background and the base of every section.
 - **Raised Ground** (#1C1B21): nav bar, figure panels, note boxes and hover fills on ground.
 - **Raised Ground 2** (#26252C): inner wells inside raised panels (table cells, idle lanes).
+- **Raised Ground 3** (#2E2D35): hover fills on ground, copy buttons and visited phase cells.
 - **Ground Line** (#45434C): hairline borders, dividers, dashed lane guides and ghost-button outlines.
 - **On Ground** (#F4F4F6): primary text on the dark ground.
 - **On Ground Muted** (#A8A6AF): secondary text, captions, inactive nav links and labels on ground.
@@ -193,11 +237,16 @@ A dark arcade ground with bright paper cards and a three-colour signature that i
 ### Hierarchy
 
 - **Display** (Russo One 400, clamp(40px, 8.6vw, 120px), line-height 0.92, tracking -0.02em, uppercase): the hero headline only ("ONE CHANGE. EVERY REPO.").
-- **Headline** (Russo One 400, clamp(32px, 4.6vw, 56px), line-height 1.02, sentence case): section headings.
-- **Title** (Russo One 400, 16–22px): card and step titles, button labels (uppercase, 0.02em tracking).
-- **Body** (Saira Semi Condensed 500, 18px / 30px; lead paragraphs 20px / 30px): all prose, kept to about 68 characters per line (max 720px columns).
-- **Label** (Russo One 400, 11–13px, 0.06–0.1em tracking, uppercase): kickers, figure titles, stat captions and log headers, in on-ground-muted or ink-muted.
-- **Mono** (Share Tech Mono 400, 13–17px; LCD numbers 22–48px): commands, file paths, event names, timestamps, clocks and every counted value.
+- **Page title** (Russo One 400, clamp(44px, 8vw, 88px), line-height 0.98, sentence case): the h1 on inner pages such as How it works.
+- **Headline** (Russo One 400, clamp(32px, 4.6vw, 56px), line-height 1.02, sentence case): home-page section headings.
+- **Section title** (Russo One 400, 34px / 40px, 26px on phones): numbered section headings on reading pages.
+- **Title** (Russo One 400, 22px) and **Title small** (16px): card and step titles, button labels (uppercase, 0.02em tracking).
+- **Lead** (Saira Semi Condensed 500, 20px / 30px): the intro paragraph under a page title.
+- **Body** (Saira Semi Condensed 500, 18px / 30px): all prose, kept to about 68 characters per line (max 720px columns).
+- **Caption** (Saira Semi Condensed 500, 14px / 22px): figure captions, keys, notes and the source line.
+- **Label** (Russo One 400, 12–13px, 0.06–0.1em tracking, uppercase): kickers, figure titles, stat captions and log headers, in on-ground-muted or ink-muted. Never below 12px.
+- **Mono** (Share Tech Mono 400, 17px; small 13px): commands, file paths, event names and timestamps.
+- **LCD** (Share Tech Mono 400, 28px; 24px on phones; up to 40–48px for hero stats): clocks and every counted value.
 
 ### Named Rules
 
@@ -226,7 +275,7 @@ Flat by default. Depth is tonal: the ground steps up from Arcade Ground to Raise
 
 ## Shapes
 
-Generous rounded rectangles throughout: 28px on large cards and figure panels, 16px on stat tiles and inner repo panels, 8px on buttons, code chips and table cells, 3px on small bars and test cells, and full pills for the nav bar, nav links and the selected state. Borders are 2px (ink on cards and buttons, ground line on ground); hairlines are 1px. Circles and thick rings appear in the logo mark and the coordinator hub. Dashed lines mark waiting, dependencies and lane guides.
+Generous rounded rectangles throughout: 28px on large cards and figure panels (16px on phones), 16px on stat tiles, notes and inner repo panels, 8px on buttons, code chips and table cells, 6px on a button nested inside an 8px chip, 3px on inline code, small bars and test cells, and full pills for the nav bar, nav links and the selected state. Borders are 2px (ink on cards and buttons, ground line on ground); hairlines are 1px. Circles and thick rings appear in the logo mark and the coordinator hub. Dashed lines mark waiting, dependencies and lane guides.
 
 ## Components
 

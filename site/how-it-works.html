@@ -177,7 +177,7 @@
           padding: 0 13px !important;
         }
         .of-logo {
-          font-size: 19px !important;
+          font-size: 20px !important;
         }
       }
       @supports (animation-timeline: view()) {
@@ -268,7 +268,7 @@
         color: var(--fg);
         background: var(--raised);
         padding: 1px 6px;
-        border-radius: 4px;
+        border-radius: 3px;
       }
 
       /* marquee */
@@ -352,7 +352,7 @@
         width: 36px;
         height: 8px;
         background: linear-gradient(90deg, var(--cyan) 0 33.3%, var(--magenta) 33.3% 66.6%, var(--yellow) 66.6%);
-        border-radius: 2px;
+        border-radius: 3px;
       }
       h1 {
         font-family: var(--display);
@@ -363,14 +363,14 @@
         text-wrap: balance;
       }
       .dek {
-        font-size: 21px;
+        font-size: 20px;
         line-height: 32px;
         color: var(--muted);
         max-width: 720px;
       }
       .byline {
         font-family: var(--mono);
-        font-size: 15px;
+        font-size: 14px;
         color: var(--muted);
       }
 
@@ -393,7 +393,7 @@
       .stat b {
         font-family: var(--mono);
         font-weight: 400;
-        font-size: clamp(26px, 2.8vw, 40px);
+        font-size: clamp(24px, 2.8vw, 40px);
         line-height: 1;
         color: var(--counter);
         font-variant-numeric: tabular-nums;
@@ -429,14 +429,14 @@
       h2 small {
         display: block;
         font-family: var(--mono);
-        font-size: 15px;
+        font-size: 14px;
         line-height: 22px;
         color: var(--magenta);
         letter-spacing: 0.04em;
         margin-bottom: 6px;
       }
       .prose p {
-        color: #dcdbe0;
+        color: var(--fg);
       }
       .prose strong {
         color: var(--fg);
@@ -533,7 +533,7 @@
       .k-tick {
         width: 3px;
         background: var(--fg);
-        border-radius: 1px;
+        border-radius: 3px;
       }
       .k-pass {
         background: var(--success);
@@ -604,7 +604,7 @@
         width: 160px;
       }
       .figcap {
-        font-size: 15px;
+        font-size: 14px;
         line-height: 22px;
         color: var(--muted);
       }
@@ -825,7 +825,7 @@
         font-family: var(--mono);
         font-weight: 400;
         color: var(--counter);
-        font-size: 15px;
+        font-size: 14px;
       }
       .report p {
         grid-column: 1 / -1;
@@ -918,7 +918,7 @@
       .frow .bar i {
         display: block;
         height: 100%;
-        border-radius: 2px;
+        border-radius: 3px;
         transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .frow .bar i.a {
@@ -993,7 +993,7 @@
         display: inline-block;
         width: 14px;
         height: 10px;
-        border-radius: 2px;
+        border-radius: 3px;
         margin-right: 6px;
         vertical-align: middle;
       }
@@ -1033,23 +1033,6 @@
       }
 
       /* playground */
-      .rows {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-      }
-      .rows input {
-        font-family: var(--mono);
-        font-size: 16px;
-        height: 40px;
-        width: 120px;
-        background: #ffffff;
-        color: var(--ink);
-        border: 2px solid #8a817d;
-        border-radius: 8px;
-        padding: 0 10px;
-      }
       .tally {
         background: var(--card);
         color: var(--ink);
@@ -1088,7 +1071,7 @@
       .cells i {
         width: 18px;
         height: 18px;
-        border-radius: 4px;
+        border-radius: 3px;
         background: var(--card-sunk);
         transition: background 120ms;
       }
@@ -1297,7 +1280,7 @@
         }
         figure.fig {
           padding: 14px;
-          border-radius: 20px;
+          border-radius: 16px;
           gap: 14px;
           margin-inline: -4px;
         }
@@ -1305,7 +1288,7 @@
           gap: 10px;
         }
         .fig-title {
-          font-size: 11px;
+          font-size: 12px;
         }
         .controls {
           width: 100%;
@@ -1364,7 +1347,7 @@
           gap: 16px;
         }
         .totals b {
-          font-size: 30px;
+          font-size: 28px;
           line-height: 34px;
         }
         .legend {
@@ -1400,20 +1383,12 @@
           font-size: 16px;
           line-height: 24px;
         }
-        .rows .btn {
-          flex: 1 1 auto;
-        }
-        .rows input {
-          flex: 1;
-          width: auto;
-          min-width: 0;
-        }
         #runall {
           flex-basis: 100%;
         }
         .cmds {
           padding: 18px;
-          border-radius: 20px;
+          border-radius: 16px;
         }
         .cmd {
           grid-template-columns: 26px minmax(0, 1fr);
@@ -1505,7 +1480,7 @@
         border-left: 0;
         padding: 12px 16px;
         background: var(--raised);
-        border-radius: 12px;
+        border-radius: 16px;
       }
       .phases {
         width: 100%;
@@ -1518,7 +1493,7 @@
       .phases th {
         font-family: var(--display);
         font-weight: 400;
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 0.06em;
         color: var(--muted);
         text-align: left;
@@ -1526,7 +1501,7 @@
       }
       .phases tbody th {
         font-family: var(--mono);
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0;
         color: var(--fg);
         white-space: nowrap;
@@ -1542,7 +1517,7 @@
           color 200ms;
       }
       .phases td.on {
-        background: #34333a;
+        background: #2e2d35;
         color: var(--fg);
       }
       .phases td.cur {
@@ -1589,14 +1564,14 @@
         gap: 8px;
       }
       .trow h3 .mono {
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0;
         color: var(--ink);
       }
       .trow h3 b {
         font-family: var(--mono);
         font-weight: 400;
-        font-size: 15px;
+        font-size: 14px;
         color: var(--success);
       }
       .cells i.bad {
@@ -1750,27 +1725,27 @@
             >
               <a
                 href="how-it-works.html"
-                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                style="padding: 12px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
                 >How it works</a
               >
               <a
                 href="index.html#features"
-                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                style="padding: 12px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
                 >Features</a
               >
               <a
                 href="index.html#quickstart"
-                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                style="padding: 12px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
                 >Quick start</a
               >
               <a
                 href="index.html#commands"
-                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                style="padding: 12px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
                 >Commands</a
               >
               <a
                 href="index.html#extensions"
-                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                style="padding: 12px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
                 >Extensions</a
               >
             </div>
@@ -2157,8 +2132,8 @@
           </p>
           <div class="tally7" id="tally"></div>
           <p class="figcap">
-            Contract tests check every consuming repo against the same rows in <code>account.json</code>. sdk-python’s
-            first run fails one test; the retry passes.
+            One cell per test. The ringed cell in sdk-python is the test that failed on the first run and passed on the
+            retry.
           </p>
         </figure>
 
@@ -3082,7 +3057,7 @@
             var doneN = REPOS.filter(function (r) {
               return current[r].p === "done";
             }).length;
-            now.textContent = doneN + " of 7 repos done";
+            now.textContent = doneN + " of 7 repos done.";
           }
           player(document.getElementById("fig-state"), { from: 0, to: END, ms: 14000, frame: frame });
         })();

@@ -10,6 +10,7 @@ target_fingerprint: "sha256:02a01935f1c8c71a4e640cdff49d1d5222f262bfdced609d5631
 target_path: /home/claude/openfleet/site/how-it-works.html
 timestamp: 2026-10-20T01-41-00Z
 slug: site-how-it-works-html
+closed: true
 ---
 
 Method: dual-agent (A: design review · B: detector + browser)
