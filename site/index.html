@@ -637,6 +637,16 @@
           transform: none;
         }
       }
+      .rp-cap {
+        margin: 0;
+        font-size: 14px;
+        line-height: 22px;
+        color: #a8a6af;
+      }
+      .rp-cap code {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        color: #f4f4f6;
+      }
       .rp-legend {
         display: flex;
         flex-wrap: wrap;
@@ -1173,7 +1183,7 @@
                     letter-spacing: 0.06em;
                     color: #edeb3c;
                   "
-                  >EXAMPLE RUN</span
+                  >ILLUSTRATIVE RUN</span
                 >
                 <span style="display: flex; align-items: center; gap: 10px">
                   <span
@@ -1971,8 +1981,8 @@
           <figure class="rp-fig" id="rp-fig">
             <div class="rp-head">
               <span class="rp-title"
-                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · ACCOUNT-ID ·
-                ILLUSTRATIVE TIMINGS</span
+                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>ILLUSTRATIVE RUN ·
+                ACCOUNT-ID</span
               >
               <div class="rp-controls">
                 <button class="rp-btn" type="button" id="rp-play">↺ REPLAY</button
@@ -2008,6 +2018,10 @@
               ><span><i class="rp-dash"></i>Waiting on another repo</span
               ><span><i style="border: 2px dashed #f4f4f6; background: none"></i>You</span>
             </div>
+            <p class="rp-cap">
+              Mocked run: the timings are made up, but every event type is one OpenFleet really logs. Replay a real run
+              with <code>pnpm demo</code>, or <a href="how-it-works.html">see this run event by event</a>.
+            </p>
           </figure>
         </section>
 
@@ -3618,7 +3632,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               color: #f4f4f6;
             "
           >
-            WRITE ONE PROMPT.<br />RUN IT ACROSS<span
+            Write one prompt.<br />Run it across<span
               style="
                 display: flex;
                 flex-wrap: wrap;
@@ -3637,7 +3651,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #48a6ee;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -3654,7 +3668,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #ee5ad6;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -3671,7 +3685,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #edeb3c;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -4261,11 +4275,20 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   "stroke-dasharray": "5 5",
                 });
                 bars.push({ kind: "w", node: line, a: s[1], b: s[2], x: x });
+                // The label sits on mobile's own dashed line, on a patch of panel colour.
+                var pad = el("rect", {
+                  x: x(s[1]) + 4,
+                  y: barY + barH / 2 - 9,
+                  width: 120,
+                  height: 18,
+                  fill: "#1C1B21",
+                });
+                bars.push({ kind: "label", node: pad, a: s[1] });
                 var lab = el(
                   "text",
                   {
                     x: x(s[1]) + 8,
-                    y: barY - 3,
+                    y: barY + barH / 2 + 4,
                     "font-size": 12,
                     fill: "#A8A6AF",
                     style: "font-family: 'Share Tech Mono', monospace",
