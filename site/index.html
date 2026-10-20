@@ -152,7 +152,7 @@
         color: #f4f4f6;
         text-decoration: underline 2px #ee5ad6;
         text-underline-offset: 6px;
-        padding: 10px 0;
+        padding: 11px 0;
       }
       .of-fail-link::after {
         content: " →";
@@ -306,6 +306,7 @@
       }
       a:focus-visible,
       button:focus-visible,
+      summary:focus-visible,
       li:focus-visible {
         outline: 2px solid #48a6ee;
         outline-offset: 3px;
@@ -518,7 +519,7 @@
           content: attr(data-label);
           display: block;
           font-family: "Russo One", "Arial Black", sans-serif;
-          font-size: 11px;
+          font-size: 12px;
           letter-spacing: 0.06em;
           color: #5f5754;
           margin-top: 8px;
@@ -563,7 +564,7 @@
           padding: 0 14px !important;
         }
         .of-evbox {
-          min-height: 244px !important;
+          min-height: 196px !important;
         }
         .of-seg {
           width: 56px !important;
@@ -750,6 +751,7 @@
       .rp-controls input[type="range"] {
         accent-color: #48a6ee;
         width: 180px;
+        height: 44px;
       }
       .rp-controls input[type="range"]:focus-visible {
         outline: 2px solid #48a6ee;
@@ -770,6 +772,20 @@
       }
       .rp-scroll {
         overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-color: #45434c transparent;
+      }
+      .rp-hint {
+        display: none;
+        margin: -8px 0 0;
+        font-size: 14px;
+        line-height: 20px;
+        color: #a8a6af;
+      }
+      @media (max-width: 639px) {
+        .rp-hint {
+          display: block;
+        }
       }
       .rp-scroll svg {
         display: block;
@@ -829,9 +845,7 @@
       .rp-log li em {
         font-style: normal;
         display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
       }
       @keyframes rp-pop {
         from {
@@ -902,7 +916,7 @@
           font-size: 22px;
         }
         .rp-title {
-          font-size: 11px;
+          font-size: 12px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -958,6 +972,7 @@
             aria-label="OpenFleet home"
             style="
               display: flex;
+              min-height: 44px;
               align-items: center;
               gap: 10px;
               text-decoration: none;
@@ -1537,7 +1552,7 @@
                         background: #eef0f2;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1628,7 +1643,7 @@
                         background: #eef0f2;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1718,7 +1733,7 @@
                         background: #fff1cc;
                         color: #8a5300;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1809,7 +1824,7 @@
                         background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1887,7 +1902,7 @@
                         background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1965,7 +1980,7 @@
                         background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -2035,7 +2050,7 @@
                         background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -2206,8 +2221,8 @@
                 ><input
                   type="range"
                   min="0"
-                  max="1000"
-                  value="1000"
+                  max="280"
+                  value="280"
                   id="rp-scrub"
                   aria-label="Scrub the example run"
                 /><span class="rp-clock" id="rp-clock">4:40</span>
@@ -2222,6 +2237,7 @@
                   aria-label="Swimlane of the example run: the project bar on top, then one lane per repo showing plan, implement and test. mobile waits for sdk-js; sdk-python fails a test once and retries."
                 ></svg>
               </div>
+              <p class="rp-hint" aria-hidden="true">Swipe sideways to see the whole run →</p>
               <div class="rp-log">
                 <h3>LATEST EVENTS</h3>
                 <ol id="rp-log"></ol>
@@ -4092,7 +4108,7 @@
                 fg +
                 "; " +
                 DISP +
-                ' font-size: 11px; letter-spacing: 0.04em; white-space: nowrap;">' +
+                ' font-size: 12px; letter-spacing: 0.04em; white-space: nowrap;">' +
                 icon +
                 label +
                 '<span style="' +
@@ -4109,6 +4125,7 @@
         function eventsHtml(count) {
           return (
             '<div aria-hidden="true" style="color: #A8A6AF;">events.jsonl</div>' +
+            (count === 0 ? '<div style="color: #A8A6AF;">Waiting for the first coordinator event…</div>' : "") +
             EVENTS.slice(0, count)
               .map(function (ev) {
                 return (
@@ -4368,9 +4385,9 @@
           bars = [];
           markEls = [];
           projEls = [];
-          var W = narrow ? 400 : 1000;
+          var W = narrow ? 640 : 1000;
           var X0 = narrow ? 4 : 120;
-          var X1 = narrow ? 396 : 990;
+          var X1 = narrow ? 632 : 990;
           var x = function (t) {
             return X0 + (t / END) * (X1 - X0);
           };
@@ -4405,17 +4422,21 @@
               "stroke-dasharray": you ? "6 4" : "none",
             });
             projEls.push({ r: r, a: p[1] });
-            if (w > 70)
+            // Use the full label when it fits, a short one when it doesn't, nothing otherwise.
+            var plab = [p[0], p[0].split(" ")[0]].filter(function (l) {
+              return w > l.length * 8 + 16;
+            })[0];
+            if (plab && !you)
               el(
                 "text",
                 {
                   x: x(p[1]) + 8,
                   y: PY + 18,
-                  "font-size": narrow ? 11 : 12,
+                  "font-size": 12,
                   fill: "#A8A6AF",
                   style: "font-family: 'Russo One', sans-serif",
                 },
-                p[0],
+                plab,
               );
             if (you)
               el(
@@ -4504,7 +4525,7 @@
                   {
                     x: x(s[2]) - 4,
                     y: barY + barH / 2 + 4,
-                    "font-size": 11,
+                    "font-size": 12,
                     fill: "#8A5300",
                     "text-anchor": "end",
                     style: "font-family: 'Russo One', sans-serif",
@@ -4541,7 +4562,7 @@
           });
           var axisY = bottom + (narrow ? 45 : 30);
           el("line", { x1: X0, x2: X1, y1: axisY, y2: axisY, stroke: "#45434C", "stroke-width": 2 });
-          for (var s = 0; s <= END; s += narrow ? 120 : 60) {
+          for (var s = 0; s <= END; s += 60) {
             el("line", { x1: x(s), x2: x(s), y1: axisY, y2: axisY + 6, stroke: "#45434C", "stroke-width": 2 });
             el(
               "text",
@@ -4558,7 +4579,7 @@
           }
           head = el("line", { x1: x(END), x2: x(END), y1: PY - 4, y2: axisY, stroke: "#F4F4F6", "stroke-width": 2 });
           svg.setAttribute("viewBox", "0 0 " + W + " " + (axisY + 30));
-          svg.style.minWidth = narrow ? "0" : "720px";
+          svg.style.minWidth = narrow ? "640px" : "720px";
           dims = { x: x };
         }
 
@@ -4609,7 +4630,8 @@
         var DURATION_MS = 12000;
         function set(v) {
           t = Math.max(0, Math.min(END, v));
-          range.value = Math.round((t / END) * 1000);
+          range.value = String(Math.round(t));
+          range.setAttribute("aria-valuetext", fmt(t) + " of " + fmt(END));
           clock.textContent = fmt(t);
           frame(t);
         }
@@ -4650,7 +4672,7 @@
         });
         range.addEventListener("input", function () {
           pause();
-          set((range.value / 1000) * END);
+          set(Number(range.value));
           label();
         });
 
@@ -4677,6 +4699,23 @@
           );
           io.observe(fig);
         }
+      })();
+    </script>
+    <script>
+      // Mobile menu: close on Escape (returning focus to the toggle) and after following a link.
+      (function () {
+        var menu = document.querySelector(".of-menu");
+        if (!menu) return;
+        var toggle = menu.querySelector("summary");
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && menu.open) {
+            menu.open = false;
+            toggle.focus();
+          }
+        });
+        menu.addEventListener("click", function (e) {
+          if (e.target.closest("a")) menu.open = false;
+        });
       })();
     </script>
   </body>
