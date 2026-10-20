@@ -499,9 +499,13 @@
         padding-left: max(16px, env(safe-area-inset-left, 0px));
         padding-right: max(16px, env(safe-area-inset-right, 0px));
       }
+      /* One left edge for the whole page: reading columns hang from the same
+         line as the hero and the wide figures, instead of re-centring. */
       .col {
+        width: 100%;
         max-width: 720px;
-        margin-inline: auto;
+        margin-left: max(0px, calc((100% - 1120px) / 2));
+        margin-right: auto;
       }
       .wide {
         width: 100%;
@@ -549,7 +553,7 @@
         font-size: 21px;
         line-height: 32px;
         color: var(--muted);
-        max-width: 640px;
+        max-width: 720px;
       }
       .byline {
         font-family: var(--mono);
@@ -599,8 +603,8 @@
       section {
         display: flex;
         flex-direction: column;
-        gap: 22px;
-        padding-top: 40px;
+        gap: 20px;
+        padding-top: 64px;
       }
       h2 {
         font-family: var(--display);
@@ -1276,15 +1280,53 @@
         font-weight: 400;
         font-size: 16px;
       }
-      .cmd code {
+      .cmd > div {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .cmd-chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 2px 2px 2px 14px;
+        border-radius: 8px;
         background: var(--card-sunk);
+      }
+      .cmd-chip code {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: none;
+        padding: 0;
         color: var(--ink);
-        display: inline-block;
-        margin-top: 4px;
+        line-height: 44px;
+      }
+      .cmd-copy {
+        flex: none;
+        height: 44px;
+        min-width: 80px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--ink);
+        color: var(--card);
+        cursor: pointer;
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+      }
+      .cmd-copy:hover {
+        background: #4a3934;
+      }
+      .cmd-copy:focus-visible {
+        outline: 2px solid var(--counter);
+        outline-offset: 2px;
       }
       .closer {
-        width: 100%;
-        padding-top: 56px;
+        padding-top: 88px;
       }
       .closer-cmd {
         display: flex;
@@ -1410,7 +1452,7 @@
           padding: 14px 16px 12px;
         }
         section {
-          padding-top: 28px;
+          padding-top: 44px;
           gap: 16px;
         }
         h2 {
@@ -1540,9 +1582,15 @@
         .cmd b {
           font-size: 24px;
         }
-        .cmd code {
+        .cmd-copy {
+          min-width: 64px;
+        }
+        .cmd-chip code,
+        .closer-cmd code {
           white-space: normal;
-          word-break: break-word;
+          overflow-wrap: anywhere;
+          line-height: 24px;
+          padding-block: 10px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -1577,7 +1625,7 @@
         font-size: 16px;
         line-height: 25px;
         color: var(--muted);
-        max-width: 640px;
+        max-width: 720px;
         border-left: 0;
         padding: 12px 16px;
         background: var(--raised);
@@ -2186,21 +2234,51 @@
             <b>1</b>
             <div>
               <h3>REVIEW THE DRAFT PRS AND THE ASSUMPTION</h3>
-              <code>gh pr list --author @me --draft</code>
+              <div class="cmd-chip">
+                <code>gh pr list --author @me --draft</code
+                ><button
+                  class="cmd-copy"
+                  type="button"
+                  data-copy="gh pr list --author @me --draft"
+                  aria-label="Copy: gh pr list --author @me --draft"
+                >
+                  COPY
+                </button>
+              </div>
             </div>
           </div>
           <div class="cmd">
             <b>2</b>
             <div>
               <h3>MERGE, THEN CLEAN UP</h3>
-              <code>npx openfleet clean account-id --branches</code>
+              <div class="cmd-chip">
+                <code>npx openfleet clean account-id --branches</code
+                ><button
+                  class="cmd-copy"
+                  type="button"
+                  data-copy="npx openfleet clean account-id --branches"
+                  aria-label="Copy: npx openfleet clean account-id --branches"
+                >
+                  COPY
+                </button>
+              </div>
             </div>
           </div>
           <div class="cmd">
             <b>3</b>
             <div>
               <h3>FOUND A PROBLEM? PICK THE RUN BACK UP</h3>
-              <code>npx openfleet resume account-id</code>
+              <div class="cmd-chip">
+                <code>npx openfleet resume account-id</code
+                ><button
+                  class="cmd-copy"
+                  type="button"
+                  data-copy="npx openfleet resume account-id"
+                  aria-label="Copy: npx openfleet resume account-id"
+                >
+                  COPY
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -3788,6 +3866,19 @@
     </script>
     <script>
       (function () {
+        document.querySelectorAll(".cmd-copy").forEach(function (btn) {
+          var timer;
+          btn.addEventListener("click", function () {
+            if (!navigator.clipboard) return;
+            navigator.clipboard.writeText(btn.getAttribute("data-copy")).then(function () {
+              btn.textContent = "COPIED";
+              clearTimeout(timer);
+              timer = setTimeout(function () {
+                btn.textContent = "COPY";
+              }, 1800);
+            });
+          });
+        });
         var b = document.getElementById("closer-copy");
         var l = document.getElementById("closer-copy-label");
         var t;
