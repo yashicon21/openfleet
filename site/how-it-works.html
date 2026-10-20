@@ -558,7 +558,7 @@
         border: 2px solid var(--ink);
         border-radius: 8px;
         padding: 0 16px;
-        height: 40px;
+        height: 44px;
         box-shadow: 0 4px 0 0 var(--ink);
         cursor: pointer;
         transition:
@@ -605,6 +605,17 @@
       .scroll-x {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        scrollbar-color: var(--line) transparent;
+      }
+      input[type="range"] {
+        height: 44px;
+      }
+      .scroll-hint {
+        display: none;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--muted);
       }
       svg {
         display: block;
@@ -832,16 +843,48 @@
         gap: 8px;
         min-width: 0;
       }
+      .repo summary {
+        list-style: none;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        border-radius: 8px;
+      }
+      .repo summary::-webkit-details-marker {
+        display: none;
+      }
+      .repo summary:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 4px;
+      }
+      .repo h3::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid var(--muted);
+        border-bottom: 2px solid var(--muted);
+        transform: rotate(45deg) translateY(-3px);
+        flex: none;
+        transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .repo:not([open]) h3::after {
+        transform: rotate(-45deg);
+      }
+      .repo .frow {
+        margin-top: 8px;
+      }
       .repo h3 {
+        flex: 1;
         font-family: var(--display);
         font-weight: 400;
         font-size: 16px;
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 8px;
+        align-items: center;
+        gap: 12px;
       }
       .repo h3 .mono {
+        margin-left: auto;
         font-size: 16px;
         color: var(--muted);
       }
@@ -1277,8 +1320,18 @@
           flex-wrap: wrap;
         }
         .steps {
-          flex: 1;
+          flex: 1 1 100%;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
         }
+        #fixplay {
+          flex: 1 1 100%;
+        }
+        .scroll-hint {
+          display: block;
+          margin-top: -8px;
+        }
+
         .steps .btn {
           flex: 1;
           padding: 0;
@@ -1808,6 +1861,7 @@
                 aria-label="Swimlane timeline of the example run: the project phases on top, then the coordinator and one lane per repo with its planner, implementer and tester, and an events-per-10-seconds histogram underneath."
               ></svg>
             </div>
+            <p class="scroll-hint" aria-hidden="true">Swipe sideways to see the whole run →</p>
             <div class="log" aria-live="off">
               <h3>LATEST EVENTS</h3>
               <ol id="log"></ol>
@@ -1873,6 +1927,7 @@
               <tbody id="phase-rows"></tbody>
             </table>
           </div>
+          <p class="scroll-hint" aria-hidden="true">Swipe sideways for every phase →</p>
           <p class="figcap">
             <b id="phase-now" class="mono"></b> Each cell shows how long that repo spent in the phase; the highlighted
             cell is where it is now.
@@ -2593,9 +2648,9 @@
           var LANES = ["coordinator"].concat(REPOS);
           function build() {
             var N = isNarrow();
-            var W = N ? 400 : 1000,
+            var W = N ? 640 : 1000,
               X0 = N ? 4 : 120,
-              X1 = N ? 392 : 985;
+              X1 = N ? 628 : 985;
             var x = function (t) {
               return X0 + (t / END) * (X1 - X0);
             };
@@ -2672,7 +2727,7 @@
                 '" y="' +
                 lab.y +
                 '" font-size="' +
-                (coord ? (N ? 11 : 12) : N ? 14 : 15) +
+                (coord ? 12 : N ? 14 : 15) +
                 '" ' +
                 (coord ? 'letter-spacing="1" class="t-fg disp-t"' : 'class="t-fg mono-t"') +
                 ">" +
@@ -2736,7 +2791,7 @@
             var AY = LY + LANES.length * LH + 8;
             h +=
               '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + AY + '" y2="' + AY + '" class="s-line" stroke-width="2"/>';
-            for (var s = 0; s <= END; s += N ? 120 : 60) {
+            for (var s = 0; s <= END; s += 60) {
               h +=
                 '<line x1="' +
                 x(s) +
@@ -2807,7 +2862,7 @@
               '" y2="' +
               HY +
               '" class="s-fg" stroke-width="2"/>';
-            setBox(svg, W, HY + 6, N ? 0 : 720);
+            setBox(svg, W, HY + 6, N ? 640 : 720);
             svg.innerHTML = h;
             var bars = [].slice.call(svg.querySelectorAll(".lane-bar")),
               evs = [].slice.call(svg.querySelectorAll(".ev")),
@@ -3239,13 +3294,13 @@
                 return s + f.r;
               }, 0);
             return (
-              '<div class="repo"><h3>' +
+              '<details class="repo" open><summary><h3>' +
               repo.toUpperCase() +
               '<span class="mono">+' +
               A +
               " −" +
               R +
-              "</span></h3>" +
+              "</span></h3></summary>" +
               fs
                 .map(function (f) {
                   return (
@@ -3270,9 +3325,14 @@
                   );
                 })
                 .join("") +
-              "</div>"
+              "</details>"
             );
           }).join("");
+          // On phones the file lists start folded: seven repo totals fit on one screen.
+          if (isNarrow())
+            [].slice.call(box.querySelectorAll("details.repo")).forEach(function (d) {
+              d.open = false;
+            });
           var rows = [].slice.call(box.querySelectorAll(".frow"));
           var ta = document.getElementById("tot-add"),
             tr = document.getElementById("tot-rem"),
