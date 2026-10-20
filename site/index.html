@@ -392,6 +392,292 @@
           animation: none;
         }
       }
+      .rp-sec {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: clamp(112px, 13vw, 176px) 24px 0;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 48px;
+      }
+      .rp-intro {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px 64px;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+      .rp-h2 {
+        margin: 0;
+        flex: 1 1 420px;
+        max-width: 680px;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-weight: 400;
+        font-size: clamp(32px, 4.6vw, 56px);
+        line-height: 1.02;
+        color: #f4f4f6;
+      }
+      .rp-introside {
+        flex: 1 1 340px;
+        max-width: 460px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      .rp-introside p {
+        margin: 0;
+        font-size: 17px;
+        line-height: 27px;
+        color: #a8a6af;
+      }
+      .rp-introside code {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        color: #f4f4f6;
+      }
+      .rp-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 18px;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 2px solid #a8a6af;
+        color: #f4f4f6;
+        text-decoration: none;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
+      .rp-fig {
+        margin: 0;
+        background: #1c1b21;
+        border: 1px solid #45434c;
+        border-radius: 28px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .rp-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .rp-title {
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        color: #a8a6af;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .rp-dots {
+        display: inline-flex;
+        gap: 4px;
+      }
+      .rp-dots i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: block;
+      }
+      .rp-dots i:nth-child(1) {
+        background: #48a6ee;
+      }
+      .rp-dots i:nth-child(2) {
+        background: #ee5ad6;
+      }
+      .rp-dots i:nth-child(3) {
+        background: #edeb3c;
+      }
+      .rp-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .rp-btn {
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        color: #2b1e1b;
+        background: #48a6ee;
+        border: 2px solid #2b1e1b;
+        border-radius: 8px;
+        padding: 0 16px;
+        height: 44px;
+        box-shadow: 0 4px 0 0 #2b1e1b;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          transform 80ms,
+          box-shadow 80ms;
+      }
+      .rp-btn:hover {
+        background: #6bb8f2;
+      }
+      .rp-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 0 #2b1e1b;
+      }
+      .rp-controls input[type="range"] {
+        accent-color: #48a6ee;
+        width: 180px;
+      }
+      .rp-controls input[type="range"]:focus-visible {
+        outline: 2px solid #48a6ee;
+        outline-offset: 3px;
+      }
+      .rp-clock {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 26px;
+        color: #edeb3c;
+        min-width: 64px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .rp-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        gap: 16px;
+      }
+      .rp-scroll {
+        overflow-x: auto;
+      }
+      .rp-scroll svg {
+        display: block;
+        width: 100%;
+      }
+      .rp-scroll svg text {
+        font-family: "Saira Semi Condensed", "Arial Narrow", sans-serif;
+      }
+      .rp-log {
+        background: #0e0e10;
+        border: 1px solid #45434c;
+        border-radius: 16px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        min-height: 220px;
+        overflow: hidden;
+      }
+      .rp-log h3 {
+        margin: 0;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: #a8a6af;
+      }
+      .rp-log ol {
+        margin: 0;
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .rp-log li {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 13px;
+        line-height: 17px;
+        color: #a8a6af;
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 8px;
+        animation: rp-pop 220ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .rp-log li b {
+        font-weight: 400;
+        color: #f4f4f6;
+        display: block;
+      }
+      .rp-log li:first-child b {
+        color: #edeb3c;
+      }
+      .rp-log li em {
+        font-style: normal;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @keyframes rp-pop {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .rp-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        font-size: 14px;
+        line-height: 20px;
+        color: #a8a6af;
+      }
+      .rp-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .rp-legend i {
+        display: inline-block;
+        width: 18px;
+        height: 10px;
+        border-radius: 3px;
+      }
+      .rp-legend i.rp-dash {
+        height: 0;
+        border-top: 2px dashed #a8a6af;
+        border-radius: 0;
+      }
+      @media (max-width: 900px) {
+        .rp-split {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .rp-log {
+          min-height: 0;
+        }
+      }
+      @media (max-width: 639px) {
+        .rp-fig {
+          padding: 16px;
+          border-radius: 20px;
+        }
+        .rp-controls {
+          width: 100%;
+        }
+        .rp-controls input[type="range"] {
+          flex: 1;
+          width: auto;
+          min-width: 0;
+        }
+        .rp-clock {
+          font-size: 22px;
+        }
+        .rp-title {
+          font-size: 11px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .rp-log li {
+          animation: none;
+        }
+        .rp-btn {
+          transition: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -453,7 +739,7 @@
             <div class="of-navlinks" style="display: flex; align-items: center; gap: 2px">
               <a
                 class="of-navlink"
-                href="#how"
+                href="how-it-works.html"
                 style="
                   padding: 11px 14px;
                   border-radius: 999px;
@@ -547,7 +833,7 @@
                 "
               >
                 <a
-                  href="#how"
+                  href="how-it-works.html"
                   style="
                     padding: 12px 14px;
                     border-radius: 10px;
@@ -1634,6 +1920,60 @@
             </div>
           </div>
         </div>
+
+        <section id="run" aria-labelledby="run-h" class="rp-sec">
+          <div class="rp-intro">
+            <h2 id="run-h" class="rp-h2">Seven repos. One coordinator. All at once.</h2>
+            <div class="rp-introside">
+              <p>
+                For every repo, the coordinator spawns a planner, an implementer and a tester, then lets them work side
+                by side. Ordering still holds: <code>mobile</code> waits for <code>sdk-js</code>. A failed test gets a
+                fresh implementer. Every step lands in <code>events.jsonl</code>.
+              </p>
+              <a class="of-ghost rp-link" href="how-it-works.html">WATCH A REAL RUN, EVENT BY EVENT</a>
+            </div>
+          </div>
+          <figure class="rp-fig" id="rp-fig">
+            <div class="rp-head">
+              <span class="rp-title"
+                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · ACCOUNT-ID ·
+                ILLUSTRATIVE TIMINGS</span
+              >
+              <div class="rp-controls">
+                <button class="rp-btn" type="button" id="rp-play">↺ REPLAY</button
+                ><input
+                  type="range"
+                  min="0"
+                  max="1000"
+                  value="1000"
+                  id="rp-scrub"
+                  aria-label="Scrub the example run"
+                /><span class="rp-clock" id="rp-clock">4:40</span>
+              </div>
+            </div>
+            <div class="rp-split">
+              <div class="rp-scroll">
+                <svg
+                  id="rp-swim"
+                  viewBox="0 0 1000 420"
+                  role="img"
+                  aria-label="Swimlane of the example run: the project bar on top, then one lane per repo showing plan, implement and test. mobile waits for sdk-js; sdk-python fails a test once and retries."
+                ></svg>
+              </div>
+              <div class="rp-log">
+                <h3>LATEST EVENTS</h3>
+                <ol id="rp-log"></ol>
+              </div>
+            </div>
+            <div class="rp-legend" aria-hidden="true">
+              <span><i style="background: #48a6ee"></i>Plan</span
+              ><span><i style="background: #ee5ad6"></i>Implement</span
+              ><span><i style="background: #edeb3c"></i>Test</span
+              ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
+              ><span><i class="rp-dash"></i>Waiting on another repo</span>
+            </div>
+          </figure>
+        </section>
 
         <section
           id="how"
@@ -3418,6 +3758,12 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           <nav aria-label="Footer" style="display: flex; flex-wrap: wrap; gap: 4px; margin: 0 -14px">
             <a
               class="of-navlink"
+              href="how-it-works.html"
+              style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >How it works</a
+            >
+            <a
+              class="of-navlink"
               href="https://github.com/yashicon21/openfleet"
               style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
               >GitHub</a
@@ -3632,6 +3978,440 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!reduce && window.scrollY < window.innerHeight) {
           play(500);
+        }
+      })();
+      (function () {
+        var fig = document.getElementById("rp-fig");
+        if (!fig) return;
+        var svg = document.getElementById("rp-swim");
+        var logEl = document.getElementById("rp-log");
+        var btn = document.getElementById("rp-play");
+        var range = document.getElementById("rp-scrub");
+        var clock = document.getElementById("rp-clock");
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var narrowMq = window.matchMedia ? window.matchMedia("(max-width: 639px)") : { matches: false };
+        var NS = "http://www.w3.org/2000/svg";
+
+        // Illustrative timings, in seconds. p = plan, i = implement, t = test, f = failed test, w = waiting.
+        var LANES = [
+          {
+            name: "api",
+            segs: [
+              ["p", 50, 80],
+              ["i", 82, 140],
+              ["t", 142, 165],
+            ],
+          },
+          {
+            name: "sdk-js",
+            segs: [
+              ["p", 52, 85],
+              ["i", 87, 150],
+              ["t", 152, 180],
+            ],
+          },
+          {
+            name: "sdk-python",
+            segs: [
+              ["p", 54, 88],
+              ["i", 90, 150],
+              ["f", 152, 172],
+              ["i", 174, 200],
+              ["t", 202, 222],
+            ],
+          },
+          {
+            name: "billing",
+            segs: [
+              ["p", 56, 95],
+              ["i", 97, 160],
+              ["t", 162, 190],
+            ],
+          },
+          {
+            name: "web/app",
+            segs: [
+              ["p", 58, 100],
+              ["i", 102, 175],
+              ["t", 177, 205],
+            ],
+          },
+          {
+            name: "web/ui",
+            segs: [
+              ["p", 60, 110],
+              ["i", 112, 185],
+              ["t", 187, 212],
+            ],
+          },
+          {
+            name: "mobile",
+            segs: [
+              ["w", 50, 180],
+              ["p", 182, 205],
+              ["i", 207, 250],
+              ["t", 252, 270],
+            ],
+          },
+        ];
+        var PROJECT = [
+          ["GRILL + SPEC", 0, 40, "raised"],
+          ["YOU", 40, 48, "you"],
+          ["RUNNING", 48, 272, "raised"],
+          ["FINALIZE", 272, 280, "raised"],
+        ];
+        var MARKS = [
+          { t: 120, label: "contract.changed", color: "#48A6EE" },
+          { t: 176, label: "assumption", color: "#EDEB3C" },
+        ];
+        var END = 280;
+        var COLORS = { p: "#48A6EE", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC" };
+        var ROLE = { p: "planner", i: "implementer", t: "tester", f: "tester" };
+
+        var EVENTS = [
+          { t: 0, type: "project.created", text: "account-id" },
+          { t: 40, type: "spec.written", text: "spec.md, 7 repos" },
+          { t: 48, type: "spec.approved", text: "you approved the spec" },
+          { t: 120, type: "contract.changed", text: "contracts/account.json → 5 repos" },
+          { t: 176, type: "assumption", text: "sdk-python keeps user_id as an alias" },
+          { t: 275, type: "run.completed", text: "staged in 7 worktrees" },
+        ];
+        LANES.forEach(function (lane) {
+          lane.segs.forEach(function (s) {
+            if (s[0] === "w") {
+              EVENTS.push({ t: s[1], type: "ordering", text: lane.name + " waits on sdk-js" });
+              return;
+            }
+            EVENTS.push({ t: s[1], type: "agent.spawned", text: lane.name + "/" + ROLE[s[0]] });
+            if (s[0] === "t") EVENTS.push({ t: s[2], type: "test.run", text: lane.name + " · pass" });
+            if (s[0] === "f") EVENTS.push({ t: s[2], type: "test.run", text: lane.name + " · fail, retry 1/3" });
+          });
+        });
+        EVENTS.sort(function (a, b) {
+          return a.t - b.t;
+        });
+
+        function fmt(t) {
+          t = Math.max(0, Math.round(t));
+          var s = t % 60;
+          return Math.floor(t / 60) + ":" + (s < 10 ? "0" : "") + s;
+        }
+        function el(name, attrs, text) {
+          var n = document.createElementNS(NS, name);
+          for (var k in attrs) n.setAttribute(k, attrs[k]);
+          if (text != null) n.textContent = text;
+          svg.appendChild(n);
+          return n;
+        }
+
+        var bars = [];
+        var dims;
+        var markEls = [];
+        var head;
+        var projEls = [];
+
+        function build() {
+          var narrow = narrowMq.matches;
+          while (svg.firstChild) svg.removeChild(svg.firstChild);
+          bars = [];
+          markEls = [];
+          projEls = [];
+          var W = narrow ? 400 : 1000;
+          var X0 = narrow ? 4 : 120;
+          var X1 = narrow ? 396 : 990;
+          var x = function (t) {
+            return X0 + (t / END) * (X1 - X0);
+          };
+          var PY = narrow ? 20 : 10;
+          var LY = narrow ? 70 : 60;
+          var LH = narrow ? 46 : 42;
+          if (!narrow)
+            el(
+              "text",
+              {
+                x: 0,
+                y: PY + 18,
+                fill: "#A8A6AF",
+                "font-size": 12,
+                "letter-spacing": 1,
+                style: "font-family: 'Russo One', sans-serif",
+              },
+              "PROJECT",
+            );
+          PROJECT.forEach(function (p) {
+            var w = x(p[2]) - x(p[1]) - 2;
+            var you = p[3] === "you";
+            var r = el("rect", {
+              x: x(p[1]),
+              y: PY,
+              width: Math.max(2, w),
+              height: 26,
+              rx: 6,
+              fill: you ? "#EDEB3C" : "#26252C",
+            });
+            projEls.push({ r: r, a: p[1] });
+            if (w > 70)
+              el(
+                "text",
+                {
+                  x: x(p[1]) + 8,
+                  y: PY + 18,
+                  "font-size": narrow ? 11 : 12,
+                  fill: "#A8A6AF",
+                  style: "font-family: 'Russo One', sans-serif",
+                },
+                p[0],
+              );
+            if (you)
+              el(
+                "text",
+                {
+                  x: x(p[1]) + w / 2,
+                  y: PY + 42,
+                  "font-size": 11,
+                  fill: "#EDEB3C",
+                  "text-anchor": "middle",
+                  style: "font-family: 'Russo One', sans-serif",
+                },
+                "YOU",
+              );
+          });
+          LANES.forEach(function (lane, i) {
+            var y = LY + i * LH;
+            var labY = narrow ? y + 11 : y + 24;
+            var barY = narrow ? y + 17 : y + 8;
+            var barH = narrow ? 18 : 22;
+            el("line", {
+              x1: X0,
+              x2: X1,
+              y1: barY + barH / 2,
+              y2: barY + barH / 2,
+              stroke: "#45434C",
+              "stroke-width": 1,
+              "stroke-dasharray": "2 6",
+            });
+            el(
+              "text",
+              {
+                x: narrow ? X0 : 0,
+                y: labY,
+                "font-size": narrow ? 14 : 16,
+                fill: "#F4F4F6",
+                style: "font-family: 'Share Tech Mono', monospace",
+              },
+              lane.name,
+            );
+            lane.segs.forEach(function (s) {
+              if (s[0] === "w") {
+                var line = el("line", {
+                  x1: x(s[1]),
+                  x2: x(s[1]),
+                  y1: barY + barH / 2,
+                  y2: barY + barH / 2,
+                  stroke: "#A8A6AF",
+                  "stroke-width": 2,
+                  "stroke-dasharray": "5 5",
+                });
+                bars.push({ kind: "w", node: line, a: s[1], b: s[2], x: x });
+                var lab = el(
+                  "text",
+                  {
+                    x: x(s[1]) + 8,
+                    y: barY - 3,
+                    "font-size": 12,
+                    fill: "#A8A6AF",
+                    style: "font-family: 'Share Tech Mono', monospace",
+                  },
+                  "waits on sdk-js",
+                );
+                bars.push({ kind: "label", node: lab, a: s[1] });
+                return;
+              }
+              var attrs = { x: x(s[1]), y: barY, height: barH, rx: 5, width: 0, fill: COLORS[s[0]] };
+              if (s[0] === "f") {
+                attrs.stroke = "#8A5300";
+                attrs["stroke-width"] = 2;
+              }
+              var r = el("rect", attrs);
+              bars.push({ kind: "bar", node: r, a: s[1], b: s[2], x: x });
+              if (s[0] === "f") {
+                var fl = el(
+                  "text",
+                  {
+                    x: x(s[2]) - 4,
+                    y: barY + barH / 2 + 4,
+                    "font-size": 11,
+                    fill: "#8A5300",
+                    "text-anchor": "end",
+                    style: "font-family: 'Russo One', sans-serif",
+                  },
+                  "FAIL",
+                );
+                bars.push({ kind: "label", node: fl, a: s[2] });
+              }
+            });
+          });
+          var bottom = LY + LANES.length * LH + 4;
+          MARKS.forEach(function (m, mi) {
+            var ln = el("line", {
+              x1: x(m.t),
+              x2: x(m.t),
+              y1: LY - 6,
+              y2: bottom,
+              stroke: m.color,
+              "stroke-width": 2,
+              "stroke-dasharray": "3 4",
+            });
+            var tx = el(
+              "text",
+              {
+                x: x(m.t) + 6,
+                y: bottom + 18 + (narrow ? mi * 15 : 0),
+                "font-size": 12,
+                fill: m.color,
+                style: "font-family: 'Share Tech Mono', monospace",
+              },
+              m.label,
+            );
+            markEls.push({ t: m.t, nodes: [ln, tx] });
+          });
+          var axisY = bottom + (narrow ? 45 : 30);
+          el("line", { x1: X0, x2: X1, y1: axisY, y2: axisY, stroke: "#45434C", "stroke-width": 2 });
+          for (var s = 0; s <= END; s += narrow ? 120 : 60) {
+            el("line", { x1: x(s), x2: x(s), y1: axisY, y2: axisY + 6, stroke: "#45434C", "stroke-width": 2 });
+            el(
+              "text",
+              {
+                x: x(s),
+                y: axisY + 22,
+                "font-size": 13,
+                fill: "#A8A6AF",
+                "text-anchor": s === 0 ? "start" : "middle",
+                style: "font-family: 'Share Tech Mono', monospace",
+              },
+              fmt(s),
+            );
+          }
+          head = el("line", { x1: x(END), x2: x(END), y1: PY - 4, y2: axisY, stroke: "#F4F4F6", "stroke-width": 2 });
+          svg.setAttribute("viewBox", "0 0 " + W + " " + (axisY + 30));
+          svg.style.minWidth = narrow ? "0" : "720px";
+          dims = { x: x };
+        }
+
+        var lastShown = -1;
+        function frame(t) {
+          var x = dims.x;
+          bars.forEach(function (b) {
+            if (b.kind === "bar") {
+              var w = Math.max(0, Math.min(t, b.b) - b.a);
+              b.node.setAttribute("width", Math.max(0, x(b.a + w) - x(b.a)));
+            } else if (b.kind === "w") {
+              b.node.setAttribute("x2", x(Math.max(b.a, Math.min(t, b.b))));
+              b.node.style.opacity = t >= b.a ? 1 : 0;
+            } else {
+              b.node.style.opacity = t >= b.a ? 1 : 0;
+            }
+          });
+          markEls.forEach(function (m) {
+            m.nodes.forEach(function (n) {
+              n.style.opacity = t >= m.t ? 1 : 0;
+            });
+          });
+          projEls.forEach(function (p) {
+            p.r.style.opacity = t >= p.a ? 1 : 0.3;
+          });
+          head.setAttribute("x1", x(t));
+          head.setAttribute("x2", x(t));
+          var n = 0;
+          while (n < EVENTS.length && EVENTS[n].t <= t) n++;
+          if (n !== lastShown) {
+            lastShown = n;
+            var keep = narrowMq.matches ? 4 : 7;
+            logEl.innerHTML = EVENTS.slice(Math.max(0, n - keep), n)
+              .reverse()
+              .map(function (e) {
+                return (
+                  "<li><span>" + fmt(e.t) + "</span><span><b>" + e.type + "</b><em>" + e.text + "</em></span></li>"
+                );
+              })
+              .join("");
+          }
+        }
+
+        var t = END;
+        var playing = false;
+        var raf = 0;
+        var last = 0;
+        var DURATION_MS = 12000;
+        function set(v) {
+          t = Math.max(0, Math.min(END, v));
+          range.value = Math.round((t / END) * 1000);
+          clock.textContent = fmt(t);
+          frame(t);
+        }
+        function label() {
+          btn.textContent = playing ? "❚❚ PAUSE" : t >= END ? "↺ REPLAY" : "▶ PLAY";
+        }
+        function tick(now) {
+          var dt = now - last;
+          last = now;
+          set(t + (dt / DURATION_MS) * END);
+          if (t >= END) {
+            playing = false;
+            label();
+            return;
+          }
+          raf = requestAnimationFrame(tick);
+        }
+        function play() {
+          if (reduce) {
+            set(END);
+            label();
+            return;
+          }
+          if (t >= END) set(0);
+          playing = true;
+          label();
+          last = performance.now();
+          raf = requestAnimationFrame(tick);
+        }
+        function pause() {
+          playing = false;
+          cancelAnimationFrame(raf);
+          label();
+        }
+        btn.addEventListener("click", function () {
+          if (playing) pause();
+          else play();
+        });
+        range.addEventListener("input", function () {
+          pause();
+          set((range.value / 1000) * END);
+          label();
+        });
+
+        build();
+        set(END);
+        label();
+        var onChange = function () {
+          build();
+          lastShown = -1;
+          frame(t);
+        };
+        if (narrowMq.addEventListener) narrowMq.addEventListener("change", onChange);
+        if (!reduce && "IntersectionObserver" in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                  io.disconnect();
+                  play();
+                }
+              });
+            },
+            { threshold: 0.3 },
+          );
+          io.observe(fig);
         }
       })();
     </script>
