@@ -6,7 +6,7 @@
     <title>How it works · OpenFleet</title>
     <meta
       name="description"
-      content="A real OpenFleet run, replayed from its event log: one prompt, a coordinator, and six agents changing two repos in parallel."
+      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos with 23 agents, a contract change, a retry and an assumption."
     />
     <meta name="theme-color" content="#0E0E10" />
     <link rel="canonical" href="https://openfleet.tools/how-it-works.html" />
@@ -18,7 +18,7 @@
     <meta property="og:title" content="How it works · OpenFleet" />
     <meta
       property="og:description"
-      content="A real OpenFleet run, replayed from its event log: one prompt, a coordinator, and six agents changing two repos in parallel."
+      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos with 23 agents, a contract change, a retry and an assumption."
     />
     <meta property="og:url" content="https://openfleet.tools/how-it-works.html" />
     <meta name="twitter:card" content="summary" />
@@ -504,6 +504,7 @@
         margin-inline: auto;
       }
       .wide {
+        width: 100%;
         max-width: 1120px;
         margin-inline: auto;
       }
@@ -1495,6 +1496,123 @@
         margin-top: 20px;
       }
     </style>
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .note-mock {
+        font-size: 16px;
+        line-height: 25px;
+        color: var(--muted);
+        max-width: 640px;
+        border-left: 0;
+        padding: 12px 16px;
+        background: var(--raised);
+        border-radius: 12px;
+      }
+      .phases {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: separate;
+        border-spacing: 4px;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .phases th {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        text-align: left;
+        padding: 4px 6px;
+      }
+      .phases tbody th {
+        font-family: var(--mono);
+        font-size: 15px;
+        letter-spacing: 0;
+        color: var(--fg);
+        white-space: nowrap;
+      }
+      .phases td {
+        height: 36px;
+        border-radius: 8px;
+        background: var(--raised-2);
+        color: var(--muted);
+        padding: 0 10px;
+        transition:
+          background 200ms,
+          color 200ms;
+      }
+      .phases td.on {
+        background: #34333a;
+        color: var(--fg);
+      }
+      .phases td.cur {
+        background: var(--cyan);
+        color: var(--ink);
+      }
+      .phases td.done {
+        background: var(--card);
+        color: var(--success);
+        text-align: center;
+      }
+      .tally7 {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 28px;
+      }
+      .trow {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .trow h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .trow h3 .mono {
+        font-size: 15px;
+        letter-spacing: 0;
+        color: var(--ink);
+      }
+      .trow h3 b {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: 15px;
+        color: var(--success);
+      }
+      .cells i.bad {
+        background: #eb6834;
+      }
+      @media (max-width: 860px) {
+        .tally7 {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .phases td {
+          transition: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <a class="of-skip" href="#content">Skip to content</a>
@@ -1692,8 +1810,8 @@
     <div class="marquee" aria-hidden="true">
       <div class="band c">
         <span
-          >GREETING-LANG · RUN REPLAY · 63 EVENTS · 6 AGENTS · 2 REPOS · 3:47 · GREETING-LANG · RUN REPLAY · 63 EVENTS ·
-          6 AGENTS · 2 REPOS · 3:47 ·</span
+          >ACCOUNT-ID · EXAMPLE RUN · 203 EVENTS · 23 AGENTS · 7 REPOS · 4:40 · ACCOUNT-ID · EXAMPLE RUN · 203 EVENTS ·
+          23 AGENTS · 7 REPOS · 4:40 ·</span
         >
       </div>
       <div class="band m">
@@ -1704,7 +1822,7 @@
       </div>
       <div class="band y">
         <span
-          >STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT
+          >STAGED · NOT COMMITTED · 177 / 177 TESTS PASS · STAGED · NOT COMMITTED · 177 / 177 TESTS PASS · STAGED · NOT
           COMMITTED ·</span
         >
       </div>
@@ -1712,45 +1830,48 @@
 
     <header class="wrap">
       <div class="wide hero">
-        <p class="kicker">HOW IT WORKS · A REAL RUN, REPLAYED</p>
-        <h1>Two repos, six agents, <span class="lcd">3:47</span></h1>
+        <p class="kicker">HOW IT WORKS · AN EXAMPLE RUN</p>
+        <h1>Seven repos, 23 agents, <span class="lcd">4:40</span></h1>
         <p class="dek">
-          One prompt went into an agent CLI session: add a language field to the greeting API and show it in web. This
-          page replays what happened next, straight from the run’s event log. It’s the toy example in
-          <code>examples/demo</code>, so you can run the same thing yourself with <code>pnpm demo</code>.
+          One prompt: rename <code>user_id</code> to <code>account_id</code> in the API, both SDKs and every client.
+          This page walks through the run event by event: who did what, to which repo, and when.
         </p>
-        <p class="byline">project greeting-lang · 17 Oct 2026 · 03:04:35 → 03:08:22 UTC</p>
+        <p class="note-mock">
+          This run is illustrative: the timings and events are mocked, but every event type is one OpenFleet really
+          logs. For a real run you can replay yourself, try <code>pnpm demo</code>.
+        </p>
+        <p class="byline">project account-id · example run · 0:00 → 4:40</p>
       </div>
       <div class="wide stats">
-        <div class="stat"><b>3:47</b><span>START TO DONE</span></div>
-        <div class="stat"><b>63</b><span>EVENTS LOGGED</span></div>
-        <div class="stat"><b>6</b><span>SUB-AGENTS</span></div>
-        <div class="stat"><b>+232/−24</b><span>LINES, 13 FILES</span></div>
-        <div class="stat"><b>24/24</b><span>TESTS PASS</span></div>
+        <div class="stat"><b>4:40</b><span>START TO DONE</span></div>
+        <div class="stat"><b>203</b><span>EVENTS LOGGED</span></div>
+        <div class="stat"><b>23</b><span>SUB-AGENTS</span></div>
+        <div class="stat"><b>+314/−106</b><span>LINES, 24 FILES</span></div>
+        <div class="stat"><b>177/177</b><span>TESTS PASS</span></div>
       </div>
     </header>
 
     <main class="wrap" id="content">
       <article>
         <section class="col prose">
-          <h2><small>01 · THE WHOLE RUN</small>Three minutes, eight lanes</h2>
+          <h2><small>01 · THE WHOLE RUN</small>Under five minutes, 23 agents</h2>
           <p>
             OpenFleet writes every step of a run to <code>events.jsonl</code>: who did what, to which repo, and when.
-            The <strong>coordinator</strong> is the agent you talk to. It spends the first minute with you, settling
-            questions and writing a spec. After you approve, it splits the work into one child per repo and hands each
-            child to three short-lived sub-agents in turn: a <strong>planner</strong>, an
-            <strong>implementer</strong> and a <strong>tester</strong>.
+            The <strong>coordinator</strong> is the agent you talk to. It spends the first forty seconds with you,
+            settling questions and writing a spec. After you approve, it creates a worktree for each repo and hands each
+            one to three short-lived sub-agents in turn: a <strong>planner</strong>, an <strong>implementer</strong> and
+            a <strong>tester</strong>.
           </p>
           <p>
-            Press replay to watch all 63 events land. The api and web lanes run side by side, a few seconds apart,
-            because the coordinator spawns agents one at a time and then lets them work in parallel.
+            Press replay to watch all 203 events land. Six repos start within ten seconds of each other.
+            <code>mobile</code> sits idle until <code>sdk-js</code> is done, because the spec ordered it that way.
           </p>
         </section>
 
         <figure class="fig wide" id="fig-swim">
           <div class="fig-head">
             <span class="fig-title"
-              ><span class="dot3"><i></i><i></i><i></i></span>EVENTS.JSONL · REPLAY 3:47 IN 15S</span
+              ><span class="dot3"><i></i><i></i><i></i></span>EVENTS.JSONL · REPLAY 4:40 IN 16S</span
             >
             <div class="controls">
               <button class="btn" data-play type="button">▶ REPLAY</button
@@ -1761,16 +1882,16 @@
                 value="1000"
                 data-scrub
                 aria-label="Scrub the run timeline"
-              /><span class="clock" data-clock>3:47.5</span>
+              /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
           <div class="split">
             <div class="scroll-x">
               <svg
                 id="swim"
-                viewBox="0 0 1000 440"
+                viewBox="0 0 1000 480"
                 role="img"
-                aria-label="Swimlane timeline of the run: project phases on top, then the coordinator and six sub-agents, with an events-per-5-seconds histogram underneath."
+                aria-label="Swimlane timeline of the example run: the project phases on top, then the coordinator and one lane per repo with its planner, implementer and tester, and an events-per-10-seconds histogram underneath."
               ></svg>
             </div>
             <div class="log" aria-live="off">
@@ -1781,28 +1902,26 @@
           <div class="timebar" id="timebar" aria-hidden="true"></div>
           <div class="timelegend" id="timelegend"></div>
           <p class="figcap">
-            Bars show each sub-agent from spawn to stop. Dots on a bar are things that agent logged: file edits for
-            implementers, test runs for testers. The yellow segment is the only time the run waited on a person.
+            Bars are sub-agents from spawn to stop: cyan planners, magenta implementers, yellow testers. The pale bar on
+            sdk-python is the tester whose run failed. Dots are file edits and test runs. The yellow segment is the only
+            time the run waited on a person.
           </p>
         </figure>
 
         <section class="col prose">
-          <h2><small>02 · STATE</small>Every child walks the same path</h2>
+          <h2><small>02 · STATE</small>Every repo walks the same path</h2>
           <p>
-            The coordinator moves the project, and each child, through a fixed set of phases. The run only ever goes
-            forward. There is no retry arrow in this replay because no child needed one: every plan validated first time
-            and every test run passed.
-          </p>
-          <p>
-            The slow phases are the ones where a model is thinking. <strong>Planning</strong> includes the coordinator
-            reading both plans and settling an open question, which is why it outlasts the planners themselves.
+            The coordinator moves each repo through the same phases, and almost always forwards. The one exception is
+            <code>sdk-python</code>: after a failed test it goes back from testing to implementing (the ↺), with the
+            tester’s findings attached. <code>mobile</code> spends most of the run in pending, waiting on
+            <code>sdk-js</code>.
           </p>
         </section>
 
         <figure class="fig wide" id="fig-state">
           <div class="fig-head">
             <span class="fig-title"
-              ><span class="dot3"><i></i><i></i><i></i></span>PHASE.CHANGED · 18 TRANSITIONS</span
+              ><span class="dot3"><i></i><i></i><i></i></span>PHASE.CHANGED · 7 REPOS</span
             >
             <div class="controls">
               <button class="btn" data-play type="button">▶ REPLAY</button
@@ -1813,20 +1932,33 @@
                 value="1000"
                 data-scrub
                 aria-label="Scrub the phase replay"
-              /><span class="clock" data-clock>3:47.5</span>
+              /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
           <div class="scroll-x">
-            <svg
-              id="state"
-              viewBox="0 0 1000 350"
-              role="img"
-              aria-label="State machine: the project moves from specifying to done in five phases; the api and web children each move through seven phases from pending to done."
-            ></svg>
+            <table class="phases">
+              <caption class="sr-only">
+                Time each repo spent in each phase
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col"><span class="sr-only">Repo</span></th>
+                  <th scope="col">pending</th>
+                  <th scope="col">planning</th>
+                  <th scope="col">plan-review</th>
+                  <th scope="col">implementing</th>
+                  <th scope="col">testing</th>
+                  <th scope="col">post-test</th>
+                  <th scope="col">done</th>
+                </tr>
+              </thead>
+              <tbody id="phase-rows"></tbody>
+            </table>
           </div>
           <p class="figcap">
-            The cyan dot is api, the magenta dot is web. Times under each phase are how long that child sat there. The
-            two zero-length hops, plan-review and post-test, are the coordinator stamping a gate it had already checked.
+            <b id="phase-now" class="mono"></b> Each cell shows how long that repo spent in the phase; the highlighted
+            cell is where it is now. Plan-review and post-test are gates the coordinator stamps once it has checked the
+            plan or the tests.
           </p>
         </figure>
 
@@ -1834,8 +1966,8 @@
           <h2><small>03 · MESSAGES</small>The coordinator talks, agents report back</h2>
           <p>
             Sub-agents never talk to each other. Each one gets a single instruction from the coordinator, does its job
-            in the child’s git worktree, and ends with a structured <code>openfleet-report</code> block: a status, a
-            one-line summary and, if it has one, a question. Six instructions out, six reports back, plus the spec
+            in that repo’s git worktree, and ends with a structured <code>openfleet-report</code>: a status, a summary
+            and, if it has one, a question. Twenty-three instructions out, twenty-three reports back, plus the spec
             handoff with you at the start.
           </p>
         </section>
@@ -1854,51 +1986,47 @@
                 value="1000"
                 data-scrub
                 aria-label="Scrub the message replay"
-              /><span class="clock" data-clock>3:47.5</span>
+              /><span class="clock" data-clock>4:40.0</span>
             </div>
           </div>
           <div class="scroll-x">
             <svg
               id="hub"
-              viewBox="0 0 1000 470"
+              viewBox="0 0 1000 500"
               role="img"
-              aria-label="Hub diagram: you above the coordinator, api agents on the left, web agents on the right; packets fly out as instructions and back as reports."
+              aria-label="Hub diagram: you above the coordinator, with the seven repos around it. Instructions fly out to each repo's current agent and reports fly back."
             ></svg>
           </div>
           <div class="report" id="report"></div>
         </figure>
 
         <section class="col prose">
-          <h2><small>04 · THE CODE</small>232 lines in a ten-second burst</h2>
+          <h2><small>04 · THE CODE</small>314 lines across 24 files</h2>
           <p>
-            The implementers each spent about half a minute reading before touching anything. Then the edits landed
-            almost at once: the first at 03:07:27.9, the last at 03:07:38.1. The api agent rewrote
-            <code>test/server.test.js</code> in one go, while the web agent edited <code>src/greeting.js</code> twice.
-          </p>
-          <p>
-            Most of the new lines are tests. Only <strong>22</strong> of the 232 added lines are application code; the
-            rest are tests, fixtures and README updates.
+            Most of the diff is renames and tests. The api adds a migration and a contract test; the SDKs note the
+            breaking change in their changelogs. <code>sdk-python</code>’s second implementer adds the deprecated alias
+            and one test for it.
           </p>
         </section>
 
         <figure class="fig wide" id="fig-diff">
           <div class="fig-head">
             <span class="fig-title"
-              ><span class="dot3"><i></i><i></i><i></i></span>FILE.EDITED · 2:25 → 3:15</span
+              ><span class="dot3"><i></i><i></i><i></i></span>FILE.EDITED · FILE.ADDED</span
             >
             <div class="controls">
               <button class="btn" data-play type="button">▶ REPLAY</button
               ><input type="range" min="0" max="1000" value="1000" data-scrub aria-label="Scrub the edit replay" /><span
                 class="clock"
                 data-clock
-                >3:15.0</span
+                >4:40.0</span
               >
             </div>
           </div>
           <div class="totals">
-            <div><b class="t-mag" style="color: var(--magenta)" id="tot-add">+232</b><span>LINES ADDED</span></div>
-            <div><b style="color: var(--cyan)" id="tot-rem">−24</b><span>LINES REMOVED</span></div>
-            <div><b id="tot-files">13</b><span>FILES TOUCHED</span></div>
+            <div><b style="color: var(--magenta)" id="tot-add">+314</b><span>LINES ADDED</span></div>
+            <div><b style="color: var(--cyan)" id="tot-rem">−106</b><span>LINES REMOVED</span></div>
+            <div><b id="tot-files">24</b><span>FILES TOUCHED</span></div>
             <div class="legend">
               <span><i style="background: var(--magenta)"></i>added</span
               ><span><i style="background: var(--cyan)"></i>removed</span
@@ -1907,28 +2035,23 @@
           </div>
           <div class="diffgrid" id="diff"></div>
           <p class="figcap">
-            Bars are the net diff in each worktree’s final snapshot. A file appears when its first edit was logged; the
-            copied fixtures have no edit event, so they appear when the implementer finished.
+            A file appears when its first edit is logged. The two “(retry)” rows are sdk-python’s second implementer.
           </p>
         </figure>
 
         <section class="col prose">
-          <h2><small>05 · THE ONE DECISION</small>Where should the fixtures live?</h2>
+          <h2><small>05 · THE DECISIONS</small>A contract change, a retry and an assumption</h2>
           <p>
-            Both repos test against the same contract: <code>greeting.schema.json</code> and five example rows in
-            <code>greeting.example.json</code>. Those files live in the OpenFleet project, outside either repo. The api
-            planner spotted the trap and asked about it; the web planner had quietly planned to copy them.
-          </p>
-          <p>
-            The coordinator answered with one line in the api implementer’s instructions:
-            <q>Decision: copy contract fixtures into test/fixtures/.</q> Step through what that avoided.
+            Most of a run is agents working alone. The interesting moments are where the coordinator has to step in:
+            answering a question, sending a repo back after a failed test, or making a call the spec didn’t cover. Step
+            through the four that shaped this run.
           </p>
         </section>
 
         <figure class="fig wide" id="fig-fix">
           <div class="fig-head">
             <span class="fig-title"
-              ><span class="dot3"><i></i><i></i><i></i></span>PLANS/API.MD · RISKS</span
+              ><span class="dot3"><i></i><i></i><i></i></span>CONTRACT.CHANGED · ASSUMPTION</span
             >
             <div class="controls">
               <div class="steps" id="fixsteps"></div>
@@ -1938,75 +2061,46 @@
           <div class="scroll-x">
             <svg
               id="fix"
-              viewBox="0 0 1000 400"
+              viewBox="0 0 1000 360"
               role="img"
-              aria-label="Diagram: contracts folder above two worktrees. A relative path from the api worktree to contracts breaks after merge, so the two fixture files are copied into test/fixtures in both repos."
+              aria-label="Diagram: contracts/account.json above the seven repos. Steps show the contract change reaching five repos, sdk-python's failed test and retry, the assumption to keep a user_id alias, and mobile waiting for sdk-js."
             ></svg>
           </div>
           <div class="stepcap" id="fixcap"></div>
         </figure>
 
         <section class="col prose">
-          <h2><small>06 · VERIFY</small>Five rows of contract, both sides</h2>
+          <h2><small>06 · VERIFY</small>177 tests, one retry</h2>
           <p>
-            The testers each ran <code>npm test</code> once. The api suite passed 13 of 13, including a live request for
-            every contract row. The web suite passed 11 of 11, rendering each row’s response through a stubbed fetch.
-            Both testers also diffed the copied fixtures against the originals and found them identical.
-          </p>
-          <p>
-            Pick a row to send it through both repos, or type your own value. The logic below is the shipped behaviour:
-            anything that isn’t <code>en</code>, <code>es</code> or <code>fr</code> falls back to English with a 200,
-            including tricks like <code>__proto__</code>.
+            Each tester runs the repo’s own test command. Contract tests, in blue, check every consuming repo against
+            the same rows in <code>account.json</code>. Press run to replay them: sdk-python fails one test, gets a
+            fresh implementer, and passes on the retry.
           </p>
         </section>
 
         <figure class="fig wide" id="fig-play">
           <div class="fig-head">
             <span class="fig-title"
-              ><span class="dot3"><i></i><i></i><i></i></span>GREETING.EXAMPLE.JSON · TRY IT</span
+              ><span class="dot3"><i></i><i></i><i></i></span>TEST.RUN · 7 REPOS</span
             >
-            <div class="rows" id="rows"></div>
-          </div>
-          <div class="pipe">
-            <div class="stage" id="st-req">
-              <h3>WEB · FETCHGREETING()</h3>
-              <pre id="req"></pre>
-              <span class="note" id="req-note"></span>
-            </div>
-            <div class="arrow" aria-hidden="true">→</div>
-            <div class="stage" id="st-api">
-              <h3>API · GET /GREETING</h3>
-              <pre id="res"></pre>
-              <span class="note" id="res-note"></span>
-            </div>
-            <div class="arrow" aria-hidden="true">→</div>
-            <div class="stage" id="st-web">
-              <h3>WEB · RENDERGREETING()</h3>
-              <div class="render" id="out"></div>
-              <pre id="html"></pre>
+            <div class="controls">
+              <button class="btn" type="button" id="runall">▶ RUN ALL TESTS</button
+              ><span class="clock" id="tests-total">177/177</span>
             </div>
           </div>
-          <div class="tally">
-            <div>
-              <h3>API · NPM TEST <b id="api-score">13/13 PASS</b></h3>
-              <div class="cells" id="api-cells"></div>
-            </div>
-            <div>
-              <h3>WEB · NPM TEST <b id="web-score">11/11 PASS</b></h3>
-              <div class="cells" id="web-cells"></div>
-            </div>
-          </div>
+          <div class="tally7" id="tally"></div>
           <p class="figcap">
-            Blue cells are the five contract rows; green are the unit tests. Test runs were logged at 03:07:59.0 (api)
-            and 03:08:04.0 (web).
+            Blue cells are contract tests; green are each repo’s own tests. The amber cell is sdk-python’s failing test
+            on its first run.
           </p>
         </figure>
 
         <section class="col prose">
           <h2><small>07 · WHAT’S LEFT</small>Staged, not committed</h2>
           <p>
-            The run ended in <strong>staged</strong> mode, as agreed in the grill: both worktrees hold their changes on
-            <code>openfleet/greeting-lang</code>, waiting for a person to look. Nothing was pushed and no PR was opened.
+            The run ends in <strong>staged</strong> mode, as agreed in the grill: all seven worktrees hold their changes
+            on <code>openfleet/account-id</code> branches, waiting for a person to look. The summary lists the one
+            assumption for you to confirm. Nothing is pushed and no PR is opened unless you chose draft PRs.
           </p>
         </section>
 
@@ -2014,32 +2108,33 @@
           <div class="cmd">
             <b>1</b>
             <div>
-              <h3>REVIEW BOTH WORKTREES</h3>
-              <code>worktrees/api</code> <code>worktrees/web</code>
+              <h3>REVIEW THE WORKTREES AND THE ASSUMPTION</h3>
+              <code>openfleet/projects/account-id/worktrees/</code>
             </div>
           </div>
           <div class="cmd">
             <b>2</b>
             <div>
               <h3>MERGE, THEN CLEAN UP</h3>
-              <code>npx openfleet clean greeting-lang --branches</code>
+              <code>npx openfleet clean account-id --branches</code>
             </div>
           </div>
           <div class="cmd">
             <b>3</b>
             <div>
               <h3>FOUND A PROBLEM? PICK THE RUN BACK UP</h3>
-              <code>npx openfleet resume greeting-lang</code>
+              <code>npx openfleet resume account-id</code>
             </div>
           </div>
         </div>
 
         <p class="col source">
-          Built from the 63 events in <span class="mono">openfleet/projects/greeting-lang/events.jsonl</span>. Times are
-          seconds from <span class="mono">project.created</span> at 03:04:35.127 UTC.
+          Every event on this page is mocked for illustration. The event types and fields follow the
+          <a href="https://github.com/yashicon21/openfleet/blob/main/docs/events.md">event log schema</a>.
         </p>
       </article>
     </main>
+
     <footer>
       <div aria-hidden="true" style="display: flex; height: 8px">
         <span style="flex: 1; background: #48a6ee"></span><span style="flex: 1; background: #ee5ad6"></span
@@ -2110,112 +2205,278 @@
       </div>
     </footer>
     <script>
-      (function () {
-        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        // seq, time (UTC), actor, type, target, detail
-        const RAW = [
-          [1, "03:04:35.127", "cli", "project.created", null, "project greeting-lang"],
-          [2, "03:04:44.114", "coordinator", "session.started", null, "new session"],
-          [3, "03:05:49.841", "coordinator", "spec.written", null, "spec.md"],
-          [4, "03:05:50.226", "coordinator", "phase.changed", null, "specifying → awaiting-approval"],
-          [5, "03:05:50.226", "coordinator", "phase.changed", "api", "→ pending"],
-          [6, "03:05:50.227", "coordinator", "phase.changed", "web", "→ pending"],
-          [7, "03:06:06.059", "coordinator", "spec.approved", null, "you approved the spec"],
-          [8, "03:06:06.484", "coordinator", "phase.changed", null, "awaiting-approval → running"],
-          [9, "03:06:09.207", "coordinator", "worktree.created", "api", "branch openfleet/greeting-lang"],
-          [10, "03:06:09.666", "coordinator", "worktree.created", "web", "branch openfleet/greeting-lang"],
-          [11, "03:06:12.893", "coordinator", "phase.changed", "api", "pending → planning"],
-          [12, "03:06:13.271", "coordinator", "message.sent", "api", "→ api/planner"],
-          [13, "03:06:15.133", "api/planner", "agent.spawned", "api", "openfleet-planner"],
-          [14, "03:06:17.902", "coordinator", "phase.changed", "web", "pending → planning"],
-          [15, "03:06:18.283", "coordinator", "message.sent", "web", "→ web/planner"],
-          [16, "03:06:20.491", "web/planner", "agent.spawned", "web", "openfleet-planner"],
-          [17, "03:06:38.195", "api/planner", "agent.stopped", "api", "plan ready, 1 question"],
-          [18, "03:06:38.195", "api/planner", "worktree.snapshot", "api", "0 files changed"],
-          [19, "03:06:44.787", "web/planner", "agent.stopped", "web", "plan ready"],
-          [20, "03:06:44.787", "web/planner", "worktree.snapshot", "web", "0 files changed"],
-          [21, "03:07:02.598", "coordinator", "plan.submitted", "api", "plans/api.md"],
-          [22, "03:07:02.968", "coordinator", "plan.validated", "api", "plans/api.md"],
-          [23, "03:07:03.361", "coordinator", "plan.submitted", "web", "plans/web.md"],
-          [24, "03:07:03.736", "coordinator", "plan.validated", "web", "plans/web.md"],
-          [25, "03:07:04.127", "coordinator", "phase.changed", "api", "planning → plan-review"],
-          [26, "03:07:04.127", "coordinator", "phase.changed", "web", "planning → plan-review"],
-          [27, "03:07:04.506", "coordinator", "phase.changed", "api", "plan-review → implementing"],
-          [28, "03:07:04.881", "coordinator", "message.sent", "api", "→ api/implementer + fixtures decision"],
-          [29, "03:07:06.856", "api/implementer", "agent.spawned", "api", "openfleet-implementer"],
-          [30, "03:07:10.437", "coordinator", "phase.changed", "web", "plan-review → implementing"],
-          [31, "03:07:10.822", "coordinator", "message.sent", "web", "→ web/implementer"],
-          [32, "03:07:12.628", "web/implementer", "agent.spawned", "web", "openfleet-implementer"],
-          [33, "03:07:27.869", "api/implementer", "file.edited", "api", "src/server.js +13 −9"],
-          [34, "03:07:27.994", "api/implementer", "file.edited", "api", "README.md +6 −1"],
-          [35, "03:07:28.118", "api/implementer", "file.added", "api", "test/contract.test.js +53"],
-          [36, "03:07:32.923", "web/implementer", "file.edited", "web", "src/cli.js +1 −1"],
-          [37, "03:07:33.061", "web/implementer", "file.edited", "web", "test/greeting.test.js +28 −8"],
-          [38, "03:07:33.155", "web/implementer", "file.added", "web", "test/greeting.contract.test.js +49"],
-          [39, "03:07:33.250", "web/implementer", "file.edited", "web", "README.md +5 −3"],
-          [40, "03:07:35.902", "api/implementer", "file.added", "api", "test/server.test.js +56"],
-          [41, "03:07:37.985", "web/implementer", "file.edited", "web", "src/greeting.js +11 −3"],
-          [42, "03:07:38.125", "web/implementer", "file.edited", "web", "src/greeting.js +2 −1"],
-          [43, "03:07:41.356", "api/implementer", "agent.stopped", "api", "13/13 pass, no deviations"],
-          [44, "03:07:41.356", "api/implementer", "worktree.snapshot", "api", "6 files +127 −17"],
-          [45, "03:07:43.987", "web/implementer", "agent.stopped", "web", "11 pass, no deviations"],
-          [46, "03:07:43.987", "web/implementer", "worktree.snapshot", "web", "7 files +105 −7"],
-          [47, "03:07:47.632", "coordinator", "phase.changed", "api", "implementing → testing"],
-          [48, "03:07:48.003", "coordinator", "message.sent", "api", "→ api/tester"],
-          [49, "03:07:49.859", "api/tester", "agent.spawned", "api", "openfleet-tester"],
-          [50, "03:07:53.334", "coordinator", "phase.changed", "web", "implementing → testing"],
-          [51, "03:07:53.711", "coordinator", "message.sent", "web", "→ web/tester"],
-          [52, "03:07:55.483", "web/tester", "agent.spawned", "web", "openfleet-tester"],
-          [53, "03:07:59.007", "api/tester", "test.run", "api", "npm test 13/13"],
-          [54, "03:08:02.872", "api/tester", "agent.stopped", "api", "all ACs met"],
-          [55, "03:08:04.035", "web/tester", "test.run", "web", "npm test 11/11"],
-          [56, "03:08:08.212", "web/tester", "agent.stopped", "web", "all ACs met"],
-          [57, "03:08:11.842", "coordinator", "phase.changed", "api", "testing → post-test"],
-          [58, "03:08:11.843", "coordinator", "phase.changed", "web", "testing → post-test"],
-          [59, "03:08:12.213", "coordinator", "phase.changed", null, "running → finalizing"],
-          [60, "03:08:12.214", "coordinator", "phase.changed", "api", "post-test → done"],
-          [61, "03:08:12.214", "coordinator", "phase.changed", "web", "post-test → done"],
-          [62, "03:08:22.263", "coordinator", "run.completed", null, "mode staged"],
-          [63, "03:08:22.613", "coordinator", "phase.changed", null, "finalizing → done"],
-        ];
-        const sec = (s) => {
-          const [h, m, r] = s.split(":");
-          return +h * 3600 + +m * 60 + parseFloat(r);
-        };
-        const T0 = sec(RAW[0][1]);
-        const E = RAW.map(([seq, ts, actor, type, target, detail]) => ({
-          seq,
-          ts,
-          actor,
-          type,
-          target,
-          detail,
-          t: sec(ts) - T0,
-        }));
-        const END = E[E.length - 1].t; // 227.486
-        const fmt = (t) => {
-          t = Math.max(0, t);
-          const m = Math.floor(t / 60);
-          const s = t - m * 60;
-          return m + ":" + s.toFixed(1).padStart(4, "0");
-        };
-        const esc = (s) =>
-          String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      // Mocked account-id run. Timings match the home page swimlane (seconds from project.created).
+      var REPOS = ["api", "sdk-js", "sdk-python", "billing", "web/app", "web/ui", "mobile"];
+      var SCHED = {
+        api: [
+          ["p", 50, 80],
+          ["i", 82, 140],
+          ["t", 142, 165],
+        ],
+        "sdk-js": [
+          ["p", 52, 85],
+          ["i", 87, 150],
+          ["t", 152, 180],
+        ],
+        "sdk-python": [
+          ["p", 54, 88],
+          ["i", 90, 150],
+          ["f", 152, 172],
+          ["i", 174, 200],
+          ["t", 202, 222],
+        ],
+        billing: [
+          ["p", 56, 95],
+          ["i", 97, 160],
+          ["t", 162, 190],
+        ],
+        "web/app": [
+          ["p", 58, 100],
+          ["i", 102, 175],
+          ["t", 177, 205],
+        ],
+        "web/ui": [
+          ["p", 60, 110],
+          ["i", 112, 185],
+          ["t", 187, 212],
+        ],
+        mobile: [
+          ["p", 182, 205],
+          ["i", 207, 250],
+          ["t", 252, 270],
+        ],
+      };
+      // repo, path, added, removed, new file
+      var FILES = [
+        ["api", "src/routes/accounts.ts", 18, 11, false],
+        ["api", "src/models/account.ts", 6, 4, false],
+        ["api", "migrations/0042_rename_user_id.sql", 14, 0, true],
+        ["api", "test/accounts.test.ts", 41, 9, false],
+        ["api", "test/contract.test.ts", 36, 0, true],
+        ["api", "README.md", 4, 2, false],
+        ["sdk-js", "src/client.ts", 12, 8, false],
+        ["sdk-js", "src/types.ts", 5, 3, false],
+        ["sdk-js", "test/client.test.ts", 24, 6, false],
+        ["sdk-js", "CHANGELOG.md", 6, 0, false],
+        ["sdk-python", "account_client/models.py", 16, 5, false],
+        ["sdk-python", "account_client/client.py", 7, 4, false],
+        ["sdk-python", "tests/test_models.py", 31, 3, false],
+        ["sdk-python", "CHANGELOG.md", 5, 0, false],
+        ["billing", "invoice/invoice.go", 9, 9, false],
+        ["billing", "invoice/invoice_test.go", 14, 6, false],
+        ["web/app", "src/pages/Account.tsx", 6, 6, false],
+        ["web/app", "src/api/account.ts", 4, 4, false],
+        ["web/app", "test/account.test.tsx", 12, 5, false],
+        ["web/ui", "src/AccountBadge.tsx", 3, 3, false],
+        ["web/ui", "src/AccountBadge.test.tsx", 8, 2, false],
+        ["mobile", "lib/models/account.dart", 7, 7, false],
+        ["mobile", "lib/account_repository.dart", 5, 5, false],
+        ["mobile", "test/account_test.dart", 10, 4, false],
+      ];
+      // tests per repo: [unit, contract]; sdk-python's first run has one failure, the retry adds an alias test.
+      var TESTS = {
+        api: [43, 5],
+        "sdk-js": [26, 5],
+        "sdk-python": [19, 5],
+        billing: [17, 0],
+        "web/app": [21, 5],
+        "web/ui": [12, 0],
+        mobile: [14, 5],
+      };
+      var REPORTS = {
+        "api/planner":
+          "Plan: rename the column with a migration, return account_id from /accounts, keep the route shape. Contract tests over contracts/account.json.",
+        "sdk-js/planner":
+          "Plan: rename the field in types.ts and the client mapper, update tests, note the breaking change in the changelog.",
+        "sdk-python/planner": "Plan: rename the model field, update the client, update tests and the changelog.",
+        "billing/planner": "Plan: invoices read account_id from the API response; update the struct tag and tests.",
+        "web/app/planner": "Plan: read accountId from the SDK in the account page and its API helper.",
+        "web/ui/planner": "Plan: AccountBadge takes accountId instead of userId.",
+        "mobile/planner": "Plan: rename the model field and repository mapping; wait for sdk-js as the spec orders.",
+        "api/implementer":
+          "Migration and route updated; contract tests pass against the updated account.json. Asked whether user_id should be marked deprecated.",
+        "sdk-js/implementer": "Client and types renamed; 31 tests pass locally. Changelog notes the breaking change.",
+        "sdk-python/implementer":
+          "Model renamed to account_id. Retry: added a read-only user_id alias that warns, per the coordinator's decision.",
+        "billing/implementer": "Struct tag renamed; invoice tests updated. No deviations.",
+        "web/app/implementer": "Account page and API helper use accountId. No deviations.",
+        "web/ui/implementer": "AccountBadge prop renamed; snapshot updated. No deviations.",
+        "mobile/implementer": "Model and repository renamed against the released sdk-js types. No deviations.",
+        "api/tester": "48/48 pass, including 5 contract rows. All acceptance criteria met.",
+        "sdk-js/tester": "31/31 pass, including contract rows. All acceptance criteria met.",
+        "sdk-python/tester": "24/24 pass on the retry, including the alias test. All acceptance criteria met.",
+        "billing/tester": "17/17 pass. All acceptance criteria met.",
+        "web/app/tester": "26/26 pass, including contract rows. All acceptance criteria met.",
+        "web/ui/tester": "12/12 pass. All acceptance criteria met.",
+        "mobile/tester": "19/19 pass, including contract rows. All acceptance criteria met.",
+      };
+      var CMD = {
+        api: "npm test",
+        "sdk-js": "npm test",
+        "sdk-python": "pytest",
+        billing: "go test",
+        "web/app": "npm test",
+        "web/ui": "npm test",
+        mobile: "flutter test",
+      };
+      var ROLE = { p: "planner", i: "implementer", t: "tester", f: "tester" };
 
-        // ---------- player ----------
-        const MQ = window.matchMedia ? window.matchMedia("(max-width: 640px)") : { matches: false };
-        const isNarrow = () => MQ.matches;
-        const onMode = (fn) => {
+      function buildEvents() {
+        var E = [];
+        var add = function (t, actor, type, target, detail) {
+          E.push({ t: Math.round(t * 1000) / 1000, actor: actor, type: type, target: target, detail: detail });
+        };
+        add(0, "cli", "project.created", null, "project account-id");
+        add(6.2, "coordinator", "session.started", null, "new session");
+        add(38.4, "coordinator", "spec.written", null, "spec.md · 7 repos");
+        add(39.0, "coordinator", "phase.changed", null, "specifying → awaiting-approval");
+        REPOS.forEach(function (r, k) {
+          add(39.1 + k * 0.01, "coordinator", "phase.changed", r, "→ pending");
+        });
+        add(46.3, "coordinator", "spec.approved", null, "you approved the spec");
+        add(46.8, "coordinator", "phase.changed", null, "awaiting-approval → running");
+        REPOS.forEach(function (r, k) {
+          add(
+            47.2 + k * 0.3,
+            "coordinator",
+            "worktree.created",
+            r,
+            "branch openfleet/account-id" + (r.indexOf("/") > 0 ? "-" + r.split("/")[1] : ""),
+          );
+        });
+        REPOS.forEach(function (r) {
+          var retried = false;
+          var phase = "pending";
+          SCHED[r].forEach(function (s, idx) {
+            var kind = s[0],
+              a = s[1],
+              b = s[2];
+            var role = ROLE[kind];
+            var to = kind === "p" ? "planning" : kind === "i" ? "implementing" : "testing";
+            if (kind === "i" && phase === "testing") {
+              add(a - 1.2, "coordinator", "phase.changed", r, "testing → implementing (retry 1/3)");
+              retried = true;
+            } else if (kind === "i") {
+              add(a - 0.6, "coordinator", "phase.changed", r, "plan-review → implementing");
+            } else if (kind === "p") {
+              add(a - 0.4, "coordinator", "phase.changed", r, "pending → planning");
+            } else {
+              add(a - 1.5, "coordinator", "phase.changed", r, phase + " → testing");
+            }
+            phase = to;
+            var lead = kind === "p" ? 0.2 : kind === "i" && !retried ? 0.4 : 1;
+            add(
+              a - lead,
+              "coordinator",
+              "message.sent",
+              r,
+              "→ " + r + "/" + role + (retried && kind === "i" ? " + findings" : ""),
+            );
+            add(a, r + "/" + role, "agent.spawned", r, "openfleet-" + role);
+            if (kind === "i") {
+              var files = FILES.filter(function (f) {
+                return f[0] === r;
+              });
+              var span = b - a;
+              if (retried && r === "sdk-python") {
+                add(a + span * 0.55, r + "/implementer", "file.edited", r, "account_client/models.py +6 −0");
+                add(a + span * 0.62, r + "/implementer", "file.edited", r, "tests/test_models.py +5 −0");
+              } else {
+                files.forEach(function (f, j) {
+                  add(
+                    a + span * (0.45 + (0.4 * j) / Math.max(1, files.length)),
+                    r + "/implementer",
+                    f[4] ? "file.added" : "file.edited",
+                    r,
+                    f[1] + " +" + f[2] + (f[3] ? " −" + f[3] : ""),
+                  );
+                });
+              }
+            }
+            if (kind === "t") {
+              var tt = TESTS[r];
+              var total = tt[0] + tt[1];
+              add(b - 3, r + "/tester", "test.run", r, CMD[r] + " " + total + "/" + total);
+            }
+            if (kind === "f") {
+              add(b - 3, r + "/tester", "test.run", r, "pytest 22/23 · 1 failing");
+            }
+            var stopDetail =
+              kind === "p"
+                ? "plan ready"
+                : kind === "i"
+                  ? "done, tests pass locally"
+                  : kind === "f"
+                    ? "1 failing: test_user_id_read"
+                    : "all ACs met";
+            if (r === "api" && kind === "p") stopDetail = "plan ready";
+            add(b, r + "/" + role, "agent.stopped", r, stopDetail);
+            if (kind === "i" || kind === "p")
+              add(b + 0.01, r + "/" + role, "worktree.snapshot", r, kind === "p" ? "0 files changed" : "diff snapshot");
+            if (kind === "p") {
+              add(b + 0.3, "coordinator", "plan.submitted", r, "plans/" + r.replace("/", "-") + ".md");
+              add(b + 0.5, "coordinator", "plan.validated", r, "plans/" + r.replace("/", "-") + ".md");
+              add(b + 0.7, "coordinator", "phase.changed", r, "planning → plan-review");
+              phase = "plan-review";
+            }
+            if (kind === "t") {
+              add(b + 1.0, "coordinator", "phase.changed", r, "testing → post-test");
+              add(b + 1.5, "coordinator", "phase.changed", r, "post-test → done");
+            }
+          });
+        });
+        add(117.5, "api/implementer", "question.asked", "api", "mark user_id deprecated in the contract?");
+        add(119.2, "coordinator", "question.answered", "api", "yes: answered by spec");
+        add(120.0, "coordinator", "contract.changed", null, "contracts/account.json → 5 repos");
+        add(176.0, "coordinator", "assumption", "sdk-python", "keep user_id as a deprecated alias");
+        add(272.0, "coordinator", "phase.changed", null, "running → finalizing");
+        add(275.0, "coordinator", "run.completed", null, "mode staged · 7 worktrees");
+        add(280.0, "coordinator", "phase.changed", null, "finalizing → done");
+        E.sort(function (x, y) {
+          return x.t - y.t;
+        });
+        E.forEach(function (e, i) {
+          e.seq = i + 1;
+        });
+        return E;
+      }
+
+      (function () {
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var E = buildEvents();
+        var END = E[E.length - 1].t;
+        var ROLE_FILL = { planner: "#48A6EE", implementer: "#EE5AD6", tester: "#EDEB3C" };
+        var fmt = function (t) {
+          t = Math.max(0, t);
+          var m = Math.floor(t / 60);
+          var s = t - m * 60;
+          return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1);
+        };
+        var fmtS = function (t) {
+          t = Math.max(0, Math.round(t));
+          var s = t % 60;
+          return Math.floor(t / 60) + ":" + (s < 10 ? "0" : "") + s;
+        };
+        var esc = function (s) {
+          return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        };
+        var clamp = function (v, a, b) {
+          return Math.max(a, Math.min(b, v));
+        };
+        var MQ = window.matchMedia ? window.matchMedia("(max-width: 640px)") : { matches: false };
+        var isNarrow = function () {
+          return MQ.matches;
+        };
+        var onMode = function (fn) {
           if (MQ.addEventListener) MQ.addEventListener("change", fn);
           else if (MQ.addListener) MQ.addListener(fn);
         };
         function player(root, opts) {
-          const btn = root.querySelector("[data-play]"),
-            range = root.querySelector("[data-scrub]"),
-            clock = root.querySelector("[data-clock]");
-          const span = opts.to - opts.from;
-          let t = opts.to,
+          var btn = root.querySelector("[data-play]");
+          var range = root.querySelector("[data-scrub]");
+          var clock = root.querySelector("[data-clock]");
+          var span = opts.to - opts.from;
+          var t = opts.to,
             playing = false,
             raf = 0,
             last = 0,
@@ -2230,7 +2491,7 @@
             btn.textContent = playing ? "❚❚ PAUSE" : t >= opts.to ? "↺ REPLAY" : "▶ PLAY";
           }
           function tick(now) {
-            const dt = now - last;
+            var dt = now - last;
             last = now;
             set(t + (dt / opts.ms) * span);
             if (t >= opts.to) {
@@ -2257,8 +2518,11 @@
             cancelAnimationFrame(raf);
             label();
           }
-          btn.addEventListener("click", () => (playing ? pause() : play()));
-          range.addEventListener("input", () => {
+          btn.addEventListener("click", function () {
+            if (playing) pause();
+            else play();
+          });
+          range.addEventListener("input", function () {
             pause();
             set(opts.from + (range.value / 1000) * span);
             label();
@@ -2266,9 +2530,9 @@
           set(opts.to);
           label();
           if (!reduce && "IntersectionObserver" in window) {
-            const io = new IntersectionObserver(
-              (es) => {
-                es.forEach((e) => {
+            var io = new IntersectionObserver(
+              function (es) {
+                es.forEach(function (e) {
                   if (e.isIntersecting && !autoplayed) {
                     autoplayed = true;
                     play();
@@ -2280,679 +2544,1057 @@
             );
             io.observe(root);
           }
-          return { redraw: () => opts.frame(t) };
+          return {
+            redraw: function () {
+              opts.frame(t);
+            },
+          };
         }
-        // builds a figure for the current width, and rebuilds it when the phone/desktop breakpoint is crossed
         function responsive(build, root, opts) {
-          let frame = build();
-          const p = player(root, Object.assign({}, opts, { frame: (t) => frame(t) }));
-          onMode(() => {
+          var frame = build();
+          var p = player(
+            root,
+            Object.assign({}, opts, {
+              frame: function (t) {
+                frame(t);
+              },
+            }),
+          );
+          onMode(function () {
             frame = build();
             p.redraw();
           });
         }
         function setBox(svg, w, h, minW) {
-          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+          svg.setAttribute("viewBox", "0 0 " + w + " " + h);
           svg.style.width = "100%";
           svg.style.minWidth = minW ? minW + "px" : "0";
         }
 
+        // agent runs: one entry per spawn → stop, in order
+        var RUNS = [];
+        E.forEach(function (e) {
+          if (e.type === "agent.spawned")
+            RUNS.push({ actor: e.actor, repo: e.target, role: e.actor.split("/").pop(), s: e.t, f: null });
+          if (e.type === "agent.stopped") {
+            for (var i = 0; i < RUNS.length; i++) {
+              if (RUNS[i].actor === e.actor && RUNS[i].f === null) {
+                RUNS[i].f = e.t;
+                RUNS[i].stop = e.detail;
+                break;
+              }
+            }
+          }
+        });
+        RUNS.forEach(function (r) {
+          r.failed = /failing/.test(r.stop);
+        });
+        var projT = function (detail) {
+          var e = E.find(function (x) {
+            return x.type === "phase.changed" && x.target === null && x.detail.indexOf(detail) >= 0;
+          });
+          return e ? e.t : 0;
+        };
+
         // ---------- 1. swimlane ----------
         (function () {
-          const svg = document.getElementById("swim"),
+          var svg = document.getElementById("swim"),
             log = document.getElementById("log");
-          const DUR = 230;
-          const LANES = [
-            { id: "coordinator", label: "COORDINATOR", cls: "yel" },
-            { id: "api/planner", label: "api · planner", cls: "cyan" },
-            { id: "api/implementer", label: "api · implementer", cls: "cyan" },
-            { id: "api/tester", label: "api · tester", cls: "cyan" },
-            { id: "web/planner", label: "web · planner", cls: "mag" },
-            { id: "web/implementer", label: "web · implementer", cls: "mag" },
-            { id: "web/tester", label: "web · tester", cls: "mag" },
+          var PH = [
+            ["specifying", 0, projT("→ awaiting-approval")],
+            ["you", projT("→ awaiting-approval"), projT("→ running")],
+            ["running", projT("→ running"), projT("→ finalizing")],
+            ["finalizing", projT("→ finalizing"), END],
           ];
-          const PH = [
-            ["specifying", 0, 75.099],
-            ["awaiting approval", 75.099, 91.357],
-            ["running", 91.357, 217.086],
-            ["finalizing", 217.086, END],
-          ];
+          var LANES = ["coordinator"].concat(REPOS);
           function build() {
-            const N = isNarrow();
-            const W = N ? 400 : 1000,
-              X0 = N ? 4 : 170,
+            var N = isNarrow();
+            var W = N ? 400 : 1000,
+              X0 = N ? 4 : 120,
               X1 = N ? 392 : 985;
-            const x = (t) => X0 + (t / DUR) * (X1 - X0);
-            const BY = N ? 22 : 14,
-              LY = N ? 76 : 66,
-              LH = N ? 46 : 40;
-            let h = "";
-            h += N
-              ? `<text x="${X0}" y="14" class="t-muted disp-t" font-size="11" letter-spacing="1">PROJECT</text>`
-              : `<text x="0" y="31" class="t-muted disp-t" font-size="12" letter-spacing="1">PROJECT</text>`;
-            PH.forEach(([n, a, b], i) => {
-              const you = i === 1,
-                w = x(b) - x(a);
-              h += `<rect x="${x(a)}" y="${BY}" width="${Math.max(2, w - 2)}" height="26" rx="6" class="${you ? "f-yel" : "f-raised"} ph" data-a="${a}" data-b="${b}"/>`;
-              if (w > 60)
-                h += `<text x="${x(a) + 8}" y="${BY + 18}" font-size="${N ? 12 : 13}" class="${you ? "t-ink" : "t-muted"} disp-t">${n.toUpperCase()}</text>`;
+            var x = function (t) {
+              return X0 + (t / END) * (X1 - X0);
+            };
+            var BY = N ? 22 : 14,
+              LY = N ? 72 : 62,
+              LH = N ? 44 : 38;
+            var h = "";
+            h += N ? "" : '<text x="0" y="31" class="t-muted disp-t" font-size="12" letter-spacing="1">PROJECT</text>';
+            PH.forEach(function (p) {
+              var you = p[0] === "you",
+                w = x(p[2]) - x(p[1]);
+              h +=
+                '<rect x="' +
+                x(p[1]) +
+                '" y="' +
+                BY +
+                '" width="' +
+                Math.max(2, w - 2) +
+                '" height="26" rx="6" class="' +
+                (you ? "f-yel" : "f-raised") +
+                ' ph" data-a="' +
+                p[1] +
+                '"/>';
+              if (w > 70)
+                h +=
+                  '<text x="' +
+                  (x(p[1]) + 8) +
+                  '" y="' +
+                  (BY + 18) +
+                  '" font-size="' +
+                  (N ? 11 : 13) +
+                  '" class="t-muted disp-t">' +
+                  p[0].toUpperCase() +
+                  "</text>";
               else if (you)
-                h += `<text x="${x(a) + w / 2}" y="${BY + 40}" font-size="11" text-anchor="middle" class="t-yel disp-t">YOU · ${(b - a).toFixed(0)}s</text>`;
+                h +=
+                  '<text x="' +
+                  (x(p[1]) + w / 2) +
+                  '" y="' +
+                  (BY + 40) +
+                  '" font-size="11" text-anchor="middle" class="t-yel disp-t">YOU · ' +
+                  (p[2] - p[1]).toFixed(0) +
+                  "s</text>";
             });
-            LANES.forEach((L, i) => {
-              const y = LY + i * LH;
-              const lab = N ? { x: X0, y: y + 12 } : { x: 0, y: y + 25 };
-              const bar = N ? { y: y + 18, h: 18, c: y + 27 } : { y: y + 9, h: 22, c: y + 20 };
-              const coord = L.id === "coordinator";
-              h += `<line x1="${X0}" x2="${X1}" y1="${bar.c}" y2="${bar.c}" class="s-line" stroke-width="1" stroke-dasharray="2 6"/>`;
-              h += `<text x="${lab.x}" y="${lab.y}" font-size="${coord ? (N ? 11 : 12) : N ? 14 : 15}" ${coord ? 'letter-spacing="1"' : ""} class="${coord ? "t-yel disp-t" : "t-fg"}">${L.label}</text>`;
-              if (!coord) {
-                const s = E.find((e) => e.actor === L.id && e.type === "agent.spawned").t;
-                const f = E.find((e) => e.actor === L.id && e.type === "agent.stopped").t;
-                h += `<rect class="f-${L.cls} lane-bar" data-s="${s}" data-f="${f}" x="${x(s)}" y="${bar.y}" height="${bar.h}" rx="6" width="${x(f) - x(s)}"/>`;
-                h += N
-                  ? `<text class="t-muted mono-t lane-dur" data-f="${f}" x="${X1}" y="${lab.y}" text-anchor="end" font-size="13">${(f - s).toFixed(1)}s</text>`
-                  : `<text class="t-muted mono-t lane-dur" data-f="${f}" x="${x(f) + 6}" y="${y + 25}" font-size="13">${(f - s).toFixed(1)}s</text>`;
-                E.filter((e) => e.actor === L.id && /file\.|test\.run/.test(e.type)).forEach((e) => {
-                  h += `<circle class="f-ink ev" data-t="${e.t}" cx="${x(e.t)}" cy="${bar.c}" r="${N ? 3 : 3.5}"/>`;
+            LANES.forEach(function (lane, i) {
+              var y = LY + i * LH;
+              var coord = lane === "coordinator";
+              var lab = N ? { x: X0, y: y + 11 } : { x: 0, y: y + 23 };
+              var bar = N ? { y: y + 16, h: 18, c: y + 25 } : { y: y + 8, h: 20, c: y + 18 };
+              h +=
+                '<line x1="' +
+                X0 +
+                '" x2="' +
+                X1 +
+                '" y1="' +
+                bar.c +
+                '" y2="' +
+                bar.c +
+                '" class="s-line" stroke-width="1" stroke-dasharray="2 6"/>';
+              h +=
+                '<text x="' +
+                lab.x +
+                '" y="' +
+                lab.y +
+                '" font-size="' +
+                (coord ? (N ? 11 : 12) : N ? 14 : 15) +
+                '" ' +
+                (coord ? 'letter-spacing="1" class="t-yel disp-t"' : 'class="t-fg mono-t"') +
+                ">" +
+                (coord ? "COORDINATOR" : lane) +
+                "</text>";
+              if (coord) {
+                E.filter(function (e) {
+                  return e.actor === "coordinator" || e.actor === "cli";
+                }).forEach(function (e) {
+                  h +=
+                    '<rect class="f-yel ev" data-t="' +
+                    e.t +
+                    '" x="' +
+                    (x(e.t) - 1) +
+                    '" y="' +
+                    bar.y +
+                    '" width="2" height="' +
+                    bar.h +
+                    '"/>';
                 });
-              } else {
-                E.filter((e) => e.actor === "coordinator" || e.actor === "cli").forEach((e) => {
-                  h += `<rect class="f-yel ev" data-t="${e.t}" x="${x(e.t) - 1}" y="${bar.y}" width="2" height="${bar.h}"/>`;
-                });
+                return;
               }
+              RUNS.filter(function (r) {
+                return r.repo === lane;
+              }).forEach(function (r) {
+                var fill = r.failed ? "#FFF1CC" : ROLE_FILL[r.role];
+                h +=
+                  '<rect class="lane-bar" fill="' +
+                  fill +
+                  '"' +
+                  (r.failed ? ' stroke="#8A5300" stroke-width="2"' : "") +
+                  ' data-s="' +
+                  r.s +
+                  '" data-f="' +
+                  r.f +
+                  '" x="' +
+                  x(r.s) +
+                  '" y="' +
+                  bar.y +
+                  '" height="' +
+                  bar.h +
+                  '" rx="5" width="' +
+                  (x(r.f) - x(r.s)) +
+                  '"/>';
+              });
+              E.filter(function (e) {
+                return e.target === lane && /^(file\.|test\.run)/.test(e.type);
+              }).forEach(function (e) {
+                h +=
+                  '<circle class="f-ink ev" data-t="' +
+                  e.t +
+                  '" cx="' +
+                  x(e.t) +
+                  '" cy="' +
+                  bar.c +
+                  '" r="' +
+                  (N ? 2.5 : 3) +
+                  '"/>';
+              });
             });
-            const AY = LY + LANES.length * LH + 8;
-            h += `<line x1="${X0}" x2="${X1}" y1="${AY}" y2="${AY}" class="s-line" stroke-width="2"/>`;
-            for (let s = 0; s <= 210; s += N ? 60 : 30) {
-              h += `<line x1="${x(s)}" x2="${x(s)}" y1="${AY}" y2="${AY + 6}" class="s-line" stroke-width="2"/><text x="${x(s)}" y="${AY + 22}" font-size="13" text-anchor="${N && s === 0 ? "start" : "middle"}" class="t-muted mono-t">${fmt(s).replace(".0", "")}</text>`;
+            var AY = LY + LANES.length * LH + 8;
+            h +=
+              '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + AY + '" y2="' + AY + '" class="s-line" stroke-width="2"/>';
+            for (var s = 0; s <= END; s += N ? 120 : 60) {
+              h +=
+                '<line x1="' +
+                x(s) +
+                '" x2="' +
+                x(s) +
+                '" y1="' +
+                AY +
+                '" y2="' +
+                (AY + 6) +
+                '" class="s-line" stroke-width="2"/><text x="' +
+                x(s) +
+                '" y="' +
+                (AY + 22) +
+                '" font-size="13" text-anchor="' +
+                (s === 0 ? "start" : "middle") +
+                '" class="t-muted mono-t">' +
+                fmtS(s) +
+                "</text>";
             }
-            const B = 5,
-              NB = Math.ceil(DUR / B),
-              counts = new Array(NB).fill(0);
-            E.forEach((e) => counts[Math.floor(e.t / B)]++);
-            const maxC = Math.max(...counts),
-              HH = 44;
-            const HY = N ? AY + 100 : AY + 82;
-            h += N
-              ? `<text x="${X0}" y="${AY + 46}" class="t-muted disp-t" font-size="11" letter-spacing="1">EVENTS / 5S <tspan class="mono-t" font-size="12" letter-spacing="0">· peak ${maxC}</tspan></text>`
-              : `<text x="0" y="${HY - 14}" class="t-muted disp-t" font-size="12" letter-spacing="1">EVENTS / 5S</text><text x="0" y="${HY + 2}" class="t-muted mono-t" font-size="13">peak ${maxC}</text>`;
-            counts.forEach((c, i) => {
-              if (!c) return;
-              const bh = Math.max(3, (c / maxC) * HH);
-              h += `<rect class="f-line hist" data-t="${i * B}" x="${x(i * B) + 0.5}" y="${HY - bh}" width="${Math.max(1, x(B) - x(0) - 1.5)}" height="${bh}" rx="1.5"/>`;
+            var B = 10,
+              NB = Math.ceil(END / B) + 1,
+              counts = [];
+            for (var k = 0; k < NB; k++) counts.push(0);
+            E.forEach(function (e) {
+              counts[Math.floor(e.t / B)]++;
             });
-            h += `<line id="swim-head" x1="${x(END)}" x2="${x(END)}" y1="${BY - 6}" y2="${HY}" class="s-fg" stroke-width="2"/>`;
+            var maxC = Math.max.apply(null, counts),
+              HH = 44;
+            var HY = N ? AY + 100 : AY + 82;
+            h += N
+              ? '<text x="' +
+                X0 +
+                '" y="' +
+                (AY + 46) +
+                '" class="t-muted disp-t" font-size="11" letter-spacing="1">EVENTS / 10S <tspan class="mono-t" font-size="12" letter-spacing="0">· peak ' +
+                maxC +
+                "</tspan></text>"
+              : '<text x="0" y="' +
+                (HY - 14) +
+                '" class="t-muted disp-t" font-size="12" letter-spacing="1">EVENTS / 10S</text><text x="0" y="' +
+                (HY + 2) +
+                '" class="t-muted mono-t" font-size="13">peak ' +
+                maxC +
+                "</text>";
+            counts.forEach(function (c, i) {
+              if (!c) return;
+              var bh = Math.max(3, (c / maxC) * HH);
+              h +=
+                '<rect class="f-line hist" data-t="' +
+                i * B +
+                '" x="' +
+                (x(i * B) + 0.5) +
+                '" y="' +
+                (HY - bh) +
+                '" width="' +
+                Math.max(1, x(B) - x(0) - 1.5) +
+                '" height="' +
+                bh +
+                '" rx="1.5"/>';
+            });
+            h +=
+              '<line id="swim-head" x1="' +
+              x(END) +
+              '" x2="' +
+              x(END) +
+              '" y1="' +
+              (BY - 6) +
+              '" y2="' +
+              HY +
+              '" class="s-fg" stroke-width="2"/>';
             setBox(svg, W, HY + 6, N ? 0 : 720);
             svg.innerHTML = h;
-            const bars = [...svg.querySelectorAll(".lane-bar")],
-              evs = [...svg.querySelectorAll(".ev")],
-              durs = [...svg.querySelectorAll(".lane-dur")],
-              hist = [...svg.querySelectorAll(".hist")],
-              phs = [...svg.querySelectorAll(".ph")];
-            const head = svg.querySelector("#swim-head");
-            const keep = N ? 4 : 7;
-            let lastShown = -1;
-            return function frame(t) {
-              bars.forEach((b) => {
-                const s = +b.dataset.s,
+            var bars = [].slice.call(svg.querySelectorAll(".lane-bar")),
+              evs = [].slice.call(svg.querySelectorAll(".ev")),
+              hist = [].slice.call(svg.querySelectorAll(".hist")),
+              phs = [].slice.call(svg.querySelectorAll(".ph"));
+            var head = svg.querySelector("#swim-head");
+            var keep = N ? 4 : 7;
+            var lastShown = -1;
+            return function (t) {
+              bars.forEach(function (b) {
+                var s = +b.dataset.s,
                   f = +b.dataset.f;
-                const w = clamp(Math.min(t, f) - s, 0, f - s);
+                var w = clamp(Math.min(t, f) - s, 0, f - s);
                 b.setAttribute("width", Math.max(0, x(s + w) - x(s)));
               });
-              evs.forEach((e) => (e.style.opacity = +e.dataset.t <= t ? 1 : 0));
-              durs.forEach((d) => (d.style.opacity = +d.dataset.f <= t ? 1 : 0));
-              hist.forEach((r) => r.setAttribute("class", (+r.dataset.t <= t ? "f-mag" : "f-line") + " hist"));
-              phs.forEach((r) => (r.style.opacity = +r.dataset.a <= t ? 1 : 0.25));
+              evs.forEach(function (e) {
+                e.style.opacity = +e.dataset.t <= t ? 1 : 0;
+              });
+              hist.forEach(function (r) {
+                r.setAttribute("class", (+r.dataset.t <= t ? "f-mag" : "f-line") + " hist");
+              });
+              phs.forEach(function (r) {
+                r.style.opacity = +r.dataset.a <= t ? 1 : 0.25;
+              });
               head.setAttribute("x1", x(t));
               head.setAttribute("x2", x(t));
-              let n = 0;
+              var n = 0;
               while (n < E.length && E[n].t <= t) n++;
               if (n !== lastShown) {
                 lastShown = n;
                 log.innerHTML = E.slice(Math.max(0, n - keep), n)
                   .reverse()
-                  .map(
-                    (e) =>
-                      `<li><span>${e.seq}</span><span><b>${esc(e.type)}</b><em>${esc(e.actor)}${e.target && !e.actor.startsWith(e.target) ? " · " + esc(e.target) : ""} · ${esc(e.detail)}</em></span></li>`,
-                  )
+                  .map(function (e) {
+                    return (
+                      "<li><span>" +
+                      e.seq +
+                      "</span><span><b>" +
+                      esc(e.type) +
+                      "</b><em>" +
+                      esc(e.actor) +
+                      (e.target && e.actor.indexOf(e.target) !== 0 ? " · " + esc(e.target) : "") +
+                      " · " +
+                      esc(e.detail) +
+                      "</em></span></li>"
+                    );
+                  })
                   .join("");
               }
             };
           }
-          responsive(build, document.getElementById("fig-swim"), { from: 0, to: END, ms: 15000 });
+          responsive(build, document.getElementById("fig-swim"), { from: 0, to: END, ms: 16000 });
 
-          // where the time went
-          const SEG = [
-            ["Startup", 0, 8.987],
-            ["Grill + spec", 8.987, 75.099],
-            ["Your approval", 75.099, 91.357, "you"],
-            ["Planning", 91.357, 129.66],
-            ["Plan review", 129.66, 148.609],
-            ["Building", 148.609, 188.86, "build"],
-            ["Testing", 188.86, 213.085],
-            ["Finalize", 213.085, END],
+          var SEG = [
+            ["Startup", 0, 6.2],
+            ["Grill + spec", 6.2, projT("→ awaiting-approval")],
+            ["Your approval", projT("→ awaiting-approval"), projT("→ running"), "you"],
+            ["7 repos in parallel", projT("→ running"), projT("→ finalizing"), "build"],
+            ["Finalize", projT("→ finalizing"), END],
           ];
-          document.getElementById("timebar").innerHTML = SEG.map(
-            (s) => `<div class="${s[3] || ""}" style="flex:${(s[2] - s[1]).toFixed(2)}"></div>`,
-          ).join("");
-          document.getElementById("timelegend").innerHTML = SEG.map(
-            (s) => `<span class="${s[3] || ""}">${s[0]}<b>${(s[2] - s[1]).toFixed(0)}s</b></span>`,
-          ).join("");
+          document.getElementById("timebar").innerHTML = SEG.map(function (s) {
+            return '<div class="' + (s[3] || "") + '" style="flex:' + (s[2] - s[1]).toFixed(2) + '"></div>';
+          }).join("");
+          document.getElementById("timelegend").innerHTML = SEG.map(function (s) {
+            return '<span class="' + (s[3] || "") + '">' + s[0] + "<b>" + (s[2] - s[1]).toFixed(0) + "s</b></span>";
+          }).join("");
         })();
 
-        // ---------- 2. state machine ----------
+        // ---------- 2. phases ----------
         (function () {
-          const svg = document.getElementById("state");
-          const PP = ["specifying", "awaiting-approval", "running", "finalizing", "done"];
-          const CP = ["pending", "planning", "plan-review", "implementing", "testing", "post-test", "done"];
-          const pch = E.filter((e) => e.type === "phase.changed").map((e) => {
-            const to = e.detail.split("→").pop().trim();
-            return { t: e.t, target: e.target, to };
+          var CP = ["pending", "planning", "plan-review", "implementing", "testing", "post-test", "done"];
+          var tbody = document.getElementById("phase-rows");
+          var trans = {};
+          REPOS.forEach(function (r) {
+            trans[r] = [];
           });
-          pch.unshift({ t: 0, target: null, to: "specifying" });
-          const dur = {};
-          ["api", "web", null].forEach((tg) => {
-            const list = pch.filter((p) => p.target === tg);
-            dur[tg] = {};
-            list.forEach((p, i) => {
-              if (list[i + 1]) dur[tg][p.to] = { d: list[i + 1].t - p.t, end: list[i + 1].t };
-            });
+          E.forEach(function (e) {
+            if (e.type === "phase.changed" && e.target)
+              trans[e.target].push({
+                t: e.t,
+                to: e.detail.split("→").pop().trim().split(" ")[0],
+                retry: /retry/.test(e.detail),
+              });
           });
-          const at = (tg, t) => {
-            let cur = null;
-            pch.forEach((p) => {
-              if (p.target === tg && p.t <= t) cur = p.to;
-            });
-            return cur;
-          };
-          function build() {
-            const N = isNarrow();
-            // node centres
-            const pp = (i) => (N ? { x: 26, y: 62 + i * 70 } : { x: 110 + i * 195, y: 64 });
-            const cp = (i) => (N ? { x: 210, y: 62 + i * 70 } : { x: 75 + i * 141.6, y: 210 });
-            const H = N ? 62 + 6 * 70 + 60 : 350;
-            let h = `<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="f-line"/></marker></defs>`;
-            h += N
-              ? `<text x="10" y="22" class="t-yel disp-t" font-size="11" letter-spacing="1">PROJECT</text><text x="194" y="22" class="t-muted disp-t" font-size="11" letter-spacing="1">CHILDREN</text>`
-              : `<text x="0" y="30" class="t-yel disp-t" font-size="12" letter-spacing="1">PROJECT</text><text x="0" y="166" class="t-muted disp-t" font-size="12" letter-spacing="1">CHILDREN</text>`;
-            const edge = (a, b) =>
-              N
-                ? `<line x1="${a.x}" x2="${b.x}" y1="${a.y + 18}" y2="${b.y - 22}" class="s-line" stroke-width="2" marker-end="url(#ah)"/>`
-                : `<line x1="${a.x + 18}" x2="${b.x - 22}" y1="${a.y}" y2="${b.y}" class="s-line" stroke-width="2" marker-end="url(#ah)"/>`;
-            PP.forEach((p, i) => {
-              const c = pp(i);
-              if (i) h += edge(pp(i - 1), c);
-              h += `<circle cx="${c.x}" cy="${c.y}" r="14" class="f-raised s-line" stroke-width="2"/>`;
-              const d = dur[null][p];
-              if (N) {
-                h += `<text x="${c.x + 24}" y="${c.y + 5}" font-size="14" class="t-fg">${p}</text>`;
-                if (d)
-                  h += `<text class="t-yel mono-t pd" data-end="${d.end}" x="${c.x + 24}" y="${c.y + 24}" font-size="13">${d.d.toFixed(1)}s</text>`;
-              } else {
-                h += `<text x="${c.x}" y="${c.y + 36}" text-anchor="middle" font-size="15" class="t-fg">${p}</text>`;
-                if (d)
-                  h += `<text class="t-yel mono-t pd" data-end="${d.end}" x="${c.x}" y="${c.y + 56}" text-anchor="middle" font-size="13">${d.d.toFixed(1)}s</text>`;
-              }
-            });
-            CP.forEach((p, i) => {
-              const c = cp(i);
-              if (i) h += edge(cp(i - 1), c);
-              h += `<circle cx="${c.x}" cy="${c.y}" r="14" class="f-raised s-line" stroke-width="2"/>`;
-              h += N
-                ? `<text x="${c.x + 24}" y="${c.y + 5}" font-size="14" class="t-fg">${p}</text>`
-                : `<text x="${c.x}" y="${c.y + 40}" text-anchor="middle" font-size="15" class="t-fg">${p}</text>`;
-              ["api", "web"].forEach((ch, k) => {
-                const d = dur[ch][p];
-                if (!d) return;
-                const pos = N
-                  ? `x="${c.x + 24 + k * 84}" y="${c.y + 24}"`
-                  : `x="${c.x}" y="${c.y + 62 + k * 18}" text-anchor="middle"`;
-                h += `<text class="${ch === "api" ? "t-cyan" : "t-mag"} mono-t pd" data-end="${d.end}" ${pos} font-size="13">${ch} ${d.d.toFixed(1)}s</text>`;
+          tbody.innerHTML = REPOS.map(function (r) {
+            return (
+              '<tr><th scope="row">' +
+              r +
+              "</th>" +
+              CP.map(function (p) {
+                return '<td data-r="' + r + '" data-p="' + p + '"><span></span></td>';
+              }).join("") +
+              "</tr>"
+            );
+          }).join("");
+          var cells = [].slice.call(tbody.querySelectorAll("td"));
+          var now = document.getElementById("phase-now");
+          function frame(t) {
+            var current = {};
+            REPOS.forEach(function (r) {
+              var cur = null,
+                retry = false;
+              trans[r].forEach(function (x) {
+                if (x.t <= t) {
+                  cur = x.to;
+                  if (x.retry) retry = true;
+                }
               });
+              current[r] = { p: cur, retry: retry };
             });
-            h += `<g id="tok-p" class="chip"><circle r="9" class="f-yel s-ink" stroke-width="2"/></g>`;
-            h += `<g id="tok-api" class="chip"><circle r="9" class="f-cyan s-ink" stroke-width="2"/></g>`;
-            h += `<g id="tok-web" class="chip"><circle r="9" class="f-mag s-ink" stroke-width="2"/></g>`;
-            h += N
-              ? `<text id="st-now" x="10" y="${H - 14}" font-size="12" class="t-muted mono-t"></text>`
-              : `<text id="st-now" x="1000" y="328" text-anchor="end" font-size="14" class="t-muted mono-t"></text>`;
-            setBox(svg, N ? 400 : 1000, H, N ? 0 : 760);
-            svg.innerHTML = h;
-            const tp = svg.querySelector("#tok-p"),
-              ta = svg.querySelector("#tok-api"),
-              tw = svg.querySelector("#tok-web"),
-              pds = [...svg.querySelectorAll(".pd")],
-              now = svg.querySelector("#st-now");
-            return function frame(t) {
-              const p = at(null, t),
-                a = at("api", t),
-                w = at("web", t);
-              const P = pp(PP.indexOf(p));
-              tp.style.transform = `translate(${P.x}px, ${P.y}px)`;
-              [
-                [ta, a, -1],
-                [tw, w, 1],
-              ].forEach(([g, ph, s]) => {
-                const C = cp(ph ? CP.indexOf(ph) : 0);
-                const off = N ? { x: 0, y: s * 9 } : { x: s * 10, y: 0 };
-                g.style.opacity = ph ? 1 : 0;
-                g.style.transform = `translate(${C.x + off.x}px, ${C.y + off.y}px)`;
+            cells.forEach(function (td) {
+              var r = td.dataset.r,
+                p = td.dataset.p;
+              var list = trans[r];
+              var spent = 0,
+                reached = false;
+              list.forEach(function (x, i) {
+                if (x.to !== p || x.t > t) return;
+                reached = true;
+                var end = list[i + 1] && list[i + 1].t <= t ? list[i + 1].t : x.to === "done" ? x.t : t;
+                spent += end - x.t;
               });
-              pds.forEach((d) => (d.style.opacity = +d.dataset.end <= t ? 1 : 0));
-              now.textContent = `project ${p}  ·  api ${a || "—"}  ·  web ${w || "—"}`;
-            };
+              var isCur = current[r].p === p && p !== "done";
+              td.className = (reached ? "on" : "") + (isCur ? " cur" : "") + (p === "done" && reached ? " done" : "");
+              var txt = "";
+              if (reached && p !== "done") txt = spent < 0.95 ? "<1s" : Math.round(spent) + "s";
+              if (reached && p === "done") txt = "✓";
+              if (p === "implementing" && r === "sdk-python" && current[r].retry) txt += " ↺";
+              td.firstChild.textContent = txt;
+            });
+            var doneN = REPOS.filter(function (r) {
+              return current[r].p === "done";
+            }).length;
+            now.textContent = doneN + " of 7 repos done";
           }
-          responsive(build, document.getElementById("fig-state"), { from: 0, to: END, ms: 12000 });
+          player(document.getElementById("fig-state"), { from: 0, to: END, ms: 14000, frame: frame });
         })();
 
         // ---------- 3. hub ----------
         (function () {
-          const svg = document.getElementById("hub");
-          const META = {
-            you: { label: "YOU", cls: "yel" },
-            "api/planner": { label: "api · planner", cls: "cyan" },
-            "api/implementer": { label: "api · implementer", cls: "cyan" },
-            "api/tester": { label: "api · tester", cls: "cyan" },
-            "web/planner": { label: "web · planner", cls: "mag" },
-            "web/implementer": { label: "web · implementer", cls: "mag" },
-            "web/tester": { label: "web · tester", cls: "mag" },
-          };
-          const LAYOUT = {
+          var svg = document.getElementById("hub");
+          var rep = document.getElementById("report");
+          var LAYOUT = {
             wide: {
               w: 1000,
-              h: 470,
+              h: 500,
               minW: 680,
-              C: { x: 500, y: 270, r: 74 },
-              nodeW: 210,
+              C: { x: 500, y: 270, r: 70 },
+              nodeW: 200,
               youW: 120,
               P: {
-                you: [500, 52],
-                "api/planner": [130, 130],
-                "api/implementer": [130, 270],
-                "api/tester": [130, 410],
-                "web/planner": [870, 130],
-                "web/implementer": [870, 270],
-                "web/tester": [870, 410],
+                you: [500, 50],
+                api: [140, 130],
+                "sdk-js": [140, 230],
+                "sdk-python": [140, 330],
+                billing: [140, 430],
+                "web/app": [860, 160],
+                "web/ui": [860, 270],
+                mobile: [860, 380],
               },
             },
             narrow: {
               w: 400,
-              h: 560,
+              h: 660,
               minW: 0,
-              C: { x: 200, y: 178, r: 58 },
-              nodeW: 184,
+              C: { x: 200, y: 180, r: 56 },
+              nodeW: 176,
               youW: 140,
               P: {
                 you: [200, 40],
-                "api/planner": [100, 340],
-                "api/implementer": [100, 420],
-                "api/tester": [100, 500],
-                "web/planner": [300, 340],
-                "web/implementer": [300, 420],
-                "web/tester": [300, 500],
+                api: [100, 340],
+                "sdk-js": [300, 340],
+                "sdk-python": [100, 420],
+                billing: [300, 420],
+                "web/app": [100, 500],
+                "web/ui": [300, 500],
+                mobile: [200, 580],
               },
             },
           };
-          const REPORTS = {
-            "api/planner":
-              "Plan: add a lang map and URL parsing in server.js, update tests, add a contract test over the example and schema fixtures, update the README. Question: the contracts folder sits outside the worktree. Copy the fixtures into test/fixtures/?",
-            "web/planner":
-              "Plan: optional lang in fetchGreeting, render the language, read GREETING_LANG in the CLI, contract tests with copied fixtures.",
-            "api/implementer":
-              "Implemented lang support in src/server.js, updated and added tests with fixtures copied into test/fixtures/, updated the README. npm test 13/13. No deviations from plan.",
-            "web/implementer":
-              "fetchGreeting takes an optional lang and stays backward-compatible; renderGreeting adds the language paragraph; CLI reads GREETING_LANG. npm test passes, 11 tests. No deviations.",
-            "api/tester":
-              "npm test 13/13 pass. Contract tests cover all 5 example rows, using fixtures identical to contracts/. All acceptance criteria met. Findings: none.",
-            "web/tester":
-              "npm test 11/11 pass, including contract tests. Fixtures identical to contracts/. All 4 acceptance criteria met. Findings: none.",
-          };
-          const span = {};
-          Object.keys(REPORTS).forEach((k) => {
-            span[k] = {
-              s: E.find((e) => e.actor === k && e.type === "agent.spawned").t,
-              f: E.find((e) => e.actor === k && e.type === "agent.stopped").t,
-            };
-          });
-          const packets = [];
-          E.forEach((e) => {
-            if (e.type === "message.sent") {
-              const to = e.detail.replace("→", "").trim().split(" ")[0];
-              packets.push({ t: e.t, from: "c", to, cls: "yel" });
-            }
-            if (e.type === "agent.stopped") packets.push({ t: e.t, from: e.actor, to: "c", cls: META[e.actor].cls });
+          var packets = [];
+          E.forEach(function (e) {
+            if (e.type === "message.sent") packets.push({ t: e.t, from: "c", to: e.target, cls: "yel" });
+            if (e.type === "agent.stopped")
+              packets.push({
+                t: e.t,
+                from: e.target,
+                to: "c",
+                cls: /failing/.test(e.detail)
+                  ? "yel"
+                  : e.actor.split("/").pop() === "planner"
+                    ? "cyan"
+                    : e.actor.split("/").pop() === "implementer"
+                      ? "mag"
+                      : "yel",
+              });
             if (e.type === "spec.written") packets.push({ t: e.t, from: "c", to: "you", cls: "yel" });
             if (e.type === "spec.approved") packets.push({ t: e.t - 3, from: "you", to: "c", cls: "yel" });
           });
-          const rep = document.getElementById("report");
-          let lastRep;
+          var lastRep;
           function build() {
-            const N = isNarrow(),
+            var N = isNarrow(),
               L = N ? LAYOUT.narrow : LAYOUT.wide,
               C = L.C;
-            const pos = (k) => (k === "c" ? C : { x: L.P[k][0], y: L.P[k][1] });
-            let h = "";
-            Object.keys(META).forEach((k) => {
-              const n = pos(k);
-              h += `<line x1="${C.x}" y1="${C.y}" x2="${n.x}" y2="${n.y}" class="s-line" stroke-width="2" stroke-dasharray="${k === "you" ? "4 6" : "0"}"/>`;
+            var pos = function (k) {
+              return k === "c" ? C : { x: L.P[k][0], y: L.P[k][1] };
+            };
+            var keys = ["you"].concat(REPOS);
+            var h = "";
+            keys.forEach(function (k) {
+              var n = pos(k);
+              h +=
+                '<line x1="' +
+                C.x +
+                '" y1="' +
+                C.y +
+                '" x2="' +
+                n.x +
+                '" y2="' +
+                n.y +
+                '" class="s-line" stroke-width="2" stroke-dasharray="' +
+                (k === "you" ? "4 6" : "0") +
+                '"/>';
             });
-            Object.keys(META).forEach((k) => {
-              const n = pos(k),
+            keys.forEach(function (k) {
+              var n = pos(k),
                 w = k === "you" ? L.youW : L.nodeW;
-              h += `<g class="node" data-k="${k}"><rect x="${n.x - w / 2}" y="${n.y - 26}" width="${w}" height="52" rx="16" class="f-raised s-line nb" stroke-width="2"/>`;
-              h += `<text x="${n.x}" y="${n.y - 2}" text-anchor="middle" font-size="${k === "you" ? 14 : N ? 15 : 17}" class="${k === "you" ? "t-yel disp-t" : "t-fg"} nl">${META[k].label}</text>`;
-              h += `<text x="${n.x}" y="${n.y + 17}" text-anchor="middle" font-size="12" class="t-muted mono-t ns">${k === "you" ? "approve the spec" : "idle"}</text></g>`;
+              h +=
+                '<g class="node" data-k="' +
+                k +
+                '"><rect x="' +
+                (n.x - w / 2) +
+                '" y="' +
+                (n.y - 26) +
+                '" width="' +
+                w +
+                '" height="52" rx="16" class="f-raised s-line nb" stroke-width="2"/>';
+              h +=
+                '<text x="' +
+                n.x +
+                '" y="' +
+                (n.y - 2) +
+                '" text-anchor="middle" font-size="' +
+                (k === "you" ? 14 : N ? 15 : 17) +
+                '" class="' +
+                (k === "you" ? "t-yel disp-t" : "t-fg mono-t") +
+                ' nl">' +
+                (k === "you" ? "YOU" : k) +
+                "</text>";
+              h +=
+                '<text x="' +
+                n.x +
+                '" y="' +
+                (n.y + 17) +
+                '" text-anchor="middle" font-size="12" class="t-muted mono-t ns">idle</text></g>';
             });
-            const R = C.r + 10;
-            h += `<circle cx="${C.x}" cy="${C.y}" r="${C.r}" class="f-card s-ink" stroke-width="3"/>`;
+            var R = C.r + 10;
+            h += '<circle cx="' + C.x + '" cy="' + C.y + '" r="' + C.r + '" class="f-card s-ink" stroke-width="3"/>';
             [
               ["s-cyan", -90],
               ["s-mag", 30],
               ["s-yel", 150],
-            ].forEach(([c, rot]) => {
-              h += `<circle cx="${C.x}" cy="${C.y}" r="${R}" fill="none" class="${c}" stroke-width="5" stroke-dasharray="${R * 0.52} 600" transform="rotate(${rot} ${C.x} ${C.y})"/>`;
+            ].forEach(function (a) {
+              h +=
+                '<circle cx="' +
+                C.x +
+                '" cy="' +
+                C.y +
+                '" r="' +
+                R +
+                '" fill="none" class="' +
+                a[0] +
+                '" stroke-width="5" stroke-dasharray="' +
+                R * 0.52 +
+                ' 600" transform="rotate(' +
+                a[1] +
+                " " +
+                C.x +
+                " " +
+                C.y +
+                ')"/>';
             });
-            h += `<text x="${C.x}" y="${C.y - 6}" text-anchor="middle" font-size="${N ? 12 : 15}" class="t-ink disp-t">COORDINATOR</text>`;
-            h += `<text id="hub-count" x="${C.x}" y="${C.y + 20}" text-anchor="middle" font-size="18" class="mono-t" style="fill:var(--counter)">6 / 6</text>`;
-            h += `<text x="${C.x}" y="${C.y + 38}" text-anchor="middle" font-size="10" class="disp-t" style="fill:var(--ink-muted)">REPORTS IN</text>`;
-            packets.forEach((p, i) => {
-              h += `<circle class="f-${p.cls} s-ink pk" stroke-width="2" r="${N ? 7 : 8}" data-i="${i}" style="opacity:0"/>`;
+            h +=
+              '<text x="' +
+              C.x +
+              '" y="' +
+              (C.y - 6) +
+              '" text-anchor="middle" font-size="' +
+              (N ? 12 : 15) +
+              '" class="t-ink disp-t">COORDINATOR</text>';
+            h +=
+              '<text id="hub-count" x="' +
+              C.x +
+              '" y="' +
+              (C.y + 20) +
+              '" text-anchor="middle" font-size="18" class="mono-t" style="fill:#1632E6">7 / 7</text>';
+            h +=
+              '<text x="' +
+              C.x +
+              '" y="' +
+              (C.y + 38) +
+              '" text-anchor="middle" font-size="10" class="disp-t" style="fill:#5F5754">REPOS DONE</text>';
+            packets.forEach(function (p, i) {
+              h +=
+                '<circle class="f-' +
+                p.cls +
+                ' s-ink pk" stroke-width="2" r="' +
+                (N ? 6 : 7) +
+                '" data-i="' +
+                i +
+                '" style="opacity:0"/>';
             });
             setBox(svg, L.w, L.h, L.minW);
             svg.innerHTML = h;
-            const pk = [...svg.querySelectorAll(".pk")],
-              nodes = [...svg.querySelectorAll(".node")],
+            var pk = [].slice.call(svg.querySelectorAll(".pk")),
+              nodes = [].slice.call(svg.querySelectorAll(".node")),
               count = svg.querySelector("#hub-count");
-            const FLY = 5;
+            var FLY = 5;
             lastRep = undefined;
-            return function frame(t) {
-              packets.forEach((p, i) => {
-                const k = (t - p.t) / FLY;
+            return function (t) {
+              packets.forEach(function (p, i) {
+                var k = (t - p.t) / FLY;
                 if (k < 0 || k > 1) {
                   pk[i].style.opacity = 0;
                   return;
                 }
-                const a = pos(p.from),
+                var a = pos(p.from),
                   b = pos(p.to),
                   e = 1 - Math.pow(1 - k, 3);
                 pk[i].setAttribute("cx", a.x + (b.x - a.x) * e);
                 pk[i].setAttribute("cy", a.y + (b.y - a.y) * e);
                 pk[i].style.opacity = 1;
               });
-              let done = 0;
-              nodes.forEach((g) => {
-                const k = g.dataset.k,
+              var doneN = 0;
+              nodes.forEach(function (g) {
+                var k = g.dataset.k,
                   rect = g.querySelector(".nb"),
                   lab = g.querySelector(".nl"),
                   st = g.querySelector(".ns");
                 if (k === "you") {
-                  const busy = t >= 75.1 && t < 91.0;
+                  var a1 = projT("→ awaiting-approval"),
+                    a2 = projT("→ running");
+                  var busy = t >= a1 && t < a2;
                   rect.setAttribute("class", (busy ? "f-yel" : "f-raised") + " s-line nb");
                   lab.setAttribute("class", (busy ? "t-ink" : "t-yel") + " disp-t nl");
                   st.setAttribute("class", (busy ? "t-ink" : "t-muted") + " mono-t ns");
-                  st.textContent = t < 75.1 ? "answering questions" : busy ? "reviewing spec…" : "approved";
+                  st.textContent = t < a1 ? "answering questions" : busy ? "reviewing spec…" : "approved";
                   return;
                 }
-                const s = span[k],
-                  cls = META[k].cls;
-                if (t < s.s) {
-                  rect.setAttribute("class", "f-raised s-line nb");
-                  lab.setAttribute("class", "t-muted nl");
-                  st.setAttribute("class", "t-muted mono-t ns");
-                  st.textContent = "not spawned";
-                } else if (t < s.f) {
-                  rect.setAttribute("class", `f-raised s-${cls} nb`);
-                  lab.setAttribute("class", "t-fg nl");
-                  st.setAttribute("class", `t-${cls} mono-t ns`);
-                  st.textContent = "working " + (t - s.s).toFixed(1) + "s";
-                } else {
-                  done++;
-                  rect.setAttribute("class", `f-${cls} s-ink nb`);
-                  lab.setAttribute("class", "t-ink nl");
+                var run = null,
+                  lastRun = null;
+                RUNS.forEach(function (r) {
+                  if (r.repo !== k) return;
+                  if (r.s <= t && t < r.f) run = r;
+                  if (r.f <= t) lastRun = r;
+                });
+                var fin = E.find(function (e) {
+                  return e.target === k && e.detail === "post-test → done";
+                });
+                if (fin && fin.t <= t) {
+                  doneN++;
+                  rect.setAttribute("class", "f-card s-ink nb");
+                  lab.setAttribute("class", "t-ink mono-t nl");
                   st.setAttribute("class", "t-ink mono-t ns");
-                  st.textContent = "reported · " + (s.f - s.s).toFixed(1) + "s";
+                  st.textContent = "done";
+                } else if (run) {
+                  var cls = run.role === "planner" ? "cyan" : run.role === "implementer" ? "mag" : "yel";
+                  rect.setAttribute("class", "f-raised s-" + cls + " nb");
+                  lab.setAttribute("class", "t-fg mono-t nl");
+                  st.setAttribute("class", "t-" + cls + " mono-t ns");
+                  st.textContent = run.role + " · " + (t - run.s).toFixed(0) + "s";
+                } else {
+                  rect.setAttribute("class", "f-raised s-line nb");
+                  lab.setAttribute("class", "t-muted mono-t nl");
+                  st.setAttribute("class", "t-muted mono-t ns");
+                  st.textContent =
+                    k === "mobile" && t < 181 ? "waits on sdk-js" : lastRun ? "between agents" : "not started";
                 }
               });
-              count.textContent = done + " / 6";
-              let latest = null;
-              Object.keys(span).forEach((k) => {
-                if (span[k].f <= t && (!latest || span[k].f > span[latest].f)) latest = k;
+              count.textContent = doneN + " / 7";
+              var latest = null;
+              RUNS.forEach(function (r) {
+                if (r.f <= t && (!latest || r.f > latest.f)) latest = r;
               });
-              if (latest !== lastRep) {
-                lastRep = latest;
+              var key = latest ? latest.actor + latest.f : null;
+              if (key !== lastRep) {
+                lastRep = key;
+                var text = latest
+                  ? latest.failed
+                    ? "pytest 22/23. One failure: test_user_id_read. Existing callers still read .user_id from the model."
+                    : REPORTS[latest.actor]
+                  : "";
                 rep.innerHTML = latest
-                  ? `<div class="who">${META[latest].label.toUpperCase()} · OPENFLEET-REPORT <b>status: done</b></div><p>${esc(REPORTS[latest])}</p>`
-                  : `<div class="who">WAITING FOR THE FIRST REPORT <b>—</b></div><p>Reports appear here as each sub-agent finishes.</p>`;
+                  ? '<div class="who">' +
+                    esc(latest.repo.toUpperCase() + " · " + latest.role.toUpperCase()) +
+                    " · OPENFLEET-REPORT <b>status: " +
+                    (latest.failed ? "failed" : "done") +
+                    "</b></div><p>" +
+                    esc(text) +
+                    "</p>"
+                  : '<div class="who">WAITING FOR THE FIRST REPORT <b>—</b></div><p>Reports appear here as each sub-agent finishes.</p>';
               }
             };
           }
-          responsive(build, document.getElementById("fig-hub"), { from: 0, to: END, ms: 15000 });
+          responsive(build, document.getElementById("fig-hub"), { from: 0, to: END, ms: 16000 });
         })();
 
         // ---------- 4. diff ----------
         (function () {
-          const FILES = [
-            ["api", "src/server.js", 8, 4, false],
-            ["api", "README.md", 6, 1, false],
-            ["api", "test/contract.test.js", 53, 0, true],
-            ["api", "test/server.test.js", 42, 12, false],
-            ["api", "test/fixtures/greeting.example.json", 7, 0, true],
-            ["api", "test/fixtures/greeting.schema.json", 11, 0, true],
-            ["web", "src/cli.js", 1, 1, false],
-            ["web", "test/greeting.test.js", 21, 1, false],
-            ["web", "test/greeting.contract.test.js", 49, 0, true],
-            ["web", "README.md", 3, 1, false],
-            ["web", "src/greeting.js", 13, 4, false],
-            ["web", "test/fixtures/greeting.example.json", 7, 0, true],
-            ["web", "test/fixtures/greeting.schema.json", 11, 0, true],
-          ].map(([repo, path, a, r, isNew]) => {
-            const ev = E.find((e) => e.target === repo && /^file\./.test(e.type) && e.detail.startsWith(path + " "));
-            const snap = E.find(
-              (e) => e.target === repo && e.type === "worktree.snapshot" && e.actor.endsWith("implementer"),
-            );
-            return { repo, path, a, r, isNew, t: ev ? ev.t : snap.t };
+          var rows0 = FILES.map(function (f) {
+            var ev = E.find(function (e) {
+              return e.target === f[0] && /^file\./.test(e.type) && e.detail.indexOf(f[1] + " ") === 0;
+            });
+            return { repo: f[0], path: f[1], a: f[2], r: f[3], isNew: f[4], t: ev ? ev.t : 0 };
           });
-          const MAX = 60;
-          const box = document.getElementById("diff");
-          box.innerHTML = ["api", "web"]
-            .map((repo) => {
-              const fs = FILES.filter((f) => f.repo === repo);
-              const A = fs.reduce((s, f) => s + f.a, 0),
-                R = fs.reduce((s, f) => s + f.r, 0);
-              return (
-                `<div class="repo"><h3>${repo.toUpperCase()}<span class="mono">+${A} −${R}</span></h3>` +
-                fs
-                  .map(
-                    (f, i) =>
-                      `<div class="frow ${f.isNew ? "new" : ""}" data-repo="${repo}" data-i="${FILES.indexOf(f)}"><span class="path" title="${esc(f.path)}">${esc(f.path)}</span><span class="bar"><i class="a" style="width:${(f.a / MAX) * 100}%"></i><i class="r" style="width:${(f.r / MAX) * 100}%"></i></span><span class="n">+${f.a} −${f.r}</span></div>`,
-                  )
-                  .join("") +
-                `</div>`
-              );
-            })
-            .join("");
-          const rows = [...box.querySelectorAll(".frow")];
-          const ta = document.getElementById("tot-add"),
+          rows0.push({
+            repo: "sdk-python",
+            path: "account_client/models.py (retry)",
+            a: 6,
+            r: 0,
+            isNew: false,
+            t: E.find(function (e) {
+              return e.detail === "account_client/models.py +6 −0";
+            }).t,
+          });
+          rows0.push({
+            repo: "sdk-python",
+            path: "tests/test_models.py (retry)",
+            a: 5,
+            r: 0,
+            isNew: false,
+            t: E.find(function (e) {
+              return e.detail === "tests/test_models.py +5 −0";
+            }).t,
+          });
+          var MAX = 45;
+          var box = document.getElementById("diff");
+          box.innerHTML = REPOS.map(function (repo) {
+            var fs = rows0.filter(function (f) {
+              return f.repo === repo;
+            });
+            var A = fs.reduce(function (s, f) {
+                return s + f.a;
+              }, 0),
+              R = fs.reduce(function (s, f) {
+                return s + f.r;
+              }, 0);
+            return (
+              '<div class="repo"><h3>' +
+              repo.toUpperCase() +
+              '<span class="mono">+' +
+              A +
+              " −" +
+              R +
+              "</span></h3>" +
+              fs
+                .map(function (f) {
+                  return (
+                    '<div class="frow ' +
+                    (f.isNew ? "new" : "") +
+                    '" data-i="' +
+                    rows0.indexOf(f) +
+                    '"><span class="path" title="' +
+                    esc(f.path) +
+                    '">' +
+                    esc(f.path) +
+                    '</span><span class="bar"><i class="a" style="width:' +
+                    (f.a / MAX) * 100 +
+                    '%"></i><i class="r" style="width:' +
+                    (f.r / MAX) * 100 +
+                    '%"></i></span><span class="n">+' +
+                    f.a +
+                    " −" +
+                    f.r +
+                    "</span></div>"
+                  );
+                })
+                .join("") +
+              "</div>"
+            );
+          }).join("");
+          var rows = [].slice.call(box.querySelectorAll(".frow"));
+          var ta = document.getElementById("tot-add"),
             tr = document.getElementById("tot-rem"),
             tf = document.getElementById("tot-files");
+          var first =
+            Math.min.apply(
+              null,
+              rows0.map(function (f) {
+                return f.t;
+              }),
+            ) - 5;
+          var lastT =
+            Math.max.apply(
+              null,
+              rows0.map(function (f) {
+                return f.t;
+              }),
+            ) + 5;
           function frame(t) {
-            let A = 0,
+            var A = 0,
               R = 0,
-              F = 0;
-            rows.forEach((row) => {
-              const f = FILES[+row.dataset.i],
+              seen = {};
+            rows.forEach(function (row) {
+              var f = rows0[+row.dataset.i],
                 on = f.t <= t;
               row.classList.toggle("off", !on);
-              const [ia, ir] = row.querySelectorAll("i");
-              ia.style.width = (on ? (f.a / MAX) * 100 : 0) + "%";
-              ir.style.width = (on ? (f.r / MAX) * 100 : 0) + "%";
+              var bars = row.querySelectorAll("i");
+              bars[0].style.width = (on ? (f.a / MAX) * 100 : 0) + "%";
+              bars[1].style.width = (on ? (f.r / MAX) * 100 : 0) + "%";
               if (on) {
                 A += f.a;
                 R += f.r;
-                F++;
+                seen[f.repo + "/" + f.path.replace(" (retry)", "")] = 1;
               }
             });
             ta.textContent = "+" + A;
             tr.textContent = "−" + R;
-            tf.textContent = F;
+            tf.textContent = Object.keys(seen).length;
           }
-          player(document.getElementById("fig-diff"), { from: 145, to: 195, ms: 9000, frame });
+          player(document.getElementById("fig-diff"), { from: first, to: lastT, ms: 10000, frame: frame });
         })();
 
-        // ---------- 5. fixtures ----------
+        // ---------- 5. decisions ----------
         (function () {
-          const svg = document.getElementById("fix");
-          const STEPS = [
+          var svg = document.getElementById("fix");
+          var STEPS = [
             {
-              title: "The contract lives outside both repos",
-              text: "The spec phase wrote greeting.schema.json and greeting.example.json into the OpenFleet project folder. Each child works in a git worktree, which is a checkout of its own repo.",
+              title: "The spec pins one contract",
+              text: "During the grill you agreed on contracts/account.json: the account object, with account_id instead of user_id. Every repo’s contract tests run against it, and the spec orders mobile after sdk-js.",
             },
             {
-              title: "A relative path works today…",
-              text: "From the api worktree, the contracts are at ../../contracts, so a test could simply read them from there. <q>The worktree is …/worktrees/api and the contracts are at …/projects/greeting-lang/contracts.</q>",
+              title: "A question becomes a contract change",
+              text: "Halfway through, the api implementer asked whether user_id should be marked deprecated. The spec already said so, so the coordinator answered, updated account.json and broadcast the change to the five repos that consume it.",
             },
             {
-              title: "…and breaks after merge",
-              text: "Once the branch merges into the real api repo, there is no ../../contracts. npm test would fail on every machine but this one. <q>That breaks once the branch is merged into the real api repo.</q>",
+              title: "sdk-python fails a test",
+              text: "Its first tester run failed one test: existing callers still read .user_id from the model. That sends sdk-python back to implementing, retry 1 of 3, with the findings attached.",
             },
             {
-              title: "Decision: copy them in",
-              text: "The coordinator told the api implementer to copy the two files into test/fixtures/; the web plan already did. Each repo’s npm test is now self-contained, with no env vars and no extra round trip to the planners.",
+              title: "The coordinator decides, and logs it",
+              text: "The spec didn’t cover old callers, so the coordinator decided: keep user_id as a read-only alias that warns. It logged that as an assumption, which the final summary lists for you to review.",
             },
             {
-              title: "Testers check for drift",
-              text: "Copies can drift from the originals, which the web planner flagged as a risk. Both testers diffed test/fixtures/ against contracts/ and found the files identical.",
+              title: "Ordering holds",
+              text: "mobile reads its types from sdk-js, so it waited. The moment sdk-js reached done, the coordinator started mobile’s planner. Everything else ran in parallel.",
             },
           ];
-          const repo = (bx, by, bw, bh) => ({
-            box: [bx, by, bw, bh],
-            title: [bx + 20, by + 30],
-            sub: [bx + 20, by + 56],
-            slot: [bx + 20, by + 68, bw - 40, bh - 80],
-            slotL: [bx + 30, by + 86],
-            ok: [bx + bw - 20, by + 32],
-            copies: [
-              [bx + 45, by + 72],
-              [bx + 45, by + 110],
-            ],
-          });
-          const LAYOUT = {
-            wide: {
-              w: 1000,
-              h: 400,
-              minW: 680,
-              cBox: [330, 20, 340, 140],
-              cTitle: [350, 50],
-              chips: [
-                [365, 66],
-                [365, 110],
-              ],
-              api: repo(40, 220, 340, 160),
-              web: repo(620, 220, 340, 160),
-              rel: "M210 220 C210 180 280 160 330 140",
-              relL: [150, 190, "start"],
-              brokeC: [262, 166],
-              brokeL: [40, 208, "PATH NOT FOUND AFTER MERGE"],
-            },
-            narrow: {
-              w: 400,
-              h: 600,
-              minW: 0,
-              cBox: [30, 14, 340, 132],
-              cTitle: [46, 42],
-              chips: [
-                [65, 56],
-                [65, 98],
-              ],
-              api: repo(20, 200, 360, 170),
-              web: repo(20, 412, 360, 170),
-              rel: "M200 200 L200 150",
-              relL: [188, 182, "end"],
-              brokeC: [200, 175],
-              brokeL: [226, 180, "BREAKS AFTER MERGE"],
-            },
-          };
-          const stepsEl = document.getElementById("fixsteps"),
+          var stepsEl = document.getElementById("fixsteps"),
             cap = document.getElementById("fixcap");
-          stepsEl.innerHTML = STEPS.map(
-            (s, i) => `<button class="btn ghost" type="button" data-step="${i}" aria-pressed="false">${i + 1}</button>`,
-          ).join("");
-          const btns = [...stepsEl.querySelectorAll("button")];
-          let L,
-            cur = 4;
-          const q = (s) => svg.querySelector(s);
-          const chipAt = (id, [x, y], label, hidden) =>
-            `<g id="${id}" class="chip" style="transform:translate(${x}px,${y}px)${hidden ? ";opacity:0" : ""}"><rect width="270" height="${hidden ? 30 : 34}" rx="8" class="f-card s-ink" stroke-width="2"/><text x="14" y="${hidden ? 20 : 22}" font-size="14" class="t-ink mono-t">${label}</text></g>`;
-          function build() {
-            L = isNarrow() ? LAYOUT.narrow : LAYOUT.wide;
-            let h = "";
-            const [cx, cy, cw, ch] = L.cBox;
-            h += `<rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="16" class="f-raised s-yel" stroke-width="2"/>`;
-            h += `<text x="${L.cTitle[0]}" y="${L.cTitle[1]}" font-size="14" class="t-yel mono-t">projects/greeting-lang/contracts/</text>`;
-            h += chipAt("c1", L.chips[0], "greeting.schema.json") + chipAt("c2", L.chips[1], "greeting.example.json");
-            [
-              ["api", "cyan"],
-              ["web", "mag"],
-            ].forEach(([r, c]) => {
-              const R = L[r];
-              h += `<rect x="${R.box[0]}" y="${R.box[1]}" width="${R.box[2]}" height="${R.box[3]}" rx="16" class="f-raised s-${c}" stroke-width="2"/>`;
-              h += `<text x="${R.title[0]}" y="${R.title[1]}" font-size="14" class="t-${c} mono-t">worktrees/${r}</text>`;
-              h += `<text x="${R.sub[0]}" y="${R.sub[1]}" font-size="13" class="t-muted mono-t">src/ · README.md · test/</text>`;
-              h += `<rect x="${R.slot[0]}" y="${R.slot[1]}" width="${R.slot[2]}" height="${R.slot[3]}" rx="10" fill="none" class="s-line" stroke-width="2" stroke-dasharray="6 6"/>`;
-              h += `<text x="${R.slotL[0]}" y="${R.slotL[1]}" font-size="12" class="t-muted mono-t fade slotl-${r}">test/fixtures/</text>`;
-              h += `<g class="fade ok-${r}" style="opacity:0"><text x="${R.ok[0]}" y="${R.ok[1]}" text-anchor="end" font-size="13" class="t-yel disp-t">IDENTICAL ✓</text></g>`;
+          stepsEl.innerHTML = STEPS.map(function (s, i) {
+            return (
+              '<button class="btn ghost" type="button" data-step="' +
+              i +
+              '" aria-pressed="false">' +
+              (i + 1) +
+              "</button>"
+            );
+          }).join("");
+          var btns = [].slice.call(stepsEl.querySelectorAll("button"));
+          var cur = 4;
+          var CONSUMERS = ["sdk-js", "sdk-python", "web/app", "web/ui", "mobile"];
+          function layout() {
+            var N = isNarrow();
+            if (!N) {
+              var pos = {};
+              REPOS.forEach(function (r, i) {
+                pos[r] = { x: 30 + i * 136, y: 250, w: 124, h: 70 };
+              });
+              return { w: 1000, h: 360, minW: 720, c: { x: 330, y: 24, w: 340, h: 86 }, pos: pos, N: false };
+            }
+            var pos2 = {};
+            REPOS.forEach(function (r, i) {
+              pos2[r] = { x: 16 + (i % 2) * 190, y: 200 + Math.floor(i / 2) * 92, w: 178, h: 70 };
             });
-            h += `<g class="fade rel" style="opacity:0"><path d="${L.rel}" fill="none" class="s-fg" stroke-width="2" stroke-dasharray="5 5"/><text x="${L.relL[0]}" y="${L.relL[1]}" text-anchor="${L.relL[2]}" font-size="14" class="t-fg mono-t">../../contracts</text></g>`;
-            h += `<g class="fade broke" style="opacity:0"><circle cx="${L.brokeC[0]}" cy="${L.brokeC[1]}" r="15" class="f-yel s-ink" stroke-width="2"/><text x="${L.brokeC[0]}" y="${L.brokeC[1] + 6}" text-anchor="middle" font-size="17" class="t-ink disp-t">✗</text><text x="${L.brokeL[0]}" y="${L.brokeL[1]}" font-size="12" class="t-yel disp-t">${L.brokeL[2]}</text></g>`;
+            return { w: 400, h: 560, minW: 0, c: { x: 40, y: 20, w: 320, h: 86 }, pos: pos2, N: true };
+          }
+          var L;
+          function build() {
+            L = layout();
+            var h = "";
+            var c = L.c;
+            REPOS.forEach(function (r) {
+              var p = L.pos[r];
+              h +=
+                '<path class="fade link link-' +
+                r.replace("/", "-") +
+                '" d="M' +
+                (c.x + c.w / 2) +
+                " " +
+                (c.y + c.h) +
+                " C" +
+                (c.x + c.w / 2) +
+                " " +
+                (c.y + c.h + 60) +
+                " " +
+                (p.x + p.w / 2) +
+                " " +
+                (p.y - 60) +
+                " " +
+                (p.x + p.w / 2) +
+                " " +
+                p.y +
+                '" fill="none" stroke-width="2"/>';
+            });
             h +=
-              chipAt("a1", L.chips[0], "greeting.schema.json", true) +
-              chipAt("a2", L.chips[1], "greeting.example.json", true);
+              '<rect x="' +
+              c.x +
+              '" y="' +
+              c.y +
+              '" width="' +
+              c.w +
+              '" height="' +
+              c.h +
+              '" rx="16" class="f-raised s-yel cbox" stroke-width="2"/>';
             h +=
-              chipAt("w1", L.chips[0], "greeting.schema.json", true) +
-              chipAt("w2", L.chips[1], "greeting.example.json", true);
+              '<text x="' +
+              (c.x + 18) +
+              '" y="' +
+              (c.y + 30) +
+              '" font-size="14" class="t-yel mono-t">contracts/account.json</text>';
+            h +=
+              '<text x="' +
+              (c.x + 18) +
+              '" y="' +
+              (c.y + 56) +
+              '" font-size="14" class="t-fg mono-t ctext">{ "account_id": 42, … }</text>';
+            h +=
+              '<text x="' +
+              (c.x + 18) +
+              '" y="' +
+              (c.y + 76) +
+              '" font-size="12" class="t-muted mono-t fade cdep">user_id: deprecated</text>';
+            REPOS.forEach(function (r) {
+              var p = L.pos[r],
+                id = r.replace("/", "-");
+              h +=
+                '<g class="chipbox" data-r="' +
+                r +
+                '"><rect x="' +
+                p.x +
+                '" y="' +
+                p.y +
+                '" width="' +
+                p.w +
+                '" height="' +
+                p.h +
+                '" rx="14" class="f-raised s-line cb" stroke-width="2"/>';
+              h +=
+                '<text x="' +
+                (p.x + 14) +
+                '" y="' +
+                (p.y + 28) +
+                '" font-size="15" class="t-fg mono-t cn-' +
+                id +
+                '">' +
+                r +
+                "</text>";
+              h +=
+                '<text x="' +
+                (p.x + 14) +
+                '" y="' +
+                (p.y + 52) +
+                '" font-size="12" class="t-muted mono-t cs cs-' +
+                id +
+                '"></text></g>';
+            });
+            var sj = L.pos["sdk-js"],
+              mb = L.pos.mobile;
+            var ord = L.N
+              ? "M" +
+                (sj.x + sj.w / 2) +
+                " " +
+                (sj.y + sj.h) +
+                " C" +
+                (sj.x + sj.w / 2) +
+                " " +
+                (mb.y - 30) +
+                " " +
+                (mb.x + mb.w / 2) +
+                " " +
+                (mb.y - 50) +
+                " " +
+                (mb.x + mb.w / 2) +
+                " " +
+                mb.y
+              : "M" +
+                (sj.x + sj.w / 2) +
+                " " +
+                (sj.y + sj.h) +
+                " C" +
+                (sj.x + sj.w / 2) +
+                " " +
+                (sj.y + sj.h + 40) +
+                " " +
+                (mb.x + mb.w / 2) +
+                " " +
+                (mb.y + mb.h + 40) +
+                " " +
+                (mb.x + mb.w / 2) +
+                " " +
+                (mb.y + mb.h);
+            h +=
+              '<path class="fade ord" d="' +
+              ord +
+              '" fill="none" class="s-yel" stroke="#EDEB3C" stroke-width="2" stroke-dasharray="6 6" style="opacity:0"/>';
             setBox(svg, L.w, L.h, L.minW);
             svg.innerHTML = h;
             show(cur);
           }
           function show(i) {
             cur = i;
-            btns.forEach((b, k) => b.setAttribute("aria-pressed", k === i ? "true" : "false"));
-            cap.innerHTML = `<h3>${i + 1} · ${STEPS[i].title.toUpperCase()}</h3><p>${STEPS[i].text}</p>`;
-            q(".rel").style.opacity = i === 1 || i === 2 ? 1 : 0;
-            q(".broke").style.opacity = i === 2 ? 1 : 0;
-            const copied = i >= 3;
-            [
-              ["a1", "api", 0],
-              ["a2", "api", 1],
-              ["w1", "web", 0],
-              ["w2", "web", 1],
-            ].forEach(([id, r, k]) => {
-              const g = q("#" + id),
-                to = L[r].copies[k],
-                from = L.chips[k];
-              g.style.opacity = copied ? 1 : 0;
-              g.style.transform = `translate(${(copied ? to : from)[0]}px, ${(copied ? to : from)[1]}px)`;
+            btns.forEach(function (b, k) {
+              b.setAttribute("aria-pressed", k === i ? "true" : "false");
             });
-            ["api", "web"].forEach((r) => {
-              q(".slotl-" + r).style.opacity = copied ? 0 : 1;
-              q(".ok-" + r).style.opacity = i === 4 ? 1 : 0;
+            cap.innerHTML =
+              "<h3>" + (i + 1) + " · " + esc(STEPS[i].title.toUpperCase()) + "</h3><p>" + esc(STEPS[i].text) + "</p>";
+            var q = function (s) {
+              return svg.querySelector(s);
+            };
+            REPOS.forEach(function (r) {
+              var id = r.replace("/", "-");
+              var link = q(".link-" + id);
+              var lit = i === 0 || (i === 1 && CONSUMERS.indexOf(r) >= 0);
+              link.setAttribute("stroke", i === 1 && CONSUMERS.indexOf(r) >= 0 ? "#48A6EE" : "#45434C");
+              link.style.opacity = lit || i >= 2 ? 1 : 0.4;
+              var box = svg.querySelector('.chipbox[data-r="' + r + '"] .cb');
+              var cs = q(".cs-" + id);
+              var cls = "f-raised s-line cb",
+                status = "";
+              if (i === 1 && CONSUMERS.indexOf(r) >= 0) {
+                cls = "f-raised s-cyan cb";
+                status = "contract updated";
+              }
+              if (i === 1 && r === "api") {
+                cls = "f-raised s-mag cb";
+                status = "asked a question";
+              }
+              if (i === 2 && r === "sdk-python") {
+                cls = "f-raised s-yel cb";
+                status = "1 failing · retry";
+              }
+              if (i === 3 && r === "sdk-python") {
+                cls = "f-yel s-ink cb";
+                status = "keeps alias";
+              }
+              if (i === 4 && r === "sdk-js") {
+                cls = "f-card s-ink cb";
+                status = "done";
+              }
+              if (i === 4 && r === "mobile") {
+                cls = "f-raised s-yel cb";
+                status = "after sdk-js";
+              }
+              if (i === 0 && r === "mobile") status = "waits on sdk-js";
+              box.setAttribute("class", cls);
+              cs.textContent = status;
+              var ink = cls.indexOf("f-yel") === 0 || cls.indexOf("f-card") === 0;
+              q(".cn-" + id).setAttribute("class", "mono-t cn-" + id + (ink ? " t-ink" : " t-fg"));
+              cs.setAttribute(
+                "class",
+                "mono-t cs cs-" +
+                  id +
+                  (cls.indexOf("f-yel") === 0 || cls.indexOf("f-card") === 0 ? " t-ink" : " t-muted"),
+              );
             });
+            q(".cdep").style.opacity = i >= 1 ? 1 : 0;
+            q(".ord").style.opacity = i === 0 || i === 4 ? 1 : 0;
           }
-          btns.forEach((b, i) =>
-            b.addEventListener("click", () => {
+          btns.forEach(function (b, i) {
+            b.addEventListener("click", function () {
               stopAuto();
               show(i);
-            }),
-          );
-          let timer = 0;
-          const playBtn = document.getElementById("fixplay");
+            });
+          });
+          var timer = 0;
+          var playBtn = document.getElementById("fixplay");
           function stopAuto() {
             clearInterval(timer);
             timer = 0;
             playBtn.textContent = "▶ PLAY";
           }
-          playBtn.addEventListener("click", () => {
+          playBtn.addEventListener("click", function () {
             if (timer) {
               stopAuto();
               return;
@@ -2960,129 +3602,93 @@
             show(0);
             playBtn.textContent = "❚❚ PAUSE";
             timer = setInterval(
-              () => {
+              function () {
                 if (cur + 1 >= STEPS.length) {
                   stopAuto();
                   return;
                 }
                 show(cur + 1);
               },
-              reduce ? 1200 : 2600,
+              reduce ? 1200 : 3000,
             );
           });
           build();
           onMode(build);
         })();
 
-        // ---------- 6. playground ----------
+        // ---------- 6. tests ----------
         (function () {
-          const MESSAGES = { en: "Hello", es: "Hola", fr: "Bonjour" };
-          const ROWS = [
-            ["(no query)", ""],
-            ["?lang=en", "en"],
-            ["?lang=es", "es"],
-            ["?lang=fr", "fr"],
-            ["?lang=xx", "xx"],
-          ];
-          const rowsEl = document.getElementById("rows");
-          rowsEl.innerHTML =
-            ROWS.map(
-              (r, i) => `<button class="btn ghost" type="button" data-row="${i}" aria-pressed="false">${r[0]}</button>`,
-            ).join("") +
-            `<label for="custom-lang" class="mono" style="font-size:14px;color:var(--muted)">lang=</label><input id="custom-lang" type="text" placeholder="de" maxlength="20" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="runall">RUN ALL 5</button>`;
-          const btns = [...rowsEl.querySelectorAll("[data-row]")];
-          const greeting = (lang) => {
-            const l = lang && Object.prototype.hasOwnProperty.call(MESSAGES, lang) ? lang : "en";
-            return { message: MESSAGES[l], language: l };
-          };
-          const $ = (id) => document.getElementById(id);
-          let timers = [];
-          function run(lang, idx) {
+          var box = document.getElementById("tally");
+          box.innerHTML = REPOS.map(function (r) {
+            var n = TESTS[r][0] + TESTS[r][1];
+            return (
+              '<div class="trow"><h3><span class="mono">' +
+              r +
+              '</span><b data-score="' +
+              r +
+              '">' +
+              n +
+              "/" +
+              n +
+              ' PASS</b></h3><div class="cells" data-cells="' +
+              r +
+              '">' +
+              Array.from({ length: n }, function (_, i) {
+                return '<i class="' + (i < TESTS[r][1] ? "contract " : "") + 'on"></i>';
+              }).join("") +
+              "</div></div>"
+            );
+          }).join("");
+          var timers = [];
+          var total = document.getElementById("tests-total");
+          document.getElementById("runall").addEventListener("click", function () {
             timers.forEach(clearTimeout);
             timers = [];
-            btns.forEach((b, k) => b.setAttribute("aria-pressed", k === idx ? "true" : "false"));
-            const url = "/greeting" + (lang ? "?lang=" + encodeURIComponent(lang) : "");
-            const body = greeting(lang);
-            const fell = lang !== body.language;
-            $("req").textContent = "GET " + url;
-            $("req-note").textContent = lang
-              ? "adds ?lang= because a language was given"
-              : "no language given, so no query string";
-            $("res").textContent = "200  " + JSON.stringify(body);
-            $("res-note").textContent =
-              fell && lang
-                ? `“${lang}” isn’t supported, so it falls back to en`
-                : lang
-                  ? "supported language"
-                  : "defaults to en";
-            const htmlStr = `<h1>${body.message}</h1><p>Language: ${body.language}</p>`;
-            $("html").textContent = htmlStr;
-            const out = $("out");
-            out.innerHTML = "";
-            const h4 = document.createElement("h4");
-            h4.textContent = body.message;
-            const p = document.createElement("p");
-            p.textContent = "Language: " + body.language;
-            out.append(h4, p);
-            const st = ["st-req", "st-api", "st-web"].map($);
-            st.forEach((s) => s.classList.remove("lit"));
-            if (reduce) return;
-            st.forEach((s, k) => {
-              timers.push(
-                setTimeout(() => {
-                  st.forEach((x) => x.classList.remove("lit"));
-                  s.classList.add("lit");
-                }, k * 380),
-              );
+            var step = reduce ? 0 : 1;
+            REPOS.forEach(function (r, ri) {
+              var cells = [].slice.call(box.querySelectorAll('[data-cells="' + r + '"] i'));
+              var score = box.querySelector('[data-score="' + r + '"]');
+              cells.forEach(function (c) {
+                c.classList.remove("on", "bad");
+              });
+              score.textContent = "";
+              var n = cells.length;
+              var python = r === "sdk-python";
+              cells.forEach(function (c, i) {
+                timers.push(
+                  setTimeout(
+                    function () {
+                      if (python && i === n - 1) return;
+                      if (python && i === n - 2) {
+                        c.classList.add("bad");
+                        score.textContent = "22/23 · 1 FAILING";
+                        timers.push(
+                          setTimeout(function () {
+                            cells.forEach(function (x) {
+                              x.classList.remove("bad");
+                              x.classList.add("on");
+                            });
+                            score.textContent = "RETRY · " + n + "/" + n + " PASS";
+                          }, step * 1400),
+                        );
+                        return;
+                      }
+                      c.classList.add("on");
+                      score.textContent = i + 1 + "/" + n;
+                      if (i === n - 1) score.textContent = n + "/" + n + " PASS";
+                    },
+                    step * (ri * 120 + i * 45),
+                  ),
+                );
+              });
             });
-            timers.push(setTimeout(() => st.forEach((x) => x.classList.remove("lit")), 3 * 380 + 500));
-          }
-          btns.forEach((b, i) =>
-            b.addEventListener("click", () => {
-              $("custom-lang").value = "";
-              run(ROWS[i][1], i);
-            }),
-          );
-          $("custom-lang").addEventListener("input", (e) => run(e.target.value, -1));
-          // tallies
-          const cells = (id, n, contract) => {
-            $(id).innerHTML = Array.from(
-              { length: n },
-              (_, i) => `<i class="${i < contract ? "contract" : ""}"></i>`,
-            ).join("");
-            return [...$(id).children];
-          };
-          const apiC = cells("api-cells", 13, 5),
-            webC = cells("web-cells", 11, 5);
-          function fillAll(on) {
-            apiC.concat(webC).forEach((c) => c.classList.toggle("on", on));
-            $("api-score").textContent = on ? "13/13 PASS" : "";
-            $("web-score").textContent = on ? "11/11 PASS" : "";
-          }
-          fillAll(true);
-          $("runall").addEventListener("click", () => {
-            timers.forEach(clearTimeout);
-            fillAll(false);
-            let k = 0;
-            const step = reduce ? 0 : 900;
-            ROWS.forEach((r, i) => setTimeout(() => run(r[1], i), i * step));
-            const total = Math.max(apiC.length, webC.length);
-            for (let i = 0; i < total; i++)
-              setTimeout(
-                () => {
-                  if (apiC[i]) apiC[i].classList.add("on");
-                  if (webC[i]) webC[i].classList.add("on");
-                  $("api-score").textContent = Math.min(i + 1, 13) + "/13";
-                  $("web-score").textContent = Math.min(i + 1, 11) + "/11";
-                  if (i === total - 1) {
-                    $("api-score").textContent = "13/13 PASS";
-                    $("web-score").textContent = "11/11 PASS";
-                  }
-                },
-                reduce ? 0 : 200 + i * 330,
-              );
+            total.textContent = "";
+            timers.push(
+              setTimeout(function () {
+                total.textContent = "177/177";
+              }, step * 3600),
+            );
           });
-          run("es", 2);
         })();
       })();
     </script>
