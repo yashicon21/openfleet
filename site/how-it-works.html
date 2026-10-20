@@ -413,7 +413,7 @@
         gap: 28px;
         padding-block: 24px 96px;
       }
-      section {
+      article section {
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -1287,7 +1287,7 @@
         .stat {
           padding: 14px 16px 12px;
         }
-        section {
+        article section {
           padding-top: 44px;
           gap: 16px;
         }
@@ -1446,8 +1446,46 @@
       }
     </style>
     <style>
-      .marquee {
+      .marquee-wrap {
+        position: relative;
         margin-top: 20px;
+      }
+      .marquee.paused .band span {
+        animation-play-state: paused;
+      }
+      .marquee-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        background: var(--ground);
+        color: var(--fg);
+        cursor: pointer;
+      }
+      .marquee-toggle:hover {
+        background: var(--raised);
+      }
+      .marquee-toggle:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 3px;
+      }
+      .marquee-toggle .i-play,
+      .marquee-toggle[aria-pressed="true"] .i-pause {
+        display: none;
+      }
+      .marquee-toggle[aria-pressed="true"] .i-play {
+        display: block;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .marquee-toggle {
+          display: none;
+        }
       }
     </style>
     <style>
@@ -1587,6 +1625,7 @@
     </style>
   </head>
   <body>
+    <div id="sr-announce" class="sr-only" aria-live="polite"></div>
     <a class="of-skip" href="#content">Skip to content</a>
     <header style="position: sticky; top: 12px; z-index: 10; padding: 12px 16px 0">
       <nav
@@ -1779,31 +1818,42 @@
         </div>
       </nav>
     </header>
-    <div class="marquee" aria-hidden="true">
-      <div class="band c">
-        <span
-          >ACCOUNT-ID · ILLUSTRATIVE RUN · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS · ACCOUNT-ID · ILLUSTRATIVE RUN · 7
-          REPOS · 23 SUB-AGENTS · 203 EVENTS ·</span
-        >
+    <div class="marquee-wrap">
+      <div class="marquee" aria-hidden="true">
+        <div class="band c">
+          <span
+            >ACCOUNT-ID · ILLUSTRATIVE RUN · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS · ACCOUNT-ID · ILLUSTRATIVE RUN · 7
+            REPOS · 23 SUB-AGENTS · 203 EVENTS ·</span
+          >
+        </div>
+        <div class="band m">
+          <span
+            >PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST
+            · PLAN · BUILD · TEST ·</span
+          >
+        </div>
+        <div class="band y">
+          <span
+            >1 TEST FAILED · 1 RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU · 1 TEST FAILED ·
+            1 RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU ·</span
+          >
+        </div>
       </div>
-      <div class="band m">
-        <span
-          >PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST ·
-          PLAN · BUILD · TEST ·</span
-        >
-      </div>
-      <div class="band y">
-        <span
-          >1 TEST FAILED · 1 RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU · 1 TEST FAILED · 1
-          RETRY · 1 ASSUMPTION FOR YOU · 7 DRAFT PRS · NOTHING MERGED WITHOUT YOU ·</span
-        >
-      </div>
+      <button class="marquee-toggle" type="button" aria-pressed="false" aria-label="Pause the scrolling banner">
+        <svg class="i-pause" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+          <rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+        </svg>
+        <svg class="i-play" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 2.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 4 2.5Z" fill="currentColor" />
+        </svg>
+      </button>
     </div>
 
-    <header class="wrap">
+    <section class="wrap intro" aria-labelledby="page-title">
       <div class="wide hero">
         <p class="kicker">HOW IT WORKS · AN ILLUSTRATIVE RUN</p>
-        <h1>A test failed. Here’s how the run handled it.</h1>
+        <h1 id="page-title">A test failed. Here’s how the run handled it.</h1>
         <p class="dek">
           One prompt: rename <code>user_id</code> to <code>account_id</code> across seven repos. Along the way a test
           failed, the repo went back with the findings, and the coordinator made one call the spec didn’t cover, then
@@ -1822,10 +1872,16 @@
         <div class="stat"><b>1</b><span>ASSUMPTION FOR YOU</span></div>
         <div class="stat"><b>0</b><span>PRS MERGED WITHOUT YOU</span></div>
       </div>
-    </header>
+    </section>
 
     <main class="wrap" id="content">
       <article>
+        <noscript
+          ><p class="col note-mock">
+            The figures on this page are drawn with JavaScript, which is turned off. The text still tells the whole
+            story of the run.
+          </p></noscript
+        >
         <section class="col prose">
           <h2><small>01 · THE WHOLE RUN</small>One conversation, then hands-off</h2>
           <p>
@@ -1864,13 +1920,20 @@
             ><span><i class="k k-yel"></i>tester</span><span><i class="k k-warn"></i>failed</span
             ><span><i class="k k-you"></i>you</span><span><i class="k k-tick"></i>coordinator event</span>
           </p>
+          <p class="sr-only" id="swim-sum">
+            Finished run, 4:40 in total. The grill and spec took 39 seconds and your approval 8 seconds. From about
+            0:50, six repos each ran a planner, an implementer and a tester in parallel. sdk-python’s first tester
+            failed at 2:52; a new implementer fixed it and the retry passed at 3:42. mobile waited for sdk-js, started
+            planning at 3:02 and was done at 4:31. All seven repos finished, then the coordinator finalized the run.
+          </p>
           <div class="split">
             <div class="scroll-x">
               <svg
                 id="swim"
                 viewBox="0 0 1000 480"
                 role="img"
-                aria-label="Swimlane timeline of the example run: the project phases on top, then the coordinator and one lane per repo with its planner, implementer and tester, and an events-per-10-seconds histogram underneath."
+                aria-label="Swimlane timeline of the run, one lane per repo."
+                aria-describedby="swim-sum"
               ></svg>
             </div>
             <p class="scroll-hint" aria-hidden="true">Swipe sideways to see the whole run →</p>
@@ -1983,9 +2046,14 @@
               id="hub"
               viewBox="0 0 1000 500"
               role="img"
-              aria-label="Hub diagram: you above the coordinator, with the seven repos around it. Instructions fly out to each repo's current agent and reports fly back."
+              aria-label="Message hub: you, the coordinator and the seven repos."
+              aria-describedby="hub-sum"
             ></svg>
           </div>
+          <p class="sr-only" id="hub-sum">
+            Finished run: the coordinator sent 23 instructions, one to each sub-agent, and received 23 reports. You
+            answered the grill and approved the spec at the start. All seven repos are done.
+          </p>
           <div class="report" id="report"></div>
         </figure>
 
@@ -2044,7 +2112,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>CONTRACT.CHANGED · ASSUMPTION</span
             >
             <div class="controls">
-              <div class="steps" id="fixsteps"></div>
+              <div class="steps" id="fixsteps" role="group" aria-label="Decision steps"></div>
               <button class="btn" type="button" id="fixplay">▶ PLAY</button>
             </div>
           </div>
@@ -2061,7 +2129,7 @@
               aria-label="Diagram: contracts/account.json above the seven repos. Steps show the contract change reaching five repos, sdk-python's failed test and retry, the assumption to keep a user_id alias, and mobile waiting for sdk-js."
             ></svg>
           </div>
-          <div class="stepcap" id="fixcap"></div>
+          <div class="stepcap" id="fixcap" aria-live="polite"></div>
         </figure>
 
         <section class="col prose">
@@ -2171,7 +2239,7 @@
           <div class="closer-cmd">
             <span aria-hidden="true">$</span><code>npm create @openfleet-tools@latest</code
             ><button class="of-copy" type="button" id="closer-copy" aria-label="Copy setup command">
-              <span id="closer-copy-label" aria-live="polite">COPY</span>
+              <span id="closer-copy-label">COPY</span>
             </button>
           </div>
           <div class="closer-btns">
@@ -2522,21 +2590,35 @@
           if (MQ.addEventListener) MQ.addEventListener("change", fn);
           else if (MQ.addListener) MQ.addListener(fn);
         };
+        var announcer = document.getElementById("sr-announce");
+        var announce = function (msg) {
+          announcer.textContent = "";
+          setTimeout(function () {
+            announcer.textContent = msg;
+          }, 50);
+        };
         function player(root, opts) {
           var btn = root.querySelector("[data-play]");
           var range = root.querySelector("[data-scrub]");
           var clock = root.querySelector("[data-clock]");
           var span = opts.to - opts.from;
+          var title = (root.querySelector(".fig-title") || {}).textContent || "Figure";
           var t = opts.to,
             playing = false,
             raf = 0,
             last = 0,
             stepTimer = 0;
+          // One slider step is one second of the run, so arrow keys move in readable increments.
+          range.max = String(Math.round(span));
           function set(v) {
             t = clamp(v, opts.from, opts.to);
-            range.value = Math.round(((t - opts.from) / span) * 1000);
+            range.value = String(Math.round(t - opts.from));
+            range.setAttribute("aria-valuetext", fmt(t) + " of " + fmt(opts.to));
             clock.textContent = fmt(t);
             opts.frame(t);
+          }
+          function finished() {
+            announce(title.trim() + ": replay finished at " + fmt(opts.to) + ".");
           }
           function label() {
             btn.textContent = playing ? "❚❚ PAUSE" : t >= opts.to ? "↺ REPLAY" : "▶ PLAY";
@@ -2548,6 +2630,7 @@
             if (t >= opts.to) {
               playing = false;
               label();
+              finished();
               return;
             }
             raf = requestAnimationFrame(tick);
@@ -2558,6 +2641,7 @@
             if (t >= opts.to) {
               playing = false;
               label();
+              finished();
               return;
             }
             stepTimer = setTimeout(stepTick, 900);
@@ -2585,7 +2669,7 @@
           });
           range.addEventListener("input", function () {
             pause();
-            set(opts.from + (range.value / 1000) * span);
+            set(opts.from + Number(range.value));
             label();
           });
           // Every figure arrives showing the finished run; it only moves when the reader asks.
@@ -3421,7 +3505,11 @@
             return (
               '<button class="btn ghost" type="button" data-step="' +
               i +
-              '" aria-pressed="false">' +
+              '" aria-pressed="false" aria-label="Step ' +
+              (i + 1) +
+              ": " +
+              esc(s.title) +
+              '">' +
               (i + 1) +
               "</button>"
             );
@@ -3733,6 +3821,7 @@
                               score.textContent = "RETRY · " + n + "/" + n + " PASS";
                               passed += 2;
                               total.textContent = passed + "/177";
+                              announce("All 177 tests pass. sdk-python failed one test, then passed on retry.");
                             },
                             reduce ? 2400 : 1400,
                           ),
@@ -3751,39 +3840,70 @@
               });
             });
             total.textContent = "0/177";
+            announce("Running 177 tests across 7 repos.");
           });
         })();
       })();
     </script>
     <script>
       (function () {
+        var live = document.getElementById("sr-announce");
+        function say(msg) {
+          live.textContent = "";
+          setTimeout(function () {
+            live.textContent = msg;
+          }, 50);
+        }
+        // Clipboard API first; fall back to a hidden textarea for older or locked-down browsers.
+        function copy(text, label) {
+          function ok() {
+            label.textContent = "COPIED";
+            say("Copied: " + text);
+            clearTimeout(label._t);
+            label._t = setTimeout(function () {
+              label.textContent = "COPY";
+            }, 1800);
+          }
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            var done = false;
+            try {
+              done = document.execCommand("copy");
+            } catch (e) {
+              done = false;
+            }
+            document.body.removeChild(ta);
+            if (done) ok();
+            else say("Copy didn't work here. Select the command and copy it yourself: " + text);
+          }
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok, fallback);
+          else fallback();
+        }
         document.querySelectorAll(".cmd-copy").forEach(function (btn) {
-          var timer;
           btn.addEventListener("click", function () {
-            if (!navigator.clipboard) return;
-            navigator.clipboard.writeText(btn.getAttribute("data-copy")).then(function () {
-              btn.textContent = "COPIED";
-              clearTimeout(timer);
-              timer = setTimeout(function () {
-                btn.textContent = "COPY";
-              }, 1800);
-            });
+            copy(btn.getAttribute("data-copy"), btn);
           });
         });
         var b = document.getElementById("closer-copy");
-        var l = document.getElementById("closer-copy-label");
-        var t;
-        if (!b) return;
-        b.addEventListener("click", function () {
-          if (!navigator.clipboard) return;
-          navigator.clipboard.writeText("npm create @openfleet-tools@latest").then(function () {
-            l.textContent = "COPIED";
-            clearTimeout(t);
-            t = setTimeout(function () {
-              l.textContent = "COPY";
-            }, 1800);
+        if (b)
+          b.addEventListener("click", function () {
+            copy("npm create @openfleet-tools@latest", document.getElementById("closer-copy-label"));
           });
-        });
+        var mt = document.querySelector(".marquee-toggle");
+        var mq = document.querySelector(".marquee");
+        if (mt && mq)
+          mt.addEventListener("click", function () {
+            var paused = mt.getAttribute("aria-pressed") !== "true";
+            mt.setAttribute("aria-pressed", String(paused));
+            mt.setAttribute("aria-label", paused ? "Play the scrolling banner" : "Pause the scrolling banner");
+            mq.classList.toggle("paused", paused);
+          });
       })();
     </script>
   </body>
