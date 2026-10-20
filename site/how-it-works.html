@@ -539,6 +539,12 @@
         background: var(--success);
         box-shadow: 0 0 0 2px var(--card);
       }
+      .k-retried {
+        background: var(--success);
+        box-shadow:
+          inset 0 0 0 2px #fff1cc,
+          0 0 0 2px #8a5300;
+      }
       .k-contract {
         background: var(--counter);
         box-shadow: 0 0 0 2px var(--card);
@@ -913,7 +919,7 @@
         display: block;
         height: 100%;
         border-radius: 2px;
-        transition: width 300ms cubic-bezier(0.3, 1.5, 0.5, 1);
+        transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .frow .bar i.a {
         background: var(--fg);
@@ -1559,6 +1565,12 @@
         background: #fff1cc;
         box-shadow: inset 0 0 0 2px #8a5300;
       }
+      .cells i.retried {
+        background: var(--success);
+        box-shadow: inset 0 0 0 2px #fff1cc;
+        outline: 2px solid #8a5300;
+        outline-offset: -1px;
+      }
       .trow h3 b.warn {
         color: #8a5300;
       }
@@ -2073,7 +2085,7 @@
           </div>
           <p class="key">
             <span><i class="k k-pass"></i>own tests</span><span><i class="k k-contract"></i>contract tests</span
-            ><span><i class="k k-warn"></i>failed</span>
+            ><span><i class="k k-warn"></i>failed</span><span><i class="k k-retried"></i>passed on retry</span>
           </p>
           <div class="tally7" id="tally"></div>
           <p class="figcap">
@@ -2519,7 +2531,7 @@
             playing = false,
             raf = 0,
             last = 0,
-            autoplayed = false;
+            stepTimer = 0;
           function set(v) {
             t = clamp(v, opts.from, opts.to);
             range.value = Math.round(((t - opts.from) / span) * 1000);
@@ -2540,21 +2552,31 @@
             }
             raf = requestAnimationFrame(tick);
           }
-          function play() {
-            if (reduce) {
-              set(opts.to);
+          // Reduced motion: the replay still runs, but in eight still frames instead of continuous movement.
+          function stepTick() {
+            set(t + span / 8);
+            if (t >= opts.to) {
+              playing = false;
               label();
               return;
             }
+            stepTimer = setTimeout(stepTick, 900);
+          }
+          function play() {
             if (t >= opts.to) set(opts.from);
             playing = true;
             label();
+            if (reduce) {
+              stepTimer = setTimeout(stepTick, 900);
+              return;
+            }
             last = performance.now();
             raf = requestAnimationFrame(tick);
           }
           function pause() {
             playing = false;
             cancelAnimationFrame(raf);
+            clearTimeout(stepTimer);
             label();
           }
           btn.addEventListener("click", function () {
@@ -2566,22 +2588,15 @@
             set(opts.from + (range.value / 1000) * span);
             label();
           });
+          // Every figure arrives showing the finished run; it only moves when the reader asks.
           set(opts.to);
           label();
-          if (!reduce && "IntersectionObserver" in window) {
-            var io = new IntersectionObserver(
-              function (es) {
-                es.forEach(function (e) {
-                  if (e.isIntersecting && !autoplayed) {
-                    autoplayed = true;
-                    play();
-                    io.disconnect();
-                  }
-                });
-              },
-              { threshold: 0.2 },
-            );
-            io.observe(root);
+          if ("IntersectionObserver" in window) {
+            new IntersectionObserver(function (es) {
+              es.forEach(function (e) {
+                if (!e.isIntersecting && playing) pause();
+              });
+            }).observe(root);
           }
           return {
             redraw: function () {
@@ -3647,7 +3662,7 @@
                 }
                 show(cur + 1);
               },
-              reduce ? 1200 : 3000,
+              reduce ? 4500 : 3000,
             );
           });
           build();
@@ -3665,6 +3680,7 @@
               '</span><b data-score="' +
               r +
               '">' +
+              (r === "sdk-python" ? "RETRY · " : "") +
               n +
               "/" +
               n +
@@ -3672,7 +3688,10 @@
               r +
               '">' +
               Array.from({ length: n }, function (_, i) {
-                return '<i class="' + (i < TESTS[r][1] ? "contract " : "") + 'on"></i>';
+                var retried = r === "sdk-python" && i === n - 2;
+                return (
+                  '<i class="' + (i < TESTS[r][1] ? "contract " : "") + "on" + (retried ? " retried" : "") + '"></i>'
+                );
               }).join("") +
               "</div></div>"
             );
@@ -3683,11 +3702,12 @@
             timers.forEach(clearTimeout);
             timers = [];
             var step = reduce ? 0 : 1;
+            var passed = 0;
             REPOS.forEach(function (r, ri) {
               var cells = [].slice.call(box.querySelectorAll('[data-cells="' + r + '"] i'));
               var score = box.querySelector('[data-score="' + r + '"]');
               cells.forEach(function (c) {
-                c.classList.remove("on", "bad");
+                c.classList.remove("on", "bad", "retried");
               });
               score.textContent = "";
               var n = cells.length;
@@ -3702,18 +3722,26 @@
                         score.textContent = "22/23 · 1 FAILING";
                         score.classList.add("warn");
                         timers.push(
-                          setTimeout(function () {
-                            cells.forEach(function (x) {
-                              x.classList.remove("bad");
-                              x.classList.add("on");
-                            });
-                            score.classList.remove("warn");
-                            score.textContent = "RETRY · " + n + "/" + n + " PASS";
-                          }, step * 1400),
+                          setTimeout(
+                            function () {
+                              cells.forEach(function (x) {
+                                x.classList.add("on");
+                              });
+                              c.classList.remove("bad");
+                              c.classList.add("retried");
+                              score.classList.remove("warn");
+                              score.textContent = "RETRY · " + n + "/" + n + " PASS";
+                              passed += 2;
+                              total.textContent = passed + "/177";
+                            },
+                            reduce ? 2400 : 1400,
+                          ),
                         );
                         return;
                       }
                       c.classList.add("on");
+                      passed++;
+                      total.textContent = passed + "/177";
                       score.textContent = i + 1 + "/" + n;
                       if (i === n - 1) score.textContent = n + "/" + n + " PASS";
                     },
@@ -3722,12 +3750,7 @@
                 );
               });
             });
-            total.textContent = "";
-            timers.push(
-              setTimeout(function () {
-                total.textContent = "177/177";
-              }, step * 3600),
-            );
+            total.textContent = "0/177";
           });
         })();
       })();
