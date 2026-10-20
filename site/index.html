@@ -29,6 +29,79 @@
       href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap"
     />
     <style>
+      .of-qs-list {
+        margin: 0;
+        padding: 22px 24px 26px;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .of-qs {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .of-qs-c {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 15px;
+        color: #5f5754;
+      }
+      .of-qs-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 4px 4px 14px;
+        border-radius: 8px;
+        background: #dfe2e6;
+      }
+      .of-qs-row code {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 17px;
+        line-height: 24px;
+        color: #2b1e1b;
+        overflow-wrap: anywhere;
+        padding: 6px 0;
+      }
+      .of-qs-s {
+        color: #1632e6;
+      }
+      .of-qs-copy {
+        flex: none;
+        align-self: center;
+        min-height: 44px;
+        min-width: 72px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2b1e1b;
+        color: #eef0f2;
+        cursor: pointer;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+      }
+      @media (max-width: 479px) {
+        .of-qs-list {
+          padding: 18px 16px 20px;
+        }
+        .of-qs-row code {
+          font-size: 15px;
+          line-height: 22px;
+        }
+        .of-qs-copy {
+          min-width: 64px;
+        }
+      }
+      .of-qs-copy:hover {
+        background: #4a3934;
+      }
+      .of-qs-copy:focus-visible {
+        outline: 2px solid #1632e6;
+        outline-offset: 2px;
+      }
       .of-fail {
         max-width: 1200px;
         margin: 0 auto;
@@ -844,6 +917,11 @@
   </head>
   <body>
     <div
+      id="sr-announce"
+      aria-live="polite"
+      style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap"
+    ></div>
+    <div
       id="of-root"
       style="
         min-height: 100vh;
@@ -1281,7 +1359,7 @@
                     ><span style="width: 6px; height: 14px; border-radius: 2px; background: #48a6ee"></span
                     ><span style="width: 6px; height: 14px; border-radius: 2px; background: #ee5ad6"></span
                     ><span style="width: 6px; height: 14px; border-radius: 2px; background: #edeb3c"></span></span
-                  >Run it in a new, empty folder. Open source, MIT licensed.
+                  >Run it in a new, empty folder. Early release (v0.1) · open source · MIT.
                 </p>
               </div>
             </div>
@@ -1348,7 +1426,7 @@
                       color: #eef0f2;
                       cursor: pointer;
                       font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                      font-size: 11px;
+                      font-size: 12px;
                       letter-spacing: 0.06em;
                     "
                   >
@@ -2112,6 +2190,12 @@
             </div>
           </div>
           <figure class="rp-fig" id="rp-fig">
+            <noscript
+              ><p class="rp-cap">
+                The run diagram needs JavaScript, which is turned off. The caption below and the How it works page tell
+                the same story in text.
+              </p></noscript
+            >
             <div class="rp-head">
               <span class="rp-title"
                 ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>ILLUSTRATIVE RUN ·
@@ -3168,7 +3252,10 @@
               Three commands to your first fleet.
             </h2>
             <p style="margin: 0; font-size: 18px; line-height: 28px; color: #a8a6af">
-              You need Node.js 20+, git and a signed-in coding agent CLI. Add
+              You need Node.js 20+, git and a signed-in coding agent CLI (<a
+                href="https://github.com/yashicon21/openfleet#quick-start"
+                >see which ones work today</a
+              >). Add
               <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">gh</code>
               if you want draft PRs. To try it on a toy example first, run
               <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
@@ -3201,13 +3288,13 @@
                 <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
               </svg>
               <p style="margin: 0; font-size: 16px; line-height: 25px; color: #a8a6af">
-                <strong style="color: #f4f4f6; font-weight: 600">Know what it can touch.</strong> Tools are
-                auto-approved, but file access stays limited to the workspace and your repos, and URLs still prompt.
-                Pass
+                <strong style="color: #f4f4f6; font-weight: 600">Know what it can touch.</strong> File access stays
+                limited to the workspace and the repos you list, and every URL still prompts. Inside those limits, tools
+                run without asking. Pass
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                   >--ask</code
                 >
-                for per-tool prompts.
+                to be asked before every tool.
               </p>
             </div>
           </div>
@@ -3245,26 +3332,52 @@
                 >~/my-fleet</span
               >
             </div>
-            <pre
-              class="of-term"
-              style="
-                margin: 0;
-                padding: 24px 28px 28px;
-                white-space: pre-wrap;
-                overflow-wrap: anywhere;
-                font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                font-size: 17px;
-                line-height: 28px;
-                color: #2b1e1b;
-              "
-            ><span style="color: #5F5754;"># 1. make a workspace</span>
-mkdir my-fleet &amp;&amp; cd my-fleet
-
-<span style="color: #5F5754;"># 2. install OpenFleet into it</span>
-npm create @openfleet-tools@latest
-
-<span style="color: #5F5754;"># 3. describe the change</span>
-npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <span style="white-space: nowrap;">account_id</span> everywhere"</span></pre>
+            <ol class="of-term of-qs-list">
+              <li class="of-qs">
+                <span class="of-qs-c"># 1. make a workspace</span>
+                <div class="of-qs-row">
+                  <code>mkdir my-fleet &amp;&amp; cd my-fleet</code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy="mkdir my-fleet && cd my-fleet"
+                    aria-label="Copy step 1: make a workspace"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+              <li class="of-qs">
+                <span class="of-qs-c"># 2. install OpenFleet into it</span>
+                <div class="of-qs-row">
+                  <code>npm create @openfleet-tools@latest</code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy="npm create @openfleet-tools@latest"
+                    aria-label="Copy step 2: install OpenFleet into it"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+              <li class="of-qs">
+                <span class="of-qs-c"># 3. describe the change</span>
+                <div class="of-qs-row">
+                  <code
+                    >npx openfleet new account-id
+                    <span class="of-qs-s">"Rename user_id to account_id everywhere"</span></code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy='npx openfleet new account-id "Rename user_id to account_id everywhere"'
+                    aria-label="Copy step 3: describe the change"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+            </ol>
           </div>
         </section>
 
@@ -4027,12 +4140,19 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           rows.innerHTML = r.html;
           doneCount.textContent = String(r.done);
           events.innerHTML = eventsHtml(EVENTS_AT_STEP[step]);
-          replay.hidden = step !== STEPS.length - 1;
+          var last = step === STEPS.length - 1;
+          if (last) playing = false;
+          replay.hidden = !last && !playing;
+          replayLabel.textContent = last ? "REPLAY" : "SKIP";
+          replay.setAttribute("aria-label", last ? "Replay the illustrative run" : "Skip to the end of the run");
         }
 
+        var playing = false;
+        var replayLabel = replay.querySelector(".of-rlabel");
         function play(lead) {
           timers.forEach(clearTimeout);
           timers = [];
+          playing = true;
           root.classList.add("of-live");
           show(0);
           for (var i = 1; i < STEPS.length; i++) {
@@ -4041,17 +4161,66 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         }
 
         replay.addEventListener("click", function () {
-          play(0);
+          if (playing) {
+            timers.forEach(clearTimeout);
+            timers = [];
+            show(STEPS.length - 1);
+          } else play(0);
         });
 
+        var live = document.getElementById("sr-announce");
+        function say(msg) {
+          live.textContent = "";
+          setTimeout(function () {
+            live.textContent = msg;
+          }, 50);
+        }
+        // Clipboard API first; fall back to a hidden textarea; say so if both fail.
+        function copyText(text, onDone) {
+          function ok() {
+            onDone();
+            say("Copied: " + text);
+          }
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            var done = false;
+            try {
+              done = document.execCommand("copy");
+            } catch (e) {
+              done = false;
+            }
+            document.body.removeChild(ta);
+            if (done) ok();
+            else say("Copy didn't work here. Select the command and copy it yourself: " + text);
+          }
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok, fallback);
+          else fallback();
+        }
         copyButton.addEventListener("click", function () {
-          if (!navigator.clipboard) return;
-          navigator.clipboard.writeText("npm create @openfleet-tools@latest").then(function () {
+          copyText("npm create @openfleet-tools@latest", function () {
             copyLabel.textContent = "COPIED";
             clearTimeout(copyTimer);
             copyTimer = setTimeout(function () {
               copyLabel.textContent = "COPY";
             }, 1800);
+          });
+        });
+        document.querySelectorAll(".of-qs-copy").forEach(function (btn) {
+          var t;
+          btn.addEventListener("click", function () {
+            copyText(btn.getAttribute("data-copy"), function () {
+              btn.textContent = "COPIED";
+              clearTimeout(t);
+              t = setTimeout(function () {
+                btn.textContent = "COPY";
+              }, 1800);
+            });
           });
         });
 
