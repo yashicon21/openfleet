@@ -10,11 +10,18 @@ export const STATE_SCHEMA_VERSION = 1;
 export const PROJECT_STATUSES = ["specifying", "running", "finalizing", "done", "cancelled"] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
-/** `failed`: retries and the coordinator's guided attempt both failed. `blocked`: a dependency failed. */
+/**
+ * `planned`: the plan is validated and the child waits for the `plans-ready` gate, its
+ * dependencies or its baseline. `baseline`: a baseline tester is writing tests against
+ * the unchanged code. `failed`: retries and the coordinator's guided attempt both failed.
+ * `blocked`: a dependency failed.
+ */
 export const CHILD_PHASES = [
   "pending",
   "planning",
   "plan-review",
+  "planned",
+  "baseline",
   "implementing",
   "testing",
   "post-test",
@@ -24,7 +31,11 @@ export const CHILD_PHASES = [
 ] as const;
 export type ChildPhase = (typeof CHILD_PHASES)[number];
 
-export type Role = "planner" | "implementer" | "tester";
+export type Role = "planner" | "baseline" | "implementer" | "tester";
+
+/** Each child gets `PORT_STEP` ports starting at `PORT_BASE + PORT_STEP × slot`. */
+export const PORT_BASE = 4100;
+export const PORT_STEP = 10;
 
 export type CompletionMode = "staged" | "draft-pr";
 
@@ -57,6 +68,21 @@ export interface ChildState {
   followUps?: Record<string, string[]>;
   lastSnapshot?: string;
   notes?: string;
+  /** The plan passed the consistency check against the spec's Shared approach and the other plans. */
+  consistent?: boolean;
+  /** Write baseline tests against the unchanged code before implementing (decided in the grill). */
+  baseline?: boolean;
+  /** What the baseline tests must cover. */
+  baselineCover?: string;
+  /** Baseline test files (relative to the worktree), recorded by `npx openfleet baseline`. */
+  baselineFiles?: string[];
+  /** sha256 of each baseline file when the baseline passed, to detect later edits. */
+  baselineHashes?: Record<string, string>;
+  baselinePassed?: boolean;
+  /** First port of this child's range (`PORT_STEP` ports). Allocated once, never reused by another child. */
+  portBase?: number;
+  /** Files copied from the main checkout by `copyFiles`. Never committed, never logged. */
+  copiedFiles?: string[];
 }
 
 export interface Question {
@@ -82,8 +108,23 @@ export interface ProjectState {
   /** Keyed by child id: `<repo>` or `<repo>:<package>`. */
   children: Record<string, ChildState>;
   questions: Question[];
-  /** Follow-ups from project-level extension slots (`pre-spec`, `post-run`), keyed by extension name. */
+  /** Follow-ups from project-level extension slots (`pre-spec`, `plans-ready`, `post-run`), keyed by extension name. */
   followUps?: Record<string, string[]>;
+  /** The `plans-ready` gate is open: every plan was validated and checked for consistency, and the slot ran. */
+  plansReady?: boolean;
+}
+
+/** Children that are still part of the run (not `failed` or `blocked`). */
+export function activeChildren(state: ProjectState): [string, ChildState][] {
+  return Object.entries(state.children).filter(([, c]) => c.phase !== "failed" && c.phase !== "blocked");
+}
+
+/** Lowest free port slot, so a child keeps its range for the whole project. */
+export function nextPortBase(state: ProjectState): number {
+  const used = new Set(Object.values(state.children).map((c) => c.portBase));
+  let base = PORT_BASE;
+  while (used.has(base)) base += PORT_STEP;
+  return base;
 }
 
 /** Every child that depends on `id`, directly or transitively. */
@@ -149,13 +190,19 @@ export function mergePatch<T>(target: T, patch: unknown): T {
   return base as T;
 }
 
-function normalizeChildren(state: ProjectState): void {
+const PLANNING: readonly ChildPhase[] = ["pending", "planning", "plan-review"];
+
+function normalizeChildren(prev: ProjectState, state: ProjectState): void {
   for (const [id, child] of Object.entries(state.children)) {
     child.repo ??= id.split(":")[0] ?? id;
     child.phase ??= "pending";
     child.retries ??= 0;
     child.dependsOn ??= [];
     child.agentIds ??= {};
+    child.portBase ??= nextPortBase(state);
+    // A re-plan (for example after a contract change) needs a fresh consistency check.
+    const before = prev.children[id]?.phase;
+    if (before !== child.phase && PLANNING.includes(child.phase)) delete child.consistent;
   }
 }
 
@@ -184,7 +231,7 @@ export function updateState(
     const prev = readState(p);
     const draft = structuredClone(prev);
     const result = mutate(draft) ?? draft;
-    normalizeChildren(result);
+    normalizeChildren(prev, result);
     validateTransitions(prev, result);
     result.updatedAt = new Date().toISOString();
     if (prev.status !== result.status) changes.push({ target: null, from: prev.status, to: result.status });

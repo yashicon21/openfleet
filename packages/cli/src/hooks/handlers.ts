@@ -5,7 +5,15 @@ import { actorFor, bareAgentName, candidateProjects, locatePath, roleFromAgentNa
 import { findSlotEntry, readCoreIndex } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { filePatch, snapshotWorktree, type FileKind } from "../git.js";
-import { dependenciesOf, readState, updateState, type ChildState, type ProjectState, type Role } from "../state.js";
+import {
+  dependenciesOf,
+  PORT_STEP,
+  readState,
+  updateState,
+  type ChildState,
+  type ProjectState,
+  type Role,
+} from "../state.js";
 import { findWorkspace, projectPaths, type ProjectPaths, type Workspace } from "../workspace.js";
 
 export interface HookPayload {
@@ -157,9 +165,61 @@ function pickPending(state: ProjectState, role: Role): string | undefined {
   return ids[0];
 }
 
+/** Port range, copied local files and protected baseline tests for agents that run code. */
+export function runtimeContext(project: string, childId: string, child: ChildState, role: Role): string {
+  const parts: string[] = [];
+  if (role !== "planner" && child.portBase !== undefined) {
+    const last = child.portBase + PORT_STEP - 1;
+    parts.push(
+      [
+        "## Ports",
+        "",
+        `This child owns ports ${child.portBase}–${last}; other children run at the same time on other ports.`,
+        `Prefix every command that starts a server or runs e2e tests with \`PORT=${child.portBase} OPENFLEET_PORT_BASE=${child.portBase}\`.`,
+        `- \`PORT=${child.portBase}\`: the app's dev server. Use ${child.portBase + 1}–${last} for anything else it needs.`,
+        `- \`OPENFLEET_PORT_BASE=${child.portBase}\`: first port of the range.`,
+        "Read ports and auth callback URLs from the environment, never hard-code them. With Playwright, use `webServer` with this port and `reuseExistingServer: false`. Stop every server you start before you finish.",
+      ].join("\n"),
+    );
+  }
+  if (child.copiedFiles?.length) {
+    parts.push(
+      [
+        "## Local files (never commit, never print)",
+        "",
+        "Copied from the repo's main checkout for builds and tests. Do not edit, stage, commit, print or quote them:",
+        ...child.copiedFiles.map((f) => `- \`${f}\``),
+      ].join("\n"),
+    );
+  }
+  if (role === "baseline") {
+    parts.push(
+      [
+        "## Baseline",
+        "",
+        `Cover: ${child.baselineCover ?? "the behaviour this child's spec section says will change"}`,
+      ].join("\n"),
+    );
+  }
+  if ((role === "implementer" || role === "tester") && child.baselineFiles?.length) {
+    parts.push(
+      [
+        "## Baseline tests (protected)",
+        "",
+        "These tests passed against the unchanged code. Edit them only for behaviour changes that the spec explicitly lists for this child.",
+        ...child.baselineFiles.map((f) => `- \`${f}\``),
+        "",
+        `Paths are relative to the worktree. List the ones that changed since the baseline passed (from the workspace root): \`npx openfleet baseline ${project} ${childId} --check\``,
+      ].join("\n"),
+    );
+  }
+  return parts.join("\n\n");
+}
+
 function childContext(p: ProjectPaths, state: ProjectState, childId: string, role: Role): string {
   const child = state.children[childId]!;
   const upstream = upstreamOutputs(state, childId);
+  const runtime = runtimeContext(p.name, childId, child, role);
   return [
     `# OpenFleet assignment`,
     `- project: ${p.name}`,
@@ -171,6 +231,7 @@ function childContext(p: ProjectPaths, state: ProjectState, childId: string, rol
     `- contracts: ${p.contracts}`,
     child.plan ? `- approved plan: ${child.plan}` : "",
     upstream ? `\n${upstream}` : "",
+    runtime ? `\n${runtime}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -215,7 +276,7 @@ function snapshotChild(p: ProjectPaths, childId: string, child: ChildState, acto
   if (!child.worktree || !fs.existsSync(child.worktree)) return;
   let snap;
   try {
-    snap = snapshotWorktree(child.worktree, child.baseSha ?? "HEAD");
+    snap = snapshotWorktree(child.worktree, child.baseSha ?? "HEAD", child.copiedFiles ?? []);
   } catch {
     return;
   }
@@ -398,8 +459,10 @@ export function onPostToolUse(ctx: HookContext, payload: HookPayload): HookOutpu
     const loc = locatePath(ctx.ws, abs, ctx.project);
     if (!loc) continue;
     const role = roleOf(loc.child);
+    const rel = loc.rel.split(path.sep).join("/");
+    const copied = loc.child.copiedFiles?.includes(rel) === true;
     let patch = "";
-    if (change.kind !== "deleted") {
+    if (change.kind !== "deleted" && !copied) {
       try {
         patch = filePatch(loc.child.worktree!, loc.rel);
       } catch {
@@ -412,8 +475,9 @@ export function onPostToolUse(ctx: HookContext, payload: HookPayload): HookOutpu
       type: `file.${change.kind}`,
       target: loc.childId,
       payload: {
-        path: loc.rel.split(path.sep).join("/"),
+        path: rel,
         kind: change.kind,
+        ...(copied ? { copiedFile: true } : {}),
         lines: { added: change.added, removed: change.removed },
         tool: payload.toolName ?? null,
       },

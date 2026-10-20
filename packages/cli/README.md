@@ -28,7 +28,7 @@ The coordinator then:
 
 1. **Grills you** about the change, suggests repos from `openfleet/repos.json`, discovers build and test commands, and confirms them with you.
 2. Writes `openfleet/projects/<name>/spec.md` (goal, repos, contracts, ordering, acceptance criteria, branches, completion mode). The grill ends with a spec summary and one question, "anything to change?". **Your answer starts the run; after that it is hands-off.**
-3. For each repo or package, runs a planner (read-only), validates the plan against the spec, then runs an implementer and a tester. A failing test sends the findings to a new implementer, up to 3 retries. Then the coordinator reviews the findings and diff itself and makes one guided attempt; if that fails too, the child is marked `failed`, its dependents `blocked`, and the rest of the run continues.
+3. Plans every repo or package at once (read-only planners), validates each plan against the spec, and checks that all plans agree with the spec's shared approach and with each other before anything is implemented (the `plans-ready` gate). Then, in dependency order, it optionally runs a baseline tester (tests for today's behaviour that must pass on the unchanged code, and that the implementer may only change where the spec allows), then an implementer and a tester. Each child gets its own port range so apps and e2e tests can run side by side. A failing test sends the findings to a new implementer, up to 3 retries. Then the coordinator reviews the findings and diff itself and makes one guided attempt; if that fails too, the child is marked `failed`, its dependents `blocked`, and the rest of the run continues.
 4. Finishes in the completion mode you chose: changes **staged** in each worktree for your review (default), or **draft PRs** that link to each other.
 
 Child questions go to the coordinator. It answers from the spec, or decides itself and logs an `assumption`. The run summary lists every assumption and every failed child (with findings and worktree paths); `npx openfleet resume <name>` lets you deal with failures later.
@@ -50,11 +50,20 @@ openfleet/
 
 Repos can live anywhere: give a `path` (relative to the workspace root) or a `url`, which is cloned into `openfleet/repos/<key>`.
 
+`e2e` and `env` (names of required env vars and credentials, never values) are recorded by the grill. `copyFiles` lists git-ignored local files (for example `.env.local`) that are copied from the repo's checkout into every worktree. They are never staged or committed, and their values are redacted from the event log.
+
 ```json
 {
   "v": 1,
   "repos": {
     "api": { "path": "../api", "defaultBranch": "main", "build": "pnpm build", "test": "pnpm test", "confirmed": true },
+    "app": {
+      "path": "../app",
+      "test": "pnpm test",
+      "e2e": "pnpm test:e2e",
+      "env": ["AUTH_CLIENT_ID", "AUTH_CLIENT_SECRET"],
+      "copyFiles": [".env.local"]
+    },
     "web": {
       "url": "git@github.com:acme/web.git",
       "packages": { "ui": { "path": "packages/ui", "test": "pnpm -F ui test" } }
@@ -93,7 +102,7 @@ Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal 
 
 `new`, `resume` and `status` warn when another active project touches the same repo.
 
-The agents also use the helper commands `state`, `event` and `worktree`. See `npx openfleet help`.
+The agents also use the helper commands `state`, `event`, `worktree`, `next`, `gate`, `baseline` and `ext`. See `npx openfleet help`.
 
 ## Events
 

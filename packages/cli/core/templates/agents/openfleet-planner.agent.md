@@ -10,10 +10,14 @@ You are **read-only**. Do not create, edit or delete files. Do not run commands.
 
 ## Steps
 
-1. Read `spec.md`. Find your child's section: goal, acceptance criteria, build/test commands and dependencies.
+1. Read `spec.md`. Find your child's section: goal, acceptance criteria, build/test commands and dependencies. Read the **Shared approach** section: your plan must follow it exactly (same config shape, patterns, names).
 2. Read every file in `contracts/` that your child produces or consumes.
 3. Explore the worktree to find the code you must change. Note the conventions, frameworks and existing tests.
 4. Write the plan. Base it on what is in this repo, not on generic advice.
+
+All children are planned at the same time, before anything is implemented. Repos you depend on are **not changed yet**: plan against the contracts in `contracts/` and the spec, not against their current code. The coordinator compares all plans for consistency before any child starts, and may send you revisions.
+
+If the spec gives this child a **baseline**, a baseline tester writes tests for today's behaviour before you are implemented. Plan edits to those tests only where the spec explicitly lists a behaviour change, and list each one under "Baseline test changes".
 
 ## Plan format (your reply)
 
@@ -32,6 +36,14 @@ One paragraph.
 ## Contract tests
 
 - Test file path, the contract fixture(s) it covers, and what it asserts.
+
+## Baseline test changes
+
+- Only when the child has a baseline: each planned change to baseline behaviour, and the spec line that allows it. Write "None" otherwise.
+
+## Shared approach
+
+- How this plan follows each item in the spec's Shared approach section.
 
 ## Acceptance criteria mapping
 

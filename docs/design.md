@@ -31,16 +31,18 @@ openfleet/
     spec.md
     state.json
     contracts/
+    plans/<child>.md
     events.jsonl
     patches/<seq>.patch # gitignored
     worktrees/<repo>/   # gitignored
 ```
 
 - Repos may live anywhere (path or git URL to clone); init cwd = default search root for the grill.
+- `repos.json` entries may add `e2e` (command), `env` (required env var / credential **names**, never values) and `copyFiles` (git-ignored local files, e.g. `.env.local`, copied from the repo's main checkout into each worktree).
 
 ## Core contents
 
-- Agents: `openfleet-coordinator`, `openfleet-planner`, `openfleet-implementer`, `openfleet-tester` (planner/tester read-only on source).
+- Agents: `openfleet-coordinator`, `openfleet-planner`, `openfleet-baseline`, `openfleet-implementer`, `openfleet-tester` (planner/tester read-only on source; the baseline tester edits tests only).
 - Skills, hooks (Node scripts), per-host adapter → normalized event schema, event capture/writer.
 
 ## Flow
@@ -48,22 +50,27 @@ openfleet/
 1. `npx openfleet new <name>` → coordinator grill session (suggests repos from `repos.json`, auto-discovers build/test cmds, confirms with user, adds new repos to `repos.json`).
 2. Output `projects/<name>/spec.md`: goal, repos/packages, cross-repo contracts, ordering deps, per-repo acceptance criteria, build/test cmds, branch names (asked; default `openfleet/<slug>[-<pkg>]`), completion mode, out-of-scope.
 3. User input happens only in the grill. Its last question shows the spec summary and asks "anything to change?"; the answer ends the grill (changes applied, `spec.approved`, `status: running`). After that the run is fully hands-off until `done`.
-4. Per repo/package: planner → coordinator auto-validates plan vs spec (bounces on mismatch) → implementer → tester.
-5. Parallel by default; honour ordering deps. No concurrency cap.
-6. Tester failure → new implementer with findings, max 3 retries → coordinator reviews findings + diff, writes guidance, spawns one more implementer → if that fails, child `failed` (`child.failed` event), dependents `blocked`, other children continue. Final summary reports failures; user handles them later via `resume`.
-7. Child questions → coordinator (write_agent/read_agent) → answers from spec, otherwise decides itself and logs an `assumption` event (listed in the final summary); contract changes broadcast to affected children. The coordinator never ends its turn while children are pending or running.
-8. Completion mode chosen in grill: default staged changes for review; optional draft PRs cross-linked with run summary.
+4. **Plan everything first.** Every child's planner runs in parallel, ignoring `dependsOn` (dependent plans rely on the contracts). The coordinator validates each plan vs the spec (bounces on mismatch, `plan.rejected` `reason: invalid`).
+5. **`plans-ready` gate.** When every plan is validated, the coordinator compares all plans with the spec's **Shared approach** section and with each other, sends revisions to differing planners (`plan.rejected` `reason: inconsistent`) until they agree, then logs `plans.consistent`. The project-level `plans-ready` extension slot runs, then the gate opens (`plansReady`). A contract change later re-plans the affected children; their plans go through the consistency check again, without closing the gate. `npx openfleet next` computes the schedule deterministically.
+6. **Baseline (optional per child, decided in the grill).** After the gate, a baseline tester (`openfleet-baseline`) writes tests (e.g. Playwright e2e) for the behaviour about to change and runs them on the unchanged code until they pass, fixing tests only. `baseline.passed` records the files; core stores a hash per file. The implementer may change baseline tests only for behaviour changes the spec lists; the tester runs `npx openfleet baseline <p> <child> --check` and fails unlisted edits. Then the per-child `pre-implement` slot runs.
+7. Per repo/package after the gate: [baseline →] implementer → tester, in `dependsOn` order. No concurrency cap.
+8. Tester failure → new implementer with findings, max 3 retries → coordinator reviews findings + diff, writes guidance, spawns one more implementer → if that fails, child `failed` (`child.failed` event), dependents `blocked`, other children continue. Final summary reports failures; user handles them later via `resume`.
+9. Child questions → coordinator (write_agent/read_agent) → answers from spec, otherwise decides itself and logs an `assumption` event (listed in the final summary); contract changes broadcast to affected children. The coordinator never ends its turn while children are pending or running.
+10. Completion mode chosen in grill: default staged changes for review; optional draft PRs cross-linked with run summary.
 
 - Monorepo: one worktree + branch + PR per package.
+- **Ports:** each child gets a unique range of 10 ports, `4100 + 10 × k` (lowest free `k`, assigned when the child is registered, stable for the run). The spawn hook injects `PORT` and `OPENFLEET_PORT_BASE` (both the first port) into baseline, implementer and tester prompts, with rules: start servers on `$PORT`, read ports and auth callback URLs from env, Playwright `webServer` with `reuseExistingServer: false`, stop servers afterwards.
+- **Local files (`copyFiles`):** `npx openfleet worktree` copies each listed file (relative, inside the repo, no `.git`) from the main checkout, warns about missing ones, and hides them from git: tracked files get `skip-worktree`, untracked ones go into the repo's shared `info/exclude` (also hides them in the main checkout, where they are usually ignored already). They are never staged or committed (finalize also checks), are left out of snapshots and file patches, and their values are redacted from every event.
 - Multiple projects may be active concurrently, even on same repo; CLI warns on overlap.
 
 ## Testing
 
 - v1 contract tests only. Coordinator writes shared fixtures to `contracts/`; planners include contract tests; implementers write; testers verify existence + pass.
+- Optional per-child **baseline tests** (usually e2e, e.g. Playwright) written before implementation and passed on the unchanged code; protected afterwards (edits only for behaviour changes the spec lists, checked by the tester via file hashes).
 
 ## State & resume
 
-- `state.json`: per child phase, worktree, branch, agent ids, open questions. Updated on every child event; `resume` continues from it.
+- `state.json`: per child phase (`pending → planning → plan-review → planned → [baseline] → implementing → testing → post-test → done | failed | blocked`), worktree, branch, agent ids, port range, copied files, consistency/baseline flags, open questions; project `plansReady`. Updated on every child event; `resume` continues from it.
 
 ## Events / audit (core, always on)
 
@@ -77,8 +84,8 @@ openfleet/
 ## Extensions (instruction-only)
 
 - Folder with `openfleet.extension.json` + Markdown skills/agent instructions. No executable scripts.
-- Manifest v2 (`"manifest": 2`; v1 `mode`/`slot`/`role` manifests are rejected with the v2 equivalent in the error): `core` semver range; `phases: [{slot, instructions, blocking?=false, when?: {files}, timeoutMinutes?=30}]` (slot `pre-spec|post-plan|post-test|post-run`, each entry runs as its own agent `openfleet-ext-<name>-<slot>`); `augments: [{role, instructions}]` (appended to the role's prompt); at least one phase or augment entry. Top-level `commands: {name: skill.md}` (CLI launches Copilot with that skill) and `permissions` (default read-only; write/shell must be declared, enforced via one tool allow-list for all of the extension's phase agents; augments use the role's own tools).
-- Blocking phases (`post-plan`/`post-test` only): a failure or timeout gets one retry with a fresh agent, then `extension.failed`, the child is `failed` and its dependents `blocked`. A child is `done` only after its `post-test` entries finish, so dependents wait for blocking post-test work. Advisory phases never block.
+- Manifest v2 (`"manifest": 2`; v1 `mode`/`slot`/`role` manifests are rejected with the v2 equivalent in the error): `core` semver range; `phases: [{slot, instructions, blocking?=false, when?: {files}, timeoutMinutes?=30}]` (slot `pre-spec|post-plan|plans-ready|pre-implement|post-test|post-run`, each entry runs as its own agent `openfleet-ext-<name>-<slot>`); `augments: [{role, instructions}]` (appended to the role's prompt); at least one phase or augment entry. Top-level `commands: {name: skill.md}` (CLI launches Copilot with that skill) and `permissions` (default read-only; write/shell must be declared, enforced via one tool allow-list for all of the extension's phase agents; augments use the role's own tools).
+- Blocking phases (`post-plan`/`plans-ready`/`pre-implement`/`post-test`): a failure or timeout gets one retry with a fresh agent, then `extension.failed`, the child is `failed` and its dependents `blocked` (for `plans-ready`: every active child `blocked`, gate stays closed). A child is `done` only after its `post-test` entries finish, so dependents wait for blocking post-test work. Advisory phases never block.
 - `when.files`: `npx openfleet ext plan` checks the paths in the child's package dir and repo root; no match → the entry is skipped and `extension.skipped` is logged.
 - Outputs: a phase report may include flat string `outputs` and `followUps`. `npx openfleet ext result` stores them in `state.json` (`children[id].outputs[ext]`, `followUps`) and logs `extension.outputs`. The `subagentStart` hook injects an "Upstream outputs" table into the planner/implementer/tester prompts of every child that depends on it, directly or transitively. An output `prUrl` sets the child's `prUrl`; finalize then commits, pushes to the same branch and updates that PR (also in `staged` mode) instead of opening a second one. Follow-ups are listed in `summary.md`, PR bodies and the final report.
 - Settings: the manifest declares `settings: {key: {default, description}}`; the workspace overrides them in `openfleet/extensions.config.json` (`{ext: {key: value}}`, undeclared keys rejected). Core injects a `## Settings` table into the extension's phase agents, augment sections and command skills.

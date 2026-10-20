@@ -41,7 +41,7 @@ describe("validateManifest", () => {
       /unknown field/,
     ],
     [{ name: "x", ...phase("post-test", { blocking: "yes" }) }, /blocking/],
-    [{ name: "x", ...phase("post-run", { blocking: true }) }, /only supported in the per-child slots/],
+    [{ name: "x", ...phase("post-run", { blocking: true }) }, /only supported in the slots/],
     [{ name: "x", ...phase("post-test", { when: { files: [] } }) }, /when/],
     [{ name: "x", ...phase("post-test", { when: { files: ["../up"] } }) }, /when/],
     [{ name: "x", ...phase("post-test", { timeoutMinutes: 0 }) }, /timeoutMinutes/],

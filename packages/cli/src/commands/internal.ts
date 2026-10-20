@@ -1,12 +1,13 @@
 // Helper commands used by OpenFleet agents (see the openfleet-records skill).
 import fs from "node:fs";
 import path from "node:path";
+import { copyIntoWorktree } from "../copyfiles.js";
 import { appendEvent } from "../events.js";
 import { addWorktree, git, headSha, isGitRepo } from "../git.js";
 import { readRepos } from "../repos.js";
 import { patchState, readState, updateState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName } from "../workspace.js";
-import { out } from "./output.js";
+import { out, warn } from "./output.js";
 
 function parseJson(raw: string | undefined, what: string): unknown {
   if (raw === undefined) return undefined;
@@ -100,6 +101,9 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
   const existed = fs.existsSync(worktree);
   if (!existed) addWorktree(repoPath, worktree, branch, base);
   const baseSha = state.children[childId]?.baseSha ?? headSha(worktree);
+  const copy = copyIntoWorktree(repoPath, worktree, entry.copyFiles ?? []);
+  for (const bad of copy.invalid) warn(`repos.json "${repoKey}".copyFiles: "${bad.path}" ${bad.error}; skipped.`);
+  for (const rel of copy.missing) warn(`copyFiles: ${rel} does not exist in ${repoPath}; skipped.`);
   const next = updateState(p, (s) => {
     const prev = s.children[childId];
     s.children[childId] = {
@@ -115,6 +119,9 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
       ...(base ? { baseBranch: base } : {}),
       ...(baseSha ? { baseSha } : {}),
       ...((flags.package ?? prev?.package) ? { package: flags.package ?? prev?.package } : {}),
+      ...(copy.copied.length || prev?.copiedFiles?.length
+        ? { copiedFiles: [...new Set([...(prev?.copiedFiles ?? []), ...copy.copied])] }
+        : {}),
     };
   });
   if (!existed) {
@@ -122,7 +129,16 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
       actor: "coordinator",
       type: "worktree.created",
       target: childId,
-      payload: { repo: repoKey, repoPath, worktree, branch, base: base ?? null, baseSha: baseSha ?? null },
+      payload: {
+        repo: repoKey,
+        repoPath,
+        worktree,
+        branch,
+        base: base ?? null,
+        baseSha: baseSha ?? null,
+        copiedFiles: copy.copied,
+        missingCopyFiles: copy.missing,
+      },
     });
   }
   out(JSON.stringify(next.children[childId], null, 2));

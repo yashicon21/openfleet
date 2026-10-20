@@ -27,6 +27,14 @@ Restate the user's request in one or two sentences and confirm it. Ask what "don
 
 For each repo or package, discover the commands from `package.json` scripts, `Makefile`, `pyproject.toml`, `Cargo.toml`, `go.mod`, CI workflows, and similar files. Present what you found. Ask the user to confirm or correct it. Record the confirmed commands in `openfleet/repos.json` (set `"confirmed": true`). Add new repos with `path` or `url`, and with `defaultBranch`. Keep the existing entries unchanged except for corrections that the user confirmed.
 
+## 3b. Running the apps: e2e, env and local files
+
+For each repo or package that has a UI or a server that tests must start:
+
+- **E2E command:** discover it (for example a `test:e2e` or `playwright` script) and confirm it. Record it as `e2e` on the repo or package in `repos.json`.
+- **Env vars and credentials:** ask which env vars and credentials the app needs to run locally and in tests. Record **names only** in `env` (for example `["AUTH_CLIENT_ID", "AUTH_CLIENT_SECRET"]`). **Never ask for, record, print or repeat values.**
+- **Local files:** ask which git-ignored files from the user's main checkout the worktrees need (for example `.env.local`). Record them as `copyFiles` (paths relative to the repo root, no `..`). `npx openfleet worktree` copies them into every worktree and keeps them out of git and the logs. Do not open or read them.
+
 ## 4. Cross-repo contracts and ordering
 
 - Identify every interface that crosses a repo boundary: API shapes, events, shared types, config keys, CLI flags, DB schemas.
@@ -36,6 +44,17 @@ For each repo or package, discover the commands from `package.json` scripts, `Ma
 ## 5. Acceptance criteria
 
 For each child, agree on concrete, verifiable acceptance criteria. The tester checks every criterion.
+
+## 5b. Shared approach
+
+When several children make the same kind of change (for example, several apps move to the same library), agree on what must be the **same** everywhere: config shape, file layout, patterns, env var names, library versions, naming. This becomes the spec's **Shared approach** section. All children are planned at once, and the coordinator rejects plans that differ from it or from each other.
+
+## 5c. Baseline tests
+
+For each child, decide whether it needs a **baseline**: tests (usually e2e) that a baseline tester writes and passes on the **unchanged** code before implementation starts. Recommend it when existing behaviour must be preserved and current test coverage is thin. If yes, agree on:
+
+- what the baseline covers (flows, pages, endpoints), and
+- which baseline behaviours the change is **allowed** to alter. The implementer may edit baseline tests only for these; any other edit fails the tester.
 
 ## 6. Branches, completion mode, scope
 

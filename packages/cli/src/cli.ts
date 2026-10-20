@@ -4,6 +4,7 @@ import { cmdAdd, cmdExtensions, cmdRemove, runExtensionCommand } from "./command
 import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
+import { cmdBaseline, cmdGate, cmdNext } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdInit, cmdUpdate } from "./commands/workspace.js";
 import { UserError } from "./workspace.js";
@@ -38,6 +39,10 @@ Agent helpers (used by OpenFleet agents)
   ext plan <project> <slot> [--child <id>]
   ext result <project> <extension> --slot <s> [--child <id>] --report <json>
   ext fail <project> <extension> --slot <s> [--child <id>] --reason <text>
+  next <project>               Print the next scheduling actions (plans first, then the gate)
+  gate <project> consistent [--child <id>[,<id>…]]
+  gate <project> open
+  baseline <project> <child> --report <json> | --check
 
   help, version
 Sessions auto-approve tool use (\`--allow-all-tools\`). File access stays limited to the workspace,
@@ -129,6 +134,16 @@ export function run(argv: string[]): number {
         reason: { type: "string" },
       });
       return cmdExt(positionals, values);
+    }
+    case "next":
+      return cmdNext(parse(rest, {}).positionals);
+    case "gate": {
+      const { values, positionals } = parse(rest, { child: { type: "string" } });
+      return cmdGate(positionals, values);
+    }
+    case "baseline": {
+      const { values, positionals } = parse(rest, { report: { type: "string" }, check: { type: "boolean" } });
+      return cmdBaseline(positionals, values);
     }
     default: {
       const ask = rest.includes("--ask");

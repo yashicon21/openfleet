@@ -19,12 +19,16 @@ Write `openfleet/projects/<project>/summary.md`:
 - A table of children: child id, outcome (`done`, `failed` or `blocked`), branch, worktree, files changed, lines added/removed (from the latest `worktree.snapshot` event of each child), retries, and tester result.
 - **Failed and blocked children:** for each one, the reason, the last tester findings, the worktree path, and which children it blocked (from the `child.failed` events). Say that `npx openfleet resume <project>` continues with them.
 - **Assumptions:** every `assumption` event, as a list of child, question, decision and rationale. Mark the ones that changed a contract. The user did not see these during the run, so make this list complete.
+- **Baselines:** for each child with a baseline, the test files, the command and the results (from `baseline.passed`), and which baseline files changed and why (`npx openfleet baseline <project> <child> --check`).
+- **Local files:** copied files per child, and any `copyFiles` that were missing (from `worktree.created`).
 - The contracts, and any contract changes during the run.
 - The questions asked and how they were answered.
 - Extension reports, including `extension.skipped` and `extension.failed` events.
 - **Follow-ups:** every entry in `children.<id>.followUps` (per child, grouped by extension) and the project-level `followUps`. People must act on these after the run, so list them all.
 
 ## 3. Completion mode
+
+**Local files never get committed.** Files in a child's `copiedFiles` are hidden from git, so `git add -A` skips them. Still, after every `git add -A` below, run `git -C <worktree> diff --cached --name-only` and, if any copied file is listed, unstage it with `git -C <worktree> reset -q -- <file>` before you commit. Never print their contents.
 
 ### Children that already have a PR
 

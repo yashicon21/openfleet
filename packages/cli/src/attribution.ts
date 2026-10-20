@@ -6,6 +6,7 @@ import { listProjectNames, projectPaths, type ProjectPaths, type Workspace } fro
 const PHASE_ROLE: Partial<Record<ChildPhase, Role>> = {
   planning: "planner",
   "plan-review": "planner",
+  baseline: "baseline",
   implementing: "implementer",
   testing: "tester",
 };
@@ -29,6 +30,8 @@ export function roleFromAgentName(agentName: string | undefined): Role | "coordi
   switch (bareAgentName(agentName)) {
     case "openfleet-planner":
       return "planner";
+    case "openfleet-baseline":
+      return "baseline";
     case "openfleet-implementer":
       return "implementer";
     case "openfleet-tester":

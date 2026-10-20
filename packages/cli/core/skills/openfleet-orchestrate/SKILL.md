@@ -1,6 +1,6 @@
 ---
 name: openfleet-orchestrate
-description: The hands-off OpenFleet run loop after the grill. Create worktrees, then for each child run planner → plan validation → implementer → tester in parallel. The coordinator answers child questions itself (logged as assumptions), broadcasts contract changes, retries up to 3 times plus one guided attempt, and marks children failed without asking the user.
+description: The hands-off OpenFleet run loop after the grill. Create worktrees, plan every child in parallel, check the plans for consistency at the plans-ready gate, then run optional baselines, implementers and testers in dependency order. The coordinator answers child questions itself (logged as assumptions), broadcasts contract changes, retries up to 3 times plus one guided attempt, and marks children failed without asking the user.
 ---
 
 # Orchestrate the run
@@ -19,11 +19,35 @@ npx openfleet worktree <project> <child id> --repo <repo key> --branch <branch f
 
 A monorepo gets one worktree per package child, even when two children share a repo.
 
+The command also copies the repo's `copyFiles` (local env and credential files from `repos.json`) from the main checkout into the worktree and hides them from git. It warns about files that are missing; mention those in the final summary, but do not stop. Never print, read aloud or commit these files.
+
 ## 2. Scheduling
 
-A child is **ready** when every id in its `dependsOn` has phase `done`. If any dependency is `failed` or `blocked`, the child can never become ready: mark it `blocked` (see "Failed children"). Start every ready child at the same time. When a child reaches `done`, re-check the children that depend on it. Use background subagents and collect results with `read_agent`. Do not block on one child while others could make progress.
+Every run plans first:
 
-Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, record the agent id, then move to the next child. Children of different roles, or children that are already running, proceed in parallel.
+1. **Plan everything.** Plan every child at the same time, ignoring `dependsOn`. Planners of dependent children plan against `contracts/`, because their dependencies are not implemented yet.
+2. **`plans-ready` gate.** When every plan is validated, check that the plans are consistent with each other (section 3, "Consistency check"), run the project-level `plans-ready` extension slot, and open the gate.
+3. **Implement in order.** After the gate, a child starts (baseline if it has one, then implementation) once every id in its `dependsOn` is `done`.
+
+Do not work this out by hand. Run this whenever something changes (a report arrives, a phase changes):
+
+```sh
+npx openfleet next <project>
+```
+
+It prints `{"gate": "planning"|"checking"|"plans-ready"|"open", "actions": [...], "waiting": [...]}`. Do every action, then wait for the next report with `read_agent`:
+
+| Action                                         | What to do                                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `{"action":"plan","child":id}`                 | Spawn its planner ("Plan" below).                                                           |
+| `{"action":"check-consistency","children":…}`  | Run the consistency check for those children ("Consistency check" below).                   |
+| `{"action":"plans-ready"}`                     | Run the `plans-ready` slot, then `npx openfleet gate <project> open` ("Gate" below).        |
+| `{"action":"baseline","child":id}`             | Spawn its baseline tester ("Baseline" below).                                               |
+| `{"action":"implement","child":id}`            | Run the child's `pre-implement` slot, then spawn its implementer ("Implement" below).       |
+| `{"action":"block","child":id,"dependency":d}` | A dependency failed: patch the child `{"phase":"blocked","notes":"dependency <d> failed"}`. |
+| `{"action":"finalize"}`                        | Every child is finished: go to section 5.                                                   |
+
+Use background subagents and collect results with `read_agent`. Do not block on one child while others could make progress. Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, record the agent id, then move to the next child. Children of different roles, or children that are already running, proceed in parallel.
 
 ## 3. Per-child pipeline
 
@@ -34,18 +58,58 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
 3. **Validate the plan against the spec yourself:**
    - Every acceptance criterion for this child is mapped.
    - Every contract it produces or consumes has a contract test.
+   - It follows the spec's **Shared approach** section.
+   - If the child has a baseline, every planned change to baseline behaviour is one the spec explicitly lists.
    - Nothing is out of scope or touches another child's repo.
    - The build and test commands match the spec.
 
-   If the plan fails, log `plan.rejected` with reasons. Send the reasons to the **same** planner with `write_agent`. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
+   If the plan fails, log `plan.rejected` with `{"reason":"invalid","reasons":["…"]}`. Send the reasons to the **same** planner with `write_agent`. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
 
    If the plan passes, log `plan.validated`.
 
-4. Run the `post-plan` slot for the child (see "Extension slots" below).
+4. Run the `post-plan` slot for the child (see "Extension slots" below). Then patch `{"phase":"planned"}`. Keep the planner's agent id: you may need it for revisions.
+
+### Consistency check
+
+Run it when `next` returns `check-consistency`. Before the gate opens, that happens only after **every** child's plan is validated. After the gate, it happens for a child that was re-planned (for example after a contract change).
+
+1. Read every listed plan, the spec's **Shared approach** section, and the other children's plans (including ones already checked).
+2. Compare them. Plans must agree on everything the Shared approach lists (config shape, patterns, env var names, library versions, naming) and on anything two plans both touch (a shared interface, a value one child produces and another reads).
+3. For each plan that differs: log `plan.rejected` with `{"reason":"inconsistent","reasons":["<what differs and what to use instead>"],"with":["<other child ids>"]}`. Patch the child `{"phase":"plan-review"}`. Send the revision to the **same** planner with `write_agent` and log it. When the revision arrives, save it, re-validate it (step 3 of "Plan") and patch `{"phase":"planned"}` again. Pick one approach and send the same decision to every differing planner; record the choice as an `assumption` if the spec did not settle it.
+4. Repeat until no plan differs. Then run:
+
+   ```sh
+   npx openfleet gate <project> consistent [--child <id>,<id>]
+   ```
+
+   It marks the checked plans consistent and logs `plans.consistent`. Without `--child` it marks every validated plan that is waiting for the check.
+
+### Gate
+
+When `next` returns `plans-ready`:
+
+1. Run the project-level `plans-ready` slot (see "Extension slots" below; no `--child`).
+2. If every blocking entry succeeded, run `npx openfleet gate <project> open`. From now on, `next` returns baselines and implementations.
+3. If a blocking `plans-ready` entry failed twice, `npx openfleet ext fail <project> <extension> --slot plans-ready --reason '…'` marks every active child `blocked` and the gate stays closed. Go to completion: the user continues later with `npx openfleet resume`.
+
+### Baseline
+
+Only for children whose spec section has **Baseline: yes** (`baseline: true` in state).
+
+1. Patch `{"phase":"baseline","pendingSpawn":"baseline"}`. Spawn `openfleet:openfleet-baseline` with: "Write and pass baseline tests for child `<id>` of project `<project>`." The spawn hook injects what to cover, the ports and the local files.
+2. **Pass** (`status: "done"`): record it from the workspace root:
+
+   ```sh
+   npx openfleet baseline <project> <child id> --report '<json from the openfleet-report block>'
+   ```
+
+   It stores the file list and a hash of each file, sets `baselinePassed`, logs `baseline.passed`, and sets the phase back to `planned`. Run `next` again: the child now gets `implement` once its dependencies are `done`.
+
+3. **Fail**: handle it like a failed test run (step 8 of "Test"), but spawn a **new baseline tester** with the findings instead of an implementer, and patch `{"phase":"baseline","retries":n,"pendingSpawn":"baseline"}`. The guided attempt and "Failed children" apply the same way. Never let the baseline tester change app code to make a test pass.
 
 ### Implement
 
-5. Patch `{"phase":"implementing","pendingSpawn":"implementer"}`. Spawn `openfleet:openfleet-implementer`: "Implement the approved plan for child `<id>` of project `<project>`." On a retry, append the tester's findings verbatim.
+5. Run the `pre-implement` slot for the child (see "Extension slots" below). Then patch `{"phase":"implementing","pendingSpawn":"implementer"}`. Spawn `openfleet:openfleet-implementer`: "Implement the approved plan for child `<id>` of project `<project>`." On a retry, append the tester's findings verbatim.
 
 ### Test
 
@@ -62,7 +126,7 @@ Spawn subagents of the same role one at a time: patch `pendingSpawn`, spawn, rec
 
 ### Extension slots
 
-For `post-plan` and `post-test`, per child:
+`post-plan`, `pre-implement` and `post-test` run per child (`--child <id>`). `plans-ready` runs once per project (no `--child`).
 
 1. `npx openfleet ext plan <project> <slot> --child <id>`. Run only the entries under `run`; skipped entries are already logged as `extension.skipped`.
 2. For each entry, in order: spawn its `agent` with "Run `<slot>` for child `<id>` of project `<project>`. Worktree: `<worktree>`." Wait for it with `read_agent`. If it is still running after `timeoutMinutes`, stop it and treat the attempt as failed.
@@ -71,11 +135,13 @@ For `post-plan` and `post-test`, per child:
    - **advisory** entry: record it and continue.
    - **blocking** entry: spawn one **fresh** agent for the same entry and try again. If the retry also fails, run `npx openfleet ext fail <project> <extension> --slot <slot> --child <id> --reason '<why>'` and stop this child's pipeline. The helper marks the child `failed`, marks its not-yet-done dependents `blocked`, and logs `extension.failed` and `child.failed`.
 
-Dependents are scheduled only when this child is `done`, so they start after every blocking `post-test` entry succeeds. The spawn hook then injects the recorded outputs into their planner, implementer and tester prompts under **Upstream outputs** (direct and transitive dependencies). You do not need to relay them yourself.
+For `plans-ready`, the blocking failure helper call has no `--child`; it marks every active child `blocked` (see "Gate").
+
+Dependents are implemented only when this child is `done`, so they start after every blocking `post-test` entry succeeds. The spawn hook then injects the recorded outputs into their implementer and tester prompts under **Upstream outputs** (direct and transitive dependencies). Planners run before the gate, so they normally see no outputs; plans rely on the contracts instead. You do not need to relay outputs yourself.
 
 ### Failed children
 
-1. Patch the child `{"phase":"failed","retries":4,"notes":"<one-line cause>"}`.
+1. Patch the child `{"phase":"failed","retries":4,"notes":"<one-line cause>"}`. (`next` returns `block` actions for its dependents too.)
 2. Find every child that depends on it, directly or transitively. Patch each one that is not `done` to `{"phase":"blocked","notes":"dependency <id> failed"}`. If one of them has an agent running, stop it.
 3. Log `child.failed` with `{"reason":"…","retries":4,"findings":["…"],"worktree":"<abs path>","blocked":["<dependent ids>"]}`.
 4. Keep the worktree as it is. Continue with every other child. Do not ask the user. The final summary reports the failure, and the user can deal with it later with `npx openfleet resume`.
@@ -103,8 +169,10 @@ When every child is `done`, `failed` or `blocked`, patch the project `{"status":
 
 ## Resuming
 
-On resume, read `state.json`. For each child:
+On resume, read `state.json` and answer any `open` questions first. For each child:
 
-- `planning`, `implementing` or `testing` with a recorded agent id: try `read_agent` on that id. If the agent is gone, re-spawn that role. Implementers continue from the worktree's current contents.
+- `planning`, `baseline`, `implementing` or `testing` with a recorded agent id: try `read_agent` on that id. If the agent is gone, re-spawn that role. Implementers and baseline testers continue from the worktree's current contents.
 - `plan-review`: re-validate the saved plan.
-- Answer any `open` questions first.
+- `planned`: nothing to do; `next` decides.
+
+Then run `npx openfleet next <project>` and continue the loop. It knows whether the gate is open (`plansReady` in state), which plans still need the consistency check, and which children are ready.

@@ -37,10 +37,20 @@ What changes and why, in 2–5 sentences.
 - **Acceptance criteria:**
   1. …
 - **Contract tests:** produces `session-token.json`: the API response must validate against the fixture.
+- **Baseline:** no
 
 ### web:ui
 
+- …
+- **E2E:** `pnpm test:e2e`
+- **Env (names only):** `AUTH_CLIENT_ID`, `AUTH_CALLBACK_URL`
+- **Baseline:** yes. Cover: sign-in, sign-out and the profile page. Allowed changes: the sign-in button label.
+
 …
+
+## Shared approach
+
+What must be the same in every child (config shape, patterns, env var names, versions, naming), or "None".
 
 ## Ordering
 
@@ -59,13 +69,15 @@ The DAG in plain words, or "All children run in parallel."
 
 - Every child in **Children** has a section in **Per-child requirements** with build, test, at least one acceptance criterion, and its contract tests.
 - Every contract file listed exists in `contracts/` (see `openfleet-contracts`).
+- **Baseline** is `yes` or `no` for every child. With `yes`, it says what to cover and which baseline behaviours may change ("Allowed changes: none" is valid).
+- **E2E** and **Env** lines appear for children that need them. Env lists names only, never values.
 - Branch names default to `openfleet/<project>` or `openfleet/<project>-<package>`, unless the user chose otherwise.
 
 ## Spec review: the last grill question
 
 The spec review is part of the grill, not a separate gate. The project stays `specifying` until the user answers.
 
-1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"` and its `dependsOn`. Set the project `completionMode` (see `openfleet-records`). Keep `status: "specifying"`.
+1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"`, its `dependsOn`, and, for children with a baseline, `"baseline": true` and `"baselineCover": "<what to cover>"`. Set the project `completionMode` (see `openfleet-records`). Keep `status: "specifying"`.
 2. Ask the final grill question. Show a short summary (children, contracts, ordering, completion mode, out of scope), give the path to the full spec, and ask: **"Anything to change before I start?"**
 3. The user's answer ends the grill:
    - If they asked for changes, apply them to `spec.md` and `contracts/` and log `spec.written` again. Do not ask them to confirm the result. Only if a requested change is too unclear to apply, ask one short follow-up, then apply it.

@@ -5,7 +5,7 @@ import { readCoreIndex, type SlotEntry } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { SLOTS, type Slot } from "../extensions.js";
 import { readRepos } from "../repos.js";
-import { dependentsOf, readState, updateState, type ChildState, type ProjectState } from "../state.js";
+import { activeChildren, dependentsOf, readState, updateState, type ChildState, type ProjectState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName, type Workspace } from "../workspace.js";
 import { out } from "./output.js";
 
@@ -193,6 +193,17 @@ function cmdFail(ws: Workspace, args: string[], flags: ExtFlags): number {
       }
     });
     child = next.children[childId];
+  } else if (slot === "plans-ready") {
+    // The gate cannot open: nothing is implemented. Every active child waits for `resume`.
+    updateState(p, (s) => {
+      blocked = activeChildren(s)
+        .filter(([, c]) => c.phase !== "done")
+        .map(([id]) => id);
+      for (const id of blocked) {
+        s.children[id]!.phase = "blocked";
+        s.children[id]!.notes = `plans-ready extension ${ext} failed`;
+      }
+    });
   }
   appendEvent(p, {
     actor: "coordinator",

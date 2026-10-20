@@ -18,7 +18,7 @@ flowchart LR
     C1["<b>1B · Grill session</b><br/>question rounds · suggest repos<br/>discover build/test cmds"]
     HA["Answer questions"]
     X0["ext: pre-spec"]
-    C2["<b>1C · Write spec</b><br/>goal · repos · contracts · order<br/>acceptance · branches · done-mode"]
+    C2["<b>1C · Write spec</b><br/>goal · repos · contracts · order<br/>shared approach · baselines<br/>acceptance · branches · done-mode"]
     F1["spec.md · contracts/<br/>repos.json (updated)"]
     HR["<b>Final grill question</b><br/>spec summary:<br/>anything to change?"]
     CA["<b>1D · Apply answer</b><br/>update spec · spec.approved<br/>status: running"]
@@ -27,21 +27,27 @@ flowchart LR
     C1 --> X0 --> C2 --> F1 --> HR --> CA
   end
 
-  subgraph S2["2 · Plan (per repo, parallel, hands-off)"]
+  subgraph S2["2 · Plan everything (all repos at once, hands-off)"]
     direction TB
-    C3["<b>2A · Create worktrees<br/>+ branches</b>"]
+    C3["<b>2A · Create worktrees<br/>+ branches</b><br/>copy local env files · ports"]
     F2["worktrees/&lt;repo&gt;/<br/>state.json"]
     P["<b>2B · Planner</b><br/>repo plan + contract tests"]
     DV{"Coordinator:<br/>plan matches spec?"}
     X1["ext: post-plan"]
+    DC{"<b>plans-ready gate</b><br/>all plans consistent?"}
+    X4["ext: plans-ready"]
     C3 --> F2 --> P --> DV
     DV -- No --> P
-    DV -- Yes --> X1
+    DV -- Yes --> X1 --> DC
+    DC -- "No: revise" --> P
+    DC -- Yes --> X4
   end
 
   subgraph S3["3 · Implement & Test (per repo, parallel, hands-off)"]
     direction TB
     XA["ext: augment roles"]
+    B["<b>Baseline (optional)</b><br/>tests pass on unchanged code"]
+    X5["ext: pre-implement"]
     I["<b>3A · Implementer</b><br/>code + contract tests"]
     DQ{"Ambiguity?"}
     CQ{"Coordinator:<br/>answered by spec?"}
@@ -86,7 +92,7 @@ flowchart LR
 
   F0b --> H1
   CA --> C3
-  X1 --> I
+  X4 -- "dependsOn order" --> B --> X5 --> I
   X2 --> DA
   CF --> DA
   DP -- "No: resume / new project" --> H1
@@ -101,8 +107,8 @@ flowchart LR
   classDef dec fill:#222,stroke:#000,color:#fff
   class H0,H0b,H1,HC human
   class HA,HR,HF loop
-  class C0,C1,C2,CA,C3,CD,CB,CG,CF,C5,P,I,T ai
+  class C0,C1,C2,CA,C3,CD,CB,CG,CF,C5,P,B,I,T ai
   class F0,F1,F2 file
   class F0b,FX,EV cond
-  class X0,X1,XA,X2,X3 ext
-  class DV,CQ,DA,DQ,DT,DN,DG,DP dec
+  class X0,X1,XA,X2,X3,X4,X5 ext
+  class DV,DC,CQ,DA,DQ,DT,DN,DG,DP dec
