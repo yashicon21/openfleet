@@ -1822,8 +1822,8 @@
       </div>
       <div class="band y">
         <span
-          >STAGED · NOT COMMITTED · 177 / 177 TESTS PASS · STAGED · NOT COMMITTED · 177 / 177 TESTS PASS · STAGED · NOT
-          COMMITTED ·</span
+          >7 DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS · 7 DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS · 7
+          DRAFT PRS · CROSS-LINKED · 177 / 177 TESTS PASS ·</span
         >
       </div>
     </div>
@@ -2096,11 +2096,16 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>07 · WHAT’S LEFT</small>Staged, not committed</h2>
+          <h2><small>07 · WHAT’S LEFT</small>Seven draft PRs, linked</h2>
           <p>
-            The run ends in <strong>staged</strong> mode, as agreed in the grill: all seven worktrees hold their changes
-            on <code>openfleet/account-id</code> branches, waiting for a person to look. The summary lists the one
-            assumption for you to confirm. Nothing is pushed and no PR is opened unless you chose draft PRs.
+            The run ends in <strong>draft PR</strong> mode, as agreed in the grill. The coordinator commits each
+            worktree to its <code>openfleet/account-id</code> branch, pushes it and opens a draft PR. Every PR links to
+            the other six and carries the run summary, which lists the one assumption for you to confirm. Nothing merges
+            until you do.
+          </p>
+          <p>
+            Want to look before anything leaves your machine? Choose <strong>staged</strong> in the grill instead, and
+            the changes wait uncommitted in each worktree.
           </p>
         </section>
 
@@ -2108,8 +2113,8 @@
           <div class="cmd">
             <b>1</b>
             <div>
-              <h3>REVIEW THE WORKTREES AND THE ASSUMPTION</h3>
-              <code>openfleet/projects/account-id/worktrees/</code>
+              <h3>REVIEW THE DRAFT PRS AND THE ASSUMPTION</h3>
+              <code>gh pr list --author @me --draft</code>
             </div>
           </div>
           <div class="cmd">
@@ -2430,7 +2435,7 @@
         add(120.0, "coordinator", "contract.changed", null, "contracts/account.json → 5 repos");
         add(176.0, "coordinator", "assumption", "sdk-python", "keep user_id as a deprecated alias");
         add(272.0, "coordinator", "phase.changed", null, "running → finalizing");
-        add(275.0, "coordinator", "run.completed", null, "mode staged · 7 worktrees");
+        add(275.0, "coordinator", "run.completed", null, "mode draft-pr · 7 PRs");
         add(280.0, "coordinator", "phase.changed", null, "finalizing → done");
         E.sort(function (x, y) {
           return x.t - y.t;
