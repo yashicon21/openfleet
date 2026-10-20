@@ -43,6 +43,16 @@ typography:
     fontSize: "34px"
     fontWeight: 400
     lineHeight: "40px"
+  title-lg:
+    fontFamily: "Russo One, Arial Black, Impact, sans-serif"
+    fontSize: "28px"
+    fontWeight: 400
+    lineHeight: "32px"
+  logotype:
+    fontFamily: "Russo One, Arial Black, Impact, sans-serif"
+    fontSize: "22px"
+    fontWeight: 400
+    lineHeight: 1
   title:
     fontFamily: "Russo One, Arial Black, Impact, sans-serif"
     fontSize: "22px"
@@ -87,6 +97,11 @@ typography:
   lcd:
     fontFamily: "Share Tech Mono, ui-monospace, SF Mono, Menlo, monospace"
     fontSize: "28px"
+    fontWeight: 400
+    lineHeight: 1
+  lcd-lg:
+    fontFamily: "Share Tech Mono, ui-monospace, SF Mono, Menlo, monospace"
+    fontSize: "48px"
     fontWeight: 400
     lineHeight: 1
   lcd-sm:
@@ -240,13 +255,14 @@ A dark arcade ground with bright paper cards and a three-colour signature that i
 - **Page title** (Russo One 400, clamp(44px, 8vw, 88px), line-height 0.98, sentence case): the h1 on inner pages such as How it works.
 - **Headline** (Russo One 400, clamp(32px, 4.6vw, 56px), line-height 1.02, sentence case): home-page section headings.
 - **Section title** (Russo One 400, 34px / 40px, 26px on phones): numbered section headings on reading pages.
+- **Title large** (Russo One 400, 28px / 32px): bento and feature card titles.
 - **Title** (Russo One 400, 22px) and **Title small** (16px): card and step titles, button labels (uppercase, 0.02em tracking).
 - **Lead** (Saira Semi Condensed 500, 20px / 30px): the intro paragraph under a page title.
 - **Body** (Saira Semi Condensed 500, 18px / 30px): all prose, kept to about 68 characters per line (max 720px columns).
 - **Caption** (Saira Semi Condensed 500, 14px / 22px): figure captions, keys, notes and the source line.
 - **Label** (Russo One 400, 12–13px, 0.06–0.1em tracking, uppercase): kickers, figure titles, stat captions and log headers, in on-ground-muted or ink-muted. Never below 12px.
 - **Mono** (Share Tech Mono 400, 17px; small 13px): commands, file paths, event names and timestamps.
-- **LCD** (Share Tech Mono 400, 28px; 24px on phones; up to 40–48px for hero stats): clocks and every counted value.
+- **LCD** (Share Tech Mono 400, 28px; 24px on phones; **LCD large** 48px for step numbers and hero stats): clocks and every counted value.
 
 ### Named Rules
 
