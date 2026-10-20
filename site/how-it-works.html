@@ -1,0 +1,3090 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How it works · OpenFleet</title>
+    <meta
+      name="description"
+      content="A real OpenFleet run, replayed from its event log: one prompt, a coordinator, and six agents changing two repos in parallel."
+    />
+    <meta name="theme-color" content="#0E0E10" />
+    <link rel="canonical" href="https://openfleet.tools/how-it-works.html" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='%2348A6EE' stroke-width='3'/%3E%3Ccircle cx='15' cy='15' r='5' fill='%23EE5AD6'/%3E%3Ccircle cx='15' cy='3' r='3' fill='%23EDEB3C'/%3E%3C/svg%3E"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How it works · OpenFleet" />
+    <meta
+      property="og:description"
+      content="A real OpenFleet run, replayed from its event log: one prompt, a coordinator, and six agents changing two repos in parallel."
+    />
+    <meta property="og:url" content="https://openfleet.tools/how-it-works.html" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        scroll-behavior: smooth;
+        scrollbar-color: #45434c #0e0e10;
+      }
+      body {
+        margin: 0;
+        background: #0e0e10;
+      }
+      ::selection {
+        background: #edeb3c;
+        color: #2b1e1b;
+      }
+      [id] {
+        scroll-margin-top: 104px;
+      }
+      h2,
+      h3 {
+        text-wrap: balance;
+      }
+      p {
+        text-wrap: pretty;
+      }
+      p code,
+      td code {
+        white-space: nowrap;
+      }
+      a {
+        color: #f4f4f6;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 2px;
+        text-decoration-color: #ee5ad6;
+      }
+      a:hover {
+        color: #48a6ee;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      li:focus-visible {
+        outline: 2px solid #48a6ee;
+        outline-offset: 3px;
+        border-radius: 8px;
+      }
+      .of-track {
+        display: flex;
+        width: max-content;
+        animation: of-scroll 32s linear infinite;
+      }
+      .of-track.of-rev {
+        animation-direction: reverse;
+      }
+      .of-sep {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        background: #2b1e1b;
+        transform: rotate(45deg);
+        margin: 0 20px;
+        vertical-align: middle;
+      }
+      @keyframes of-scroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .of-navlink:hover {
+        background: #2e2d35;
+        color: #f4f4f6;
+      }
+      .of-ghost:hover {
+        background: #1c1b21;
+        border-color: #a8a6af;
+        color: #f4f4f6;
+      }
+      .of-btn {
+        transition:
+          transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 80ms cubic-bezier(0.2, 0.8, 0.2, 1),
+          background-color 120ms;
+      }
+      .of-btn:hover {
+        background: #6bb8f2;
+        color: #2b1e1b;
+      }
+      .of-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 0 #2b1e1b;
+      }
+      .of-copy:hover {
+        background: #45434c;
+      }
+      .of-sg {
+        transition:
+          background-color 400ms cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .of-st {
+        transition:
+          background-color 250ms cubic-bezier(0.16, 1, 0.3, 1),
+          color 250ms;
+      }
+      .of-replay:hover {
+        background: #4a3934;
+      }
+      @keyframes of-work {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      @keyframes of-evt-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .of-live .of-cur {
+        animation: of-work 1.1s ease-in-out infinite;
+      }
+      .of-live .of-evt {
+        animation: of-evt-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .of-cmd:last-child {
+        border-bottom: 0;
+      }
+      .of-tile {
+        transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .of-cell:hover .of-tile {
+        transform: scale(1.04);
+      }
+      .of-slot {
+        transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .of-slot:hover {
+        transform: translateY(-4px);
+      }
+      .of-skip {
+        position: absolute;
+        left: 16px;
+        top: -80px;
+        z-index: 20;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #edeb3c;
+        color: #2b1e1b;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .of-skip:focus,
+      .of-skip:hover {
+        top: 12px;
+        color: #2b1e1b;
+      }
+      .of-menu {
+        display: none;
+        position: relative;
+      }
+      .of-menu summary {
+        list-style: none;
+        cursor: pointer;
+      }
+      .of-menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .of-menu[open] summary {
+        background: #2e2d35;
+      }
+      .of-menu a:hover {
+        background: #2e2d35;
+        color: #f4f4f6;
+      }
+      @media (max-width: 959px) {
+        .of-bento {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        .of-b-a {
+          grid-column: span 2 !important;
+          grid-row: span 1 !important;
+        }
+        .of-b-b {
+          grid-column: span 2 !important;
+        }
+        .of-pin {
+          position: static !important;
+        }
+        .of-stack {
+          position: relative !important;
+          top: auto !important;
+        }
+      }
+      @media (max-width: 719px) {
+        .of-navlinks {
+          display: none !important;
+        }
+        .of-menu {
+          display: block;
+        }
+      }
+      @media (max-width: 599px) {
+        .of-bento {
+          grid-template-columns: minmax(0, 1fr) !important;
+        }
+        .of-b-a,
+        .of-b-b,
+        .of-b-c,
+        .of-b-d {
+          grid-column: auto !important;
+          grid-row: auto !important;
+        }
+      }
+      @media (max-width: 639px) {
+        .of-compare thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+        }
+        .of-compare,
+        .of-compare tbody,
+        .of-compare tr,
+        .of-compare th,
+        .of-compare td {
+          display: block;
+          width: auto;
+        }
+        .of-compare tr {
+          padding: 16px 0;
+        }
+        .of-compare th[scope="row"],
+        .of-compare td {
+          padding: 2px 0 !important;
+        }
+        .of-compare td::before {
+          content: attr(data-label);
+          display: block;
+          font-family: "Russo One", "Arial Black", sans-serif;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+          color: #5f5754;
+          margin-top: 8px;
+        }
+      }
+      @media (max-width: 479px) {
+        .of-copylabel {
+          display: none;
+        }
+        .of-copy {
+          min-width: 44px !important;
+        }
+        .of-cmdtext {
+          font-size: 13px !important;
+        }
+        .of-ghlabel {
+          display: none;
+        }
+        .of-gh {
+          padding: 0 13px !important;
+        }
+        .of-logo {
+          font-size: 19px !important;
+        }
+        .of-herobtns a {
+          flex: 1 1 100%;
+          justify-content: center;
+        }
+        .of-chip {
+          font-size: 0.55em !important;
+        }
+        .of-rname {
+          width: 80px !important;
+          font-size: 14px !important;
+          white-space: nowrap;
+        }
+        .of-slug,
+        .of-rlabel {
+          display: none;
+        }
+        .of-replay {
+          padding: 0 14px !important;
+        }
+        .of-evbox {
+          min-height: 244px !important;
+        }
+        .of-seg {
+          width: 56px !important;
+        }
+        .of-legend {
+          padding-left: 90px !important;
+        }
+        .of-term {
+          font-size: 15px !important;
+          padding: 20px !important;
+        }
+      }
+      @supports (animation-timeline: view()) {
+        @media (prefers-reduced-motion: no-preference) {
+          .of-motion .of-rise {
+            animation: of-rise linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 30%;
+          }
+          @keyframes of-rise {
+            from {
+              opacity: 0.3;
+              transform: translateY(40px) scale(0.92);
+            }
+            to {
+              opacity: 1;
+              transform: none;
+            }
+          }
+          .of-motion .of-reveal {
+            view-timeline: --of-rev block;
+          }
+          .of-motion .of-w {
+            animation: of-word linear both;
+            animation-timeline: --of-rev;
+          }
+          @keyframes of-word {
+            from {
+              opacity: 0.14;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .of-track {
+          animation: none;
+        }
+        .of-btn,
+        .of-tile,
+        .of-slot,
+        .of-sg,
+        .of-st {
+          transition: none;
+        }
+        .of-live .of-cur,
+        .of-live .of-evt {
+          animation: none;
+        }
+      }
+    </style>
+    <style>
+      /* Layout: a single reading column on the dark ground; replay figures break wider as dark "screens", numbers on bright cards. Superluck tokens. */
+      :root {
+        --ground: #0e0e10;
+        --raised: #1c1b21;
+        --raised-2: #26252c;
+        --line: #45434c;
+        --fg: #f4f4f6;
+        --muted: #a8a6af;
+        --card: #eef0f2;
+        --card-sunk: #dfe2e6;
+        --ink: #2b1e1b;
+        --ink-muted: #5f5754;
+        --cyan: #48a6ee;
+        --magenta: #ee5ad6;
+        --yellow: #edeb3c;
+        --counter: #1632e6;
+        --success: #17703a;
+        --display: "Russo One", "Arial Black", Impact, sans-serif;
+        --sans: "Saira Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+        --mono: "Share Tech Mono", ui-monospace, "SF Mono", Menlo, monospace;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--ground);
+        color: var(--fg);
+        font-family: var(--sans);
+        font-size: 18px;
+        line-height: 30px;
+        font-weight: 500;
+      }
+      p,
+      h1,
+      h2,
+      h3,
+      ul,
+      ol,
+      figure {
+        margin: 0;
+      }
+      a {
+        color: var(--fg);
+        text-decoration-color: var(--magenta);
+        text-underline-offset: 3px;
+      }
+      code,
+      .mono {
+        font-family: var(--mono);
+      }
+      code {
+        font-size: 0.95em;
+        color: var(--fg);
+        background: var(--raised);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+
+      /* marquee */
+      .marquee {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .band {
+        white-space: nowrap;
+        font-family: var(--display);
+        font-size: 14px;
+        line-height: 26px;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+        overflow: hidden;
+      }
+      .band span {
+        display: inline-block;
+        padding-left: 100%;
+        animation: slide 14s linear infinite;
+      }
+      .band:nth-child(2) span {
+        animation-duration: 18s;
+        animation-direction: reverse;
+      }
+      .band.c {
+        background: var(--cyan);
+      }
+      .band.m {
+        background: var(--magenta);
+      }
+      .band.y {
+        background: var(--yellow);
+      }
+      @keyframes slide {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-100%);
+        }
+      }
+
+      .wrap {
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+      }
+      .col {
+        max-width: 720px;
+        margin-inline: auto;
+      }
+      .wide {
+        max-width: 1120px;
+        margin-inline: auto;
+      }
+
+      /* hero */
+      .hero {
+        padding-block: 72px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .kicker {
+        font-family: var(--display);
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        color: var(--cyan);
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .kicker::before {
+        content: "";
+        width: 36px;
+        height: 8px;
+        background: linear-gradient(90deg, var(--cyan) 0 33.3%, var(--magenta) 33.3% 66.6%, var(--yellow) 66.6%);
+        border-radius: 2px;
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(44px, 8vw, 88px);
+        line-height: 0.98;
+        letter-spacing: -0.01em;
+        text-wrap: balance;
+      }
+      h1 .lcd {
+        font-family: var(--mono);
+        color: var(--yellow);
+        letter-spacing: 0;
+      }
+      .dek {
+        font-size: 21px;
+        line-height: 32px;
+        color: var(--muted);
+        max-width: 640px;
+      }
+      .byline {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--muted);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 16px;
+        padding-block: 8px 24px;
+      }
+      .stat {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 18px 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      .stat b {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: clamp(26px, 2.8vw, 40px);
+        line-height: 1;
+        color: var(--counter);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .stat span {
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+      }
+
+      /* article */
+      article {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        padding-block: 24px 96px;
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        padding-top: 40px;
+      }
+      h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 34px;
+        line-height: 40px;
+        text-wrap: balance;
+      }
+      h2 small {
+        display: block;
+        font-family: var(--mono);
+        font-size: 15px;
+        line-height: 22px;
+        color: var(--magenta);
+        letter-spacing: 0.04em;
+        margin-bottom: 6px;
+      }
+      .prose p {
+        color: #dcdbe0;
+      }
+      .prose strong {
+        color: var(--fg);
+        font-weight: 700;
+      }
+
+      /* figures */
+      figure.fig {
+        background: var(--raised);
+        border: 2px solid var(--line);
+        border-radius: 28px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .fig-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .fig-title {
+        font-family: var(--display);
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .dot3 {
+        display: inline-flex;
+        gap: 4px;
+      }
+      .dot3 i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: block;
+      }
+      .dot3 i:nth-child(1) {
+        background: var(--cyan);
+      }
+      .dot3 i:nth-child(2) {
+        background: var(--magenta);
+      }
+      .dot3 i:nth-child(3) {
+        background: var(--yellow);
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        font-family: var(--display);
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        background: var(--cyan);
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        padding: 0 16px;
+        height: 40px;
+        box-shadow: 0 4px 0 0 var(--ink);
+        cursor: pointer;
+        transition:
+          transform 80ms,
+          box-shadow 80ms;
+        white-space: nowrap;
+      }
+      .btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 0 var(--ink);
+      }
+      .btn.ghost {
+        background: var(--raised-2);
+        color: var(--fg);
+        border-color: var(--line);
+        box-shadow: none;
+      }
+      .btn.ghost[aria-pressed="true"] {
+        background: var(--card);
+        color: var(--ink);
+        border-color: var(--ink);
+      }
+      .btn:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+      .clock {
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--yellow);
+        min-width: 92px;
+        font-variant-numeric: tabular-nums;
+      }
+      input[type="range"] {
+        accent-color: var(--cyan);
+        width: 160px;
+      }
+      .figcap {
+        font-size: 15px;
+        line-height: 22px;
+        color: var(--muted);
+      }
+      .scroll-x {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      svg {
+        display: block;
+      }
+      svg text {
+        font-family: var(--sans);
+      }
+      .t-fg {
+        fill: var(--fg);
+      }
+      .t-muted {
+        fill: var(--muted);
+      }
+      .t-ink {
+        fill: var(--ink);
+      }
+      .t-cyan {
+        fill: var(--cyan);
+      }
+      .t-mag {
+        fill: var(--magenta);
+      }
+      .t-yel {
+        fill: var(--yellow);
+      }
+      .f-raised {
+        fill: var(--raised-2);
+      }
+      .f-line {
+        fill: var(--line);
+      }
+      .f-ground {
+        fill: var(--ground);
+      }
+      .f-cyan {
+        fill: var(--cyan);
+      }
+      .f-mag {
+        fill: var(--magenta);
+      }
+      .f-yel {
+        fill: var(--yellow);
+      }
+      .f-card {
+        fill: var(--card);
+      }
+      .f-ink {
+        fill: var(--ink);
+      }
+      .s-line {
+        stroke: var(--line);
+      }
+      .s-fg {
+        stroke: var(--fg);
+      }
+      .s-ink {
+        stroke: var(--ink);
+      }
+      .s-cyan {
+        stroke: var(--cyan);
+      }
+      .s-mag {
+        stroke: var(--magenta);
+      }
+      .s-yel {
+        stroke: var(--yellow);
+      }
+      .s-muted {
+        stroke: var(--muted);
+      }
+      .mono-t {
+        font-family: var(--mono) !important;
+      }
+      .disp-t {
+        font-family: var(--display) !important;
+      }
+
+      /* swimlane log */
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 16px;
+      }
+      .log {
+        background: var(--ground);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        height: 100%;
+        min-height: 220px;
+        overflow: hidden;
+      }
+      .log h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .log ol {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .log li {
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 17px;
+        color: var(--muted);
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 8px;
+        animation: pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .log li b {
+        font-weight: 400;
+        color: var(--fg);
+      }
+      .log li:first-child b {
+        color: var(--yellow);
+      }
+      .log li em {
+        font-style: normal;
+        display: block;
+        color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .timebar {
+        display: flex;
+        height: 18px;
+        border-radius: 6px;
+        overflow: hidden;
+        gap: 2px;
+      }
+      .timebar div {
+        background: var(--line);
+      }
+      .timebar div:nth-child(even) {
+        background: #34333a;
+      }
+      .timebar div.you {
+        background: var(--yellow);
+      }
+      .timebar div.build {
+        background: var(--magenta);
+      }
+      .timelegend {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px 16px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--muted);
+      }
+      .timelegend span {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        border-top: 2px solid var(--line);
+        padding-top: 6px;
+      }
+      .timelegend span.you {
+        border-color: var(--yellow);
+        color: var(--fg);
+      }
+      .timelegend span.build {
+        border-color: var(--magenta);
+        color: var(--fg);
+      }
+      .timelegend b {
+        font-family: var(--mono);
+        font-weight: 400;
+        color: var(--fg);
+      }
+
+      /* hub report */
+      .report {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 4px 16px;
+        align-items: baseline;
+        min-height: 96px;
+      }
+      .report .who {
+        font-family: var(--display);
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .report .who b {
+        font-family: var(--mono);
+        font-weight: 400;
+        color: var(--counter);
+        font-size: 15px;
+      }
+      .report p {
+        grid-column: 1 / -1;
+        font-size: 17px;
+        line-height: 25px;
+      }
+
+      /* diff */
+      .diffgrid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .repo {
+        background: var(--ground);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .repo h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .repo h3 .mono {
+        font-size: 16px;
+        color: var(--muted);
+      }
+      .frow {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 120px 74px;
+        gap: 10px;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 18px;
+        transition: opacity 200ms;
+      }
+      .frow .path {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--fg);
+      }
+      .frow .bar {
+        height: 10px;
+        display: flex;
+        gap: 2px;
+      }
+      .frow .bar i {
+        display: block;
+        height: 100%;
+        border-radius: 2px;
+        transition: width 300ms cubic-bezier(0.3, 1.5, 0.5, 1);
+      }
+      .frow .bar i.a {
+        background: var(--magenta);
+      }
+      .frow .bar i.r {
+        background: var(--cyan);
+      }
+      .frow .n {
+        text-align: right;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .frow.off {
+        opacity: 0.18;
+      }
+      .frow.new .path {
+        color: var(--yellow);
+      }
+      .totals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: baseline;
+      }
+      .totals > div:not(.legend) {
+        display: flex;
+        flex-direction: column;
+      }
+      .totals b {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: 40px;
+        line-height: 44px;
+        font-variant-numeric: tabular-nums;
+      }
+      .totals span {
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        font-size: 14px;
+        color: var(--muted);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .legend i {
+        display: inline-block;
+        width: 14px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+
+      /* steps */
+      .steps {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .stepcap {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 120px;
+      }
+      .stepcap h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 24px;
+      }
+      .stepcap p {
+        font-size: 17px;
+        line-height: 25px;
+      }
+      .stepcap q {
+        font-style: italic;
+        color: var(--ink-muted);
+      }
+      .chip {
+        transition:
+          transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+          opacity 300ms;
+      }
+      .fade {
+        transition: opacity 300ms;
+      }
+
+      /* playground */
+      .rows {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .rows input {
+        font-family: var(--mono);
+        font-size: 16px;
+        height: 40px;
+        width: 120px;
+        background: #ffffff;
+        color: var(--ink);
+        border: 2px solid #8a817d;
+        border-radius: 8px;
+        padding: 0 10px;
+      }
+      .pipe {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) 28px minmax(0, 1fr);
+        gap: 8px;
+        align-items: stretch;
+      }
+      .stage {
+        background: var(--ground);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        transition:
+          border-color 200ms,
+          box-shadow 200ms;
+      }
+      .stage.lit {
+        border-color: var(--yellow);
+        box-shadow: 0 4px 0 0 var(--yellow);
+      }
+      .stage h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .stage pre {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--fg);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .stage .note {
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--muted);
+      }
+      .arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-family: var(--display);
+      }
+      .render {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .render h4 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 26px;
+        line-height: 30px;
+        margin: 0;
+      }
+      .render p {
+        font-size: 15px;
+        line-height: 20px;
+        color: var(--ink-muted);
+      }
+      .tally {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 14px 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 24px;
+      }
+      .tally > div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .tally h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+        display: flex;
+        justify-content: space-between;
+      }
+      .tally h3 b {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: 16px;
+        color: var(--success);
+      }
+      .cells {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .cells i {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        background: var(--card-sunk);
+        transition: background 120ms;
+      }
+      .cells i.on {
+        background: var(--success);
+      }
+      .cells i.contract.on {
+        background: var(--counter);
+      }
+
+      /* end */
+      .cmds {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 28px;
+        padding: 22px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .cmd {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 12px;
+        align-items: baseline;
+      }
+      .cmd b {
+        font-family: var(--mono);
+        font-weight: 400;
+        font-size: 28px;
+        color: var(--counter);
+      }
+      .cmd h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 16px;
+      }
+      .cmd code {
+        background: var(--card-sunk);
+        color: var(--ink);
+        display: inline-block;
+        margin-top: 4px;
+      }
+      .source {
+        border-top: 2px solid var(--line);
+        padding-top: 20px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 22px;
+      }
+
+      @media (max-width: 860px) {
+        .split {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .log {
+          min-height: 0;
+        }
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .stats .stat:last-child {
+          grid-column: 1 / -1;
+        }
+        .timelegend {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .diffgrid,
+        .tally {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .pipe {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .arrow {
+          transform: rotate(90deg);
+          height: 20px;
+        }
+      }
+      @media (max-width: 640px) {
+        body {
+          font-size: 17px;
+          line-height: 28px;
+        }
+        .hero {
+          padding-block: 44px 24px;
+          gap: 18px;
+        }
+        .dek {
+          font-size: 18px;
+          line-height: 28px;
+        }
+        .byline {
+          font-size: 13px;
+          line-height: 20px;
+        }
+        .stats {
+          gap: 10px;
+        }
+        .stat {
+          padding: 14px 16px 12px;
+        }
+        section {
+          padding-top: 28px;
+          gap: 16px;
+        }
+        h2 {
+          font-size: 26px;
+          line-height: 32px;
+        }
+        figure.fig {
+          padding: 14px;
+          border-radius: 20px;
+          gap: 14px;
+          margin-inline: -4px;
+        }
+        .fig-head {
+          gap: 10px;
+        }
+        .fig-title {
+          font-size: 11px;
+        }
+        .controls {
+          width: 100%;
+          gap: 10px;
+          flex-wrap: nowrap;
+        }
+        .controls input[type="range"] {
+          flex: 1;
+          width: auto;
+          min-width: 0;
+        }
+        .clock {
+          font-size: 22px;
+          min-width: 76px;
+          text-align: right;
+        }
+        #fig-fix .controls {
+          flex-wrap: wrap;
+        }
+        .steps {
+          flex: 1;
+        }
+        .steps .btn {
+          flex: 1;
+          padding: 0;
+          min-width: 40px;
+        }
+        .btn {
+          height: 44px;
+        }
+        .log li {
+          font-size: 12px;
+        }
+        .timelegend {
+          font-size: 13px;
+          gap: 6px 12px;
+        }
+        .report {
+          padding: 14px 16px;
+        }
+        .report .who {
+          flex-direction: column;
+          gap: 2px;
+        }
+        .report p {
+          font-size: 16px;
+          line-height: 24px;
+        }
+        .totals {
+          gap: 16px;
+        }
+        .totals b {
+          font-size: 30px;
+          line-height: 34px;
+        }
+        .legend {
+          width: 100%;
+          font-size: 13px;
+        }
+        .repo {
+          padding: 12px;
+        }
+        .frow {
+          grid-template-columns: minmax(0, 1fr) auto;
+          grid-template-areas: "path n" "bar bar";
+          gap: 4px 10px;
+        }
+        .frow .path {
+          grid-area: path;
+        }
+        .frow .n {
+          grid-area: n;
+        }
+        .frow .bar {
+          grid-area: bar;
+          height: 8px;
+        }
+        .stepcap {
+          padding: 14px 16px;
+        }
+        .stepcap h3 {
+          font-size: 16px;
+          line-height: 22px;
+        }
+        .stepcap p {
+          font-size: 16px;
+          line-height: 24px;
+        }
+        .rows .btn {
+          flex: 1 1 auto;
+        }
+        .rows input {
+          flex: 1;
+          width: auto;
+          min-width: 0;
+        }
+        #runall {
+          flex-basis: 100%;
+        }
+        .stage pre {
+          font-size: 13px;
+        }
+        .cmds {
+          padding: 18px;
+          border-radius: 20px;
+        }
+        .cmd {
+          grid-template-columns: 26px minmax(0, 1fr);
+        }
+        .cmd b {
+          font-size: 24px;
+        }
+        .cmd code {
+          white-space: normal;
+          word-break: break-word;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .band span {
+          animation: none;
+          padding-left: 16px;
+        }
+        .chip,
+        .frow .bar i,
+        .fade,
+        .log li {
+          transition: none;
+          animation: none;
+        }
+      }
+    </style>
+    <style>
+      .marquee {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="of-skip" href="#content">Skip to content</a>
+    <header style="position: sticky; top: 12px; z-index: 10; padding: 12px 16px 0">
+      <nav
+        aria-label="Main"
+        style="
+          max-width: 1168px;
+          margin: 0 auto;
+          padding: 8px 8px 8px 20px;
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          background: #1c1b21;
+          border: 1px solid #45434c;
+          border-radius: 999px;
+        "
+      >
+        <a
+          href="index.html"
+          class="of-logo"
+          aria-label="OpenFleet home"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #48a6ee;
+            font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+            font-size: 22px;
+            line-height: 24px;
+            letter-spacing: -0.01em;
+          "
+        >
+          <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true">
+            <circle cx="15" cy="15" r="12" fill="none" stroke="#48A6EE" stroke-width="3"></circle>
+            <circle cx="15" cy="15" r="5" fill="#EE5AD6"></circle>
+            <circle cx="15" cy="3" r="3" fill="#EDEB3C"></circle>
+          </svg>
+          OPENFLEET
+        </a>
+        <div style="display: flex; align-items: center; gap: 2px">
+          <div class="of-navlinks" style="display: flex; align-items: center; gap: 2px">
+            <a
+              class="of-navlink"
+              aria-current="page"
+              href="how-it-works.html"
+              style="
+                padding: 11px 14px;
+                border-radius: 999px;
+                text-decoration: none;
+                color: #2b1e1b;
+                background: #eef0f2;
+                font-weight: 600;
+              "
+              >How it works</a
+            >
+            <a
+              class="of-navlink"
+              href="index.html#features"
+              style="padding: 11px 14px; border-radius: 999px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >Features</a
+            >
+            <a
+              class="of-navlink"
+              href="index.html#quickstart"
+              style="padding: 11px 14px; border-radius: 999px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >Quick start</a
+            >
+            <a
+              class="of-navlink"
+              href="index.html#extensions"
+              style="padding: 11px 14px; border-radius: 999px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >Extensions</a
+            >
+          </div>
+          <details class="of-menu">
+            <summary
+              aria-label="Menu"
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                height: 44px;
+                padding: 0 14px;
+                border-radius: 999px;
+                color: #f4f4f6;
+                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                font-size: 13px;
+                letter-spacing: 0.04em;
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F4F4F6"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16"></path>
+                <path d="M4 12h16"></path>
+                <path d="M4 17h16"></path></svg
+              >MENU
+            </summary>
+            <div
+              style="
+                position: absolute;
+                right: 0;
+                top: 52px;
+                min-width: 220px;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                background: #1c1b21;
+                border: 1px solid #45434c;
+                border-radius: 16px;
+              "
+            >
+              <a
+                href="how-it-works.html"
+                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                >How it works</a
+              >
+              <a
+                href="index.html#features"
+                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                >Features</a
+              >
+              <a
+                href="index.html#quickstart"
+                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                >Quick start</a
+              >
+              <a
+                href="index.html#commands"
+                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                >Commands</a
+              >
+              <a
+                href="index.html#extensions"
+                style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #a8a6af; font-weight: 600"
+                >Extensions</a
+              >
+            </div>
+          </details>
+          <a
+            href="https://github.com/yashicon21/openfleet"
+            aria-label="OpenFleet on GitHub"
+            class="of-gh"
+            style="
+              margin-left: 6px;
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              height: 44px;
+              padding: 0 18px;
+              box-sizing: border-box;
+              border-radius: 999px;
+              background: #eef0f2;
+              color: #2b1e1b;
+              text-decoration: none;
+              font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+              font-size: 14px;
+              letter-spacing: 0.02em;
+            "
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2B1E1B"
+              stroke-width="2.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="6" cy="6" r="2.5"></circle>
+              <circle cx="6" cy="18" r="2.5"></circle>
+              <circle cx="18" cy="9" r="2.5"></circle>
+              <path d="M6 8.5v7"></path>
+              <path d="M18 11.5c0 3-3 4-9 5"></path>
+            </svg>
+            <span class="of-ghlabel">GITHUB</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <div class="marquee" aria-hidden="true">
+      <div class="band c">
+        <span
+          >GREETING-LANG · RUN REPLAY · 63 EVENTS · 6 AGENTS · 2 REPOS · 3:47 · GREETING-LANG · RUN REPLAY · 63 EVENTS ·
+          6 AGENTS · 2 REPOS · 3:47 ·</span
+        >
+      </div>
+      <div class="band m">
+        <span
+          >PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST ·
+          PLAN · BUILD · TEST ·</span
+        >
+      </div>
+      <div class="band y">
+        <span
+          >STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT
+          COMMITTED ·</span
+        >
+      </div>
+    </div>
+
+    <header class="wrap">
+      <div class="wide hero">
+        <p class="kicker">HOW IT WORKS · A REAL RUN, REPLAYED</p>
+        <h1>Two repos, six agents, <span class="lcd">3:47</span></h1>
+        <p class="dek">
+          One prompt went into an agent CLI session: add a language field to the greeting API and show it in web. This
+          page replays what happened next, straight from the run’s event log. It’s the toy example in
+          <code>examples/demo</code>, so you can run the same thing yourself with <code>pnpm demo</code>.
+        </p>
+        <p class="byline">project greeting-lang · 17 Oct 2026 · 03:04:35 → 03:08:22 UTC</p>
+      </div>
+      <div class="wide stats">
+        <div class="stat"><b>3:47</b><span>START TO DONE</span></div>
+        <div class="stat"><b>63</b><span>EVENTS LOGGED</span></div>
+        <div class="stat"><b>6</b><span>SUB-AGENTS</span></div>
+        <div class="stat"><b>+232/−24</b><span>LINES, 13 FILES</span></div>
+        <div class="stat"><b>24/24</b><span>TESTS PASS</span></div>
+      </div>
+    </header>
+
+    <main class="wrap" id="content">
+      <article>
+        <section class="col prose">
+          <h2><small>01 · THE WHOLE RUN</small>Three minutes, eight lanes</h2>
+          <p>
+            OpenFleet writes every step of a run to <code>events.jsonl</code>: who did what, to which repo, and when.
+            The <strong>coordinator</strong> is the agent you talk to. It spends the first minute with you, settling
+            questions and writing a spec. After you approve, it splits the work into one child per repo and hands each
+            child to three short-lived sub-agents in turn: a <strong>planner</strong>, an
+            <strong>implementer</strong> and a <strong>tester</strong>.
+          </p>
+          <p>
+            Press replay to watch all 63 events land. The api and web lanes run side by side, a few seconds apart,
+            because the coordinator spawns agents one at a time and then lets them work in parallel.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-swim">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EVENTS.JSONL · REPLAY 3:47 IN 15S</span
+            >
+            <div class="controls">
+              <button class="btn" data-play type="button">▶ REPLAY</button
+              ><input
+                type="range"
+                min="0"
+                max="1000"
+                value="1000"
+                data-scrub
+                aria-label="Scrub the run timeline"
+              /><span class="clock" data-clock>3:47.5</span>
+            </div>
+          </div>
+          <div class="split">
+            <div class="scroll-x">
+              <svg
+                id="swim"
+                viewBox="0 0 1000 440"
+                role="img"
+                aria-label="Swimlane timeline of the run: project phases on top, then the coordinator and six sub-agents, with an events-per-5-seconds histogram underneath."
+              ></svg>
+            </div>
+            <div class="log" aria-live="off">
+              <h3>LATEST EVENTS</h3>
+              <ol id="log"></ol>
+            </div>
+          </div>
+          <div class="timebar" id="timebar" aria-hidden="true"></div>
+          <div class="timelegend" id="timelegend"></div>
+          <p class="figcap">
+            Bars show each sub-agent from spawn to stop. Dots on a bar are things that agent logged: file edits for
+            implementers, test runs for testers. The yellow segment is the only time the run waited on a person.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>02 · STATE</small>Every child walks the same path</h2>
+          <p>
+            The coordinator moves the project, and each child, through a fixed set of phases. The run only ever goes
+            forward. There is no retry arrow in this replay because no child needed one: every plan validated first time
+            and every test run passed.
+          </p>
+          <p>
+            The slow phases are the ones where a model is thinking. <strong>Planning</strong> includes the coordinator
+            reading both plans and settling an open question, which is why it outlasts the planners themselves.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-state">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>PHASE.CHANGED · 18 TRANSITIONS</span
+            >
+            <div class="controls">
+              <button class="btn" data-play type="button">▶ REPLAY</button
+              ><input
+                type="range"
+                min="0"
+                max="1000"
+                value="1000"
+                data-scrub
+                aria-label="Scrub the phase replay"
+              /><span class="clock" data-clock>3:47.5</span>
+            </div>
+          </div>
+          <div class="scroll-x">
+            <svg
+              id="state"
+              viewBox="0 0 1000 350"
+              role="img"
+              aria-label="State machine: the project moves from specifying to done in five phases; the api and web children each move through seven phases from pending to done."
+            ></svg>
+          </div>
+          <p class="figcap">
+            The cyan dot is api, the magenta dot is web. Times under each phase are how long that child sat there. The
+            two zero-length hops, plan-review and post-test, are the coordinator stamping a gate it had already checked.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>03 · MESSAGES</small>The coordinator talks, agents report back</h2>
+          <p>
+            Sub-agents never talk to each other. Each one gets a single instruction from the coordinator, does its job
+            in the child’s git worktree, and ends with a structured <code>openfleet-report</code> block: a status, a
+            one-line summary and, if it has one, a question. Six instructions out, six reports back, plus the spec
+            handoff with you at the start.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-hub">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>MESSAGE.SENT · AGENT.STOPPED</span
+            >
+            <div class="controls">
+              <button class="btn" data-play type="button">▶ REPLAY</button
+              ><input
+                type="range"
+                min="0"
+                max="1000"
+                value="1000"
+                data-scrub
+                aria-label="Scrub the message replay"
+              /><span class="clock" data-clock>3:47.5</span>
+            </div>
+          </div>
+          <div class="scroll-x">
+            <svg
+              id="hub"
+              viewBox="0 0 1000 470"
+              role="img"
+              aria-label="Hub diagram: you above the coordinator, api agents on the left, web agents on the right; packets fly out as instructions and back as reports."
+            ></svg>
+          </div>
+          <div class="report" id="report"></div>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>04 · THE CODE</small>232 lines in a ten-second burst</h2>
+          <p>
+            The implementers each spent about half a minute reading before touching anything. Then the edits landed
+            almost at once: the first at 03:07:27.9, the last at 03:07:38.1. The api agent rewrote
+            <code>test/server.test.js</code> in one go, while the web agent edited <code>src/greeting.js</code> twice.
+          </p>
+          <p>
+            Most of the new lines are tests. Only <strong>22</strong> of the 232 added lines are application code; the
+            rest are tests, fixtures and README updates.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-diff">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>FILE.EDITED · 2:25 → 3:15</span
+            >
+            <div class="controls">
+              <button class="btn" data-play type="button">▶ REPLAY</button
+              ><input type="range" min="0" max="1000" value="1000" data-scrub aria-label="Scrub the edit replay" /><span
+                class="clock"
+                data-clock
+                >3:15.0</span
+              >
+            </div>
+          </div>
+          <div class="totals">
+            <div><b class="t-mag" style="color: var(--magenta)" id="tot-add">+232</b><span>LINES ADDED</span></div>
+            <div><b style="color: var(--cyan)" id="tot-rem">−24</b><span>LINES REMOVED</span></div>
+            <div><b id="tot-files">13</b><span>FILES TOUCHED</span></div>
+            <div class="legend">
+              <span><i style="background: var(--magenta)"></i>added</span
+              ><span><i style="background: var(--cyan)"></i>removed</span
+              ><span style="color: var(--yellow)">yellow path = new file</span>
+            </div>
+          </div>
+          <div class="diffgrid" id="diff"></div>
+          <p class="figcap">
+            Bars are the net diff in each worktree’s final snapshot. A file appears when its first edit was logged; the
+            copied fixtures have no edit event, so they appear when the implementer finished.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>05 · THE ONE DECISION</small>Where should the fixtures live?</h2>
+          <p>
+            Both repos test against the same contract: <code>greeting.schema.json</code> and five example rows in
+            <code>greeting.example.json</code>. Those files live in the OpenFleet project, outside either repo. The api
+            planner spotted the trap and asked about it; the web planner had quietly planned to copy them.
+          </p>
+          <p>
+            The coordinator answered with one line in the api implementer’s instructions:
+            <q>Decision: copy contract fixtures into test/fixtures/.</q> Step through what that avoided.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-fix">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>PLANS/API.MD · RISKS</span
+            >
+            <div class="controls">
+              <div class="steps" id="fixsteps"></div>
+              <button class="btn" type="button" id="fixplay">▶ PLAY</button>
+            </div>
+          </div>
+          <div class="scroll-x">
+            <svg
+              id="fix"
+              viewBox="0 0 1000 400"
+              role="img"
+              aria-label="Diagram: contracts folder above two worktrees. A relative path from the api worktree to contracts breaks after merge, so the two fixture files are copied into test/fixtures in both repos."
+            ></svg>
+          </div>
+          <div class="stepcap" id="fixcap"></div>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>06 · VERIFY</small>Five rows of contract, both sides</h2>
+          <p>
+            The testers each ran <code>npm test</code> once. The api suite passed 13 of 13, including a live request for
+            every contract row. The web suite passed 11 of 11, rendering each row’s response through a stubbed fetch.
+            Both testers also diffed the copied fixtures against the originals and found them identical.
+          </p>
+          <p>
+            Pick a row to send it through both repos, or type your own value. The logic below is the shipped behaviour:
+            anything that isn’t <code>en</code>, <code>es</code> or <code>fr</code> falls back to English with a 200,
+            including tricks like <code>__proto__</code>.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-play">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>GREETING.EXAMPLE.JSON · TRY IT</span
+            >
+            <div class="rows" id="rows"></div>
+          </div>
+          <div class="pipe">
+            <div class="stage" id="st-req">
+              <h3>WEB · FETCHGREETING()</h3>
+              <pre id="req"></pre>
+              <span class="note" id="req-note"></span>
+            </div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="stage" id="st-api">
+              <h3>API · GET /GREETING</h3>
+              <pre id="res"></pre>
+              <span class="note" id="res-note"></span>
+            </div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="stage" id="st-web">
+              <h3>WEB · RENDERGREETING()</h3>
+              <div class="render" id="out"></div>
+              <pre id="html"></pre>
+            </div>
+          </div>
+          <div class="tally">
+            <div>
+              <h3>API · NPM TEST <b id="api-score">13/13 PASS</b></h3>
+              <div class="cells" id="api-cells"></div>
+            </div>
+            <div>
+              <h3>WEB · NPM TEST <b id="web-score">11/11 PASS</b></h3>
+              <div class="cells" id="web-cells"></div>
+            </div>
+          </div>
+          <p class="figcap">
+            Blue cells are the five contract rows; green are the unit tests. Test runs were logged at 03:07:59.0 (api)
+            and 03:08:04.0 (web).
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>07 · WHAT’S LEFT</small>Staged, not committed</h2>
+          <p>
+            The run ended in <strong>staged</strong> mode, as agreed in the grill: both worktrees hold their changes on
+            <code>openfleet/greeting-lang</code>, waiting for a person to look. Nothing was pushed and no PR was opened.
+          </p>
+        </section>
+
+        <div class="col cmds">
+          <div class="cmd">
+            <b>1</b>
+            <div>
+              <h3>REVIEW BOTH WORKTREES</h3>
+              <code>worktrees/api</code> <code>worktrees/web</code>
+            </div>
+          </div>
+          <div class="cmd">
+            <b>2</b>
+            <div>
+              <h3>MERGE, THEN CLEAN UP</h3>
+              <code>npx openfleet clean greeting-lang --branches</code>
+            </div>
+          </div>
+          <div class="cmd">
+            <b>3</b>
+            <div>
+              <h3>FOUND A PROBLEM? PICK THE RUN BACK UP</h3>
+              <code>npx openfleet resume greeting-lang</code>
+            </div>
+          </div>
+        </div>
+
+        <p class="col source">
+          Built from the 63 events in <span class="mono">openfleet/projects/greeting-lang/events.jsonl</span>. Times are
+          seconds from <span class="mono">project.created</span> at 03:04:35.127 UTC.
+        </p>
+      </article>
+    </main>
+    <footer>
+      <div aria-hidden="true" style="display: flex; height: 8px">
+        <span style="flex: 1; background: #48a6ee"></span><span style="flex: 1; background: #ee5ad6"></span
+        ><span style="flex: 1; background: #edeb3c"></span>
+      </div>
+      <div
+        style="
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 32px 24px 40px;
+          box-sizing: border-box;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 24px;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span
+            style="
+              font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+              font-size: 20px;
+              color: #48a6ee;
+            "
+            >OPENFLEET</span
+          >
+          <span style="font-size: 14px; color: #a8a6af">Open source · MIT licensed</span>
+        </div>
+        <nav aria-label="Footer" style="display: flex; flex-wrap: wrap; gap: 4px; margin: 0 -14px">
+          <a
+            class="of-navlink"
+            href="how-it-works.html"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >How it works</a
+          >
+          <a
+            class="of-navlink"
+            href="https://github.com/yashicon21/openfleet"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >GitHub</a
+          >
+          <a
+            class="of-navlink"
+            href="https://www.npmjs.com/package/@openfleet-tools/cli"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >npm</a
+          >
+          <a
+            class="of-navlink"
+            href="https://github.com/yashicon21/openfleet/blob/main/docs/events.md"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >Events schema</a
+          >
+          <a
+            class="of-navlink"
+            href="https://github.com/yashicon21/openfleet/blob/main/docs/design.md"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >Design notes</a
+          >
+          <a
+            class="of-navlink"
+            href="https://github.com/yashicon21/openfleet/issues"
+            style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+            >Issues</a
+          >
+        </nav>
+      </div>
+    </footer>
+    <script>
+      (function () {
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        // seq, time (UTC), actor, type, target, detail
+        const RAW = [
+          [1, "03:04:35.127", "cli", "project.created", null, "project greeting-lang"],
+          [2, "03:04:44.114", "coordinator", "session.started", null, "new session"],
+          [3, "03:05:49.841", "coordinator", "spec.written", null, "spec.md"],
+          [4, "03:05:50.226", "coordinator", "phase.changed", null, "specifying → awaiting-approval"],
+          [5, "03:05:50.226", "coordinator", "phase.changed", "api", "→ pending"],
+          [6, "03:05:50.227", "coordinator", "phase.changed", "web", "→ pending"],
+          [7, "03:06:06.059", "coordinator", "spec.approved", null, "you approved the spec"],
+          [8, "03:06:06.484", "coordinator", "phase.changed", null, "awaiting-approval → running"],
+          [9, "03:06:09.207", "coordinator", "worktree.created", "api", "branch openfleet/greeting-lang"],
+          [10, "03:06:09.666", "coordinator", "worktree.created", "web", "branch openfleet/greeting-lang"],
+          [11, "03:06:12.893", "coordinator", "phase.changed", "api", "pending → planning"],
+          [12, "03:06:13.271", "coordinator", "message.sent", "api", "→ api/planner"],
+          [13, "03:06:15.133", "api/planner", "agent.spawned", "api", "openfleet-planner"],
+          [14, "03:06:17.902", "coordinator", "phase.changed", "web", "pending → planning"],
+          [15, "03:06:18.283", "coordinator", "message.sent", "web", "→ web/planner"],
+          [16, "03:06:20.491", "web/planner", "agent.spawned", "web", "openfleet-planner"],
+          [17, "03:06:38.195", "api/planner", "agent.stopped", "api", "plan ready, 1 question"],
+          [18, "03:06:38.195", "api/planner", "worktree.snapshot", "api", "0 files changed"],
+          [19, "03:06:44.787", "web/planner", "agent.stopped", "web", "plan ready"],
+          [20, "03:06:44.787", "web/planner", "worktree.snapshot", "web", "0 files changed"],
+          [21, "03:07:02.598", "coordinator", "plan.submitted", "api", "plans/api.md"],
+          [22, "03:07:02.968", "coordinator", "plan.validated", "api", "plans/api.md"],
+          [23, "03:07:03.361", "coordinator", "plan.submitted", "web", "plans/web.md"],
+          [24, "03:07:03.736", "coordinator", "plan.validated", "web", "plans/web.md"],
+          [25, "03:07:04.127", "coordinator", "phase.changed", "api", "planning → plan-review"],
+          [26, "03:07:04.127", "coordinator", "phase.changed", "web", "planning → plan-review"],
+          [27, "03:07:04.506", "coordinator", "phase.changed", "api", "plan-review → implementing"],
+          [28, "03:07:04.881", "coordinator", "message.sent", "api", "→ api/implementer + fixtures decision"],
+          [29, "03:07:06.856", "api/implementer", "agent.spawned", "api", "openfleet-implementer"],
+          [30, "03:07:10.437", "coordinator", "phase.changed", "web", "plan-review → implementing"],
+          [31, "03:07:10.822", "coordinator", "message.sent", "web", "→ web/implementer"],
+          [32, "03:07:12.628", "web/implementer", "agent.spawned", "web", "openfleet-implementer"],
+          [33, "03:07:27.869", "api/implementer", "file.edited", "api", "src/server.js +13 −9"],
+          [34, "03:07:27.994", "api/implementer", "file.edited", "api", "README.md +6 −1"],
+          [35, "03:07:28.118", "api/implementer", "file.added", "api", "test/contract.test.js +53"],
+          [36, "03:07:32.923", "web/implementer", "file.edited", "web", "src/cli.js +1 −1"],
+          [37, "03:07:33.061", "web/implementer", "file.edited", "web", "test/greeting.test.js +28 −8"],
+          [38, "03:07:33.155", "web/implementer", "file.added", "web", "test/greeting.contract.test.js +49"],
+          [39, "03:07:33.250", "web/implementer", "file.edited", "web", "README.md +5 −3"],
+          [40, "03:07:35.902", "api/implementer", "file.added", "api", "test/server.test.js +56"],
+          [41, "03:07:37.985", "web/implementer", "file.edited", "web", "src/greeting.js +11 −3"],
+          [42, "03:07:38.125", "web/implementer", "file.edited", "web", "src/greeting.js +2 −1"],
+          [43, "03:07:41.356", "api/implementer", "agent.stopped", "api", "13/13 pass, no deviations"],
+          [44, "03:07:41.356", "api/implementer", "worktree.snapshot", "api", "6 files +127 −17"],
+          [45, "03:07:43.987", "web/implementer", "agent.stopped", "web", "11 pass, no deviations"],
+          [46, "03:07:43.987", "web/implementer", "worktree.snapshot", "web", "7 files +105 −7"],
+          [47, "03:07:47.632", "coordinator", "phase.changed", "api", "implementing → testing"],
+          [48, "03:07:48.003", "coordinator", "message.sent", "api", "→ api/tester"],
+          [49, "03:07:49.859", "api/tester", "agent.spawned", "api", "openfleet-tester"],
+          [50, "03:07:53.334", "coordinator", "phase.changed", "web", "implementing → testing"],
+          [51, "03:07:53.711", "coordinator", "message.sent", "web", "→ web/tester"],
+          [52, "03:07:55.483", "web/tester", "agent.spawned", "web", "openfleet-tester"],
+          [53, "03:07:59.007", "api/tester", "test.run", "api", "npm test 13/13"],
+          [54, "03:08:02.872", "api/tester", "agent.stopped", "api", "all ACs met"],
+          [55, "03:08:04.035", "web/tester", "test.run", "web", "npm test 11/11"],
+          [56, "03:08:08.212", "web/tester", "agent.stopped", "web", "all ACs met"],
+          [57, "03:08:11.842", "coordinator", "phase.changed", "api", "testing → post-test"],
+          [58, "03:08:11.843", "coordinator", "phase.changed", "web", "testing → post-test"],
+          [59, "03:08:12.213", "coordinator", "phase.changed", null, "running → finalizing"],
+          [60, "03:08:12.214", "coordinator", "phase.changed", "api", "post-test → done"],
+          [61, "03:08:12.214", "coordinator", "phase.changed", "web", "post-test → done"],
+          [62, "03:08:22.263", "coordinator", "run.completed", null, "mode staged"],
+          [63, "03:08:22.613", "coordinator", "phase.changed", null, "finalizing → done"],
+        ];
+        const sec = (s) => {
+          const [h, m, r] = s.split(":");
+          return +h * 3600 + +m * 60 + parseFloat(r);
+        };
+        const T0 = sec(RAW[0][1]);
+        const E = RAW.map(([seq, ts, actor, type, target, detail]) => ({
+          seq,
+          ts,
+          actor,
+          type,
+          target,
+          detail,
+          t: sec(ts) - T0,
+        }));
+        const END = E[E.length - 1].t; // 227.486
+        const fmt = (t) => {
+          t = Math.max(0, t);
+          const m = Math.floor(t / 60);
+          const s = t - m * 60;
+          return m + ":" + s.toFixed(1).padStart(4, "0");
+        };
+        const esc = (s) =>
+          String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+        // ---------- player ----------
+        const MQ = window.matchMedia ? window.matchMedia("(max-width: 640px)") : { matches: false };
+        const isNarrow = () => MQ.matches;
+        const onMode = (fn) => {
+          if (MQ.addEventListener) MQ.addEventListener("change", fn);
+          else if (MQ.addListener) MQ.addListener(fn);
+        };
+        function player(root, opts) {
+          const btn = root.querySelector("[data-play]"),
+            range = root.querySelector("[data-scrub]"),
+            clock = root.querySelector("[data-clock]");
+          const span = opts.to - opts.from;
+          let t = opts.to,
+            playing = false,
+            raf = 0,
+            last = 0,
+            autoplayed = false;
+          function set(v) {
+            t = clamp(v, opts.from, opts.to);
+            range.value = Math.round(((t - opts.from) / span) * 1000);
+            clock.textContent = fmt(t);
+            opts.frame(t);
+          }
+          function label() {
+            btn.textContent = playing ? "❚❚ PAUSE" : t >= opts.to ? "↺ REPLAY" : "▶ PLAY";
+          }
+          function tick(now) {
+            const dt = now - last;
+            last = now;
+            set(t + (dt / opts.ms) * span);
+            if (t >= opts.to) {
+              playing = false;
+              label();
+              return;
+            }
+            raf = requestAnimationFrame(tick);
+          }
+          function play() {
+            if (reduce) {
+              set(opts.to);
+              label();
+              return;
+            }
+            if (t >= opts.to) set(opts.from);
+            playing = true;
+            label();
+            last = performance.now();
+            raf = requestAnimationFrame(tick);
+          }
+          function pause() {
+            playing = false;
+            cancelAnimationFrame(raf);
+            label();
+          }
+          btn.addEventListener("click", () => (playing ? pause() : play()));
+          range.addEventListener("input", () => {
+            pause();
+            set(opts.from + (range.value / 1000) * span);
+            label();
+          });
+          set(opts.to);
+          label();
+          if (!reduce && "IntersectionObserver" in window) {
+            const io = new IntersectionObserver(
+              (es) => {
+                es.forEach((e) => {
+                  if (e.isIntersecting && !autoplayed) {
+                    autoplayed = true;
+                    play();
+                    io.disconnect();
+                  }
+                });
+              },
+              { threshold: 0.2 },
+            );
+            io.observe(root);
+          }
+          return { redraw: () => opts.frame(t) };
+        }
+        // builds a figure for the current width, and rebuilds it when the phone/desktop breakpoint is crossed
+        function responsive(build, root, opts) {
+          let frame = build();
+          const p = player(root, Object.assign({}, opts, { frame: (t) => frame(t) }));
+          onMode(() => {
+            frame = build();
+            p.redraw();
+          });
+        }
+        function setBox(svg, w, h, minW) {
+          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+          svg.style.width = "100%";
+          svg.style.minWidth = minW ? minW + "px" : "0";
+        }
+
+        // ---------- 1. swimlane ----------
+        (function () {
+          const svg = document.getElementById("swim"),
+            log = document.getElementById("log");
+          const DUR = 230;
+          const LANES = [
+            { id: "coordinator", label: "COORDINATOR", cls: "yel" },
+            { id: "api/planner", label: "api · planner", cls: "cyan" },
+            { id: "api/implementer", label: "api · implementer", cls: "cyan" },
+            { id: "api/tester", label: "api · tester", cls: "cyan" },
+            { id: "web/planner", label: "web · planner", cls: "mag" },
+            { id: "web/implementer", label: "web · implementer", cls: "mag" },
+            { id: "web/tester", label: "web · tester", cls: "mag" },
+          ];
+          const PH = [
+            ["specifying", 0, 75.099],
+            ["awaiting approval", 75.099, 91.357],
+            ["running", 91.357, 217.086],
+            ["finalizing", 217.086, END],
+          ];
+          function build() {
+            const N = isNarrow();
+            const W = N ? 400 : 1000,
+              X0 = N ? 4 : 170,
+              X1 = N ? 392 : 985;
+            const x = (t) => X0 + (t / DUR) * (X1 - X0);
+            const BY = N ? 22 : 14,
+              LY = N ? 76 : 66,
+              LH = N ? 46 : 40;
+            let h = "";
+            h += N
+              ? `<text x="${X0}" y="14" class="t-muted disp-t" font-size="11" letter-spacing="1">PROJECT</text>`
+              : `<text x="0" y="31" class="t-muted disp-t" font-size="12" letter-spacing="1">PROJECT</text>`;
+            PH.forEach(([n, a, b], i) => {
+              const you = i === 1,
+                w = x(b) - x(a);
+              h += `<rect x="${x(a)}" y="${BY}" width="${Math.max(2, w - 2)}" height="26" rx="6" class="${you ? "f-yel" : "f-raised"} ph" data-a="${a}" data-b="${b}"/>`;
+              if (w > 60)
+                h += `<text x="${x(a) + 8}" y="${BY + 18}" font-size="${N ? 12 : 13}" class="${you ? "t-ink" : "t-muted"} disp-t">${n.toUpperCase()}</text>`;
+              else if (you)
+                h += `<text x="${x(a) + w / 2}" y="${BY + 40}" font-size="11" text-anchor="middle" class="t-yel disp-t">YOU · ${(b - a).toFixed(0)}s</text>`;
+            });
+            LANES.forEach((L, i) => {
+              const y = LY + i * LH;
+              const lab = N ? { x: X0, y: y + 12 } : { x: 0, y: y + 25 };
+              const bar = N ? { y: y + 18, h: 18, c: y + 27 } : { y: y + 9, h: 22, c: y + 20 };
+              const coord = L.id === "coordinator";
+              h += `<line x1="${X0}" x2="${X1}" y1="${bar.c}" y2="${bar.c}" class="s-line" stroke-width="1" stroke-dasharray="2 6"/>`;
+              h += `<text x="${lab.x}" y="${lab.y}" font-size="${coord ? (N ? 11 : 12) : N ? 14 : 15}" ${coord ? 'letter-spacing="1"' : ""} class="${coord ? "t-yel disp-t" : "t-fg"}">${L.label}</text>`;
+              if (!coord) {
+                const s = E.find((e) => e.actor === L.id && e.type === "agent.spawned").t;
+                const f = E.find((e) => e.actor === L.id && e.type === "agent.stopped").t;
+                h += `<rect class="f-${L.cls} lane-bar" data-s="${s}" data-f="${f}" x="${x(s)}" y="${bar.y}" height="${bar.h}" rx="6" width="${x(f) - x(s)}"/>`;
+                h += N
+                  ? `<text class="t-muted mono-t lane-dur" data-f="${f}" x="${X1}" y="${lab.y}" text-anchor="end" font-size="13">${(f - s).toFixed(1)}s</text>`
+                  : `<text class="t-muted mono-t lane-dur" data-f="${f}" x="${x(f) + 6}" y="${y + 25}" font-size="13">${(f - s).toFixed(1)}s</text>`;
+                E.filter((e) => e.actor === L.id && /file\.|test\.run/.test(e.type)).forEach((e) => {
+                  h += `<circle class="f-ink ev" data-t="${e.t}" cx="${x(e.t)}" cy="${bar.c}" r="${N ? 3 : 3.5}"/>`;
+                });
+              } else {
+                E.filter((e) => e.actor === "coordinator" || e.actor === "cli").forEach((e) => {
+                  h += `<rect class="f-yel ev" data-t="${e.t}" x="${x(e.t) - 1}" y="${bar.y}" width="2" height="${bar.h}"/>`;
+                });
+              }
+            });
+            const AY = LY + LANES.length * LH + 8;
+            h += `<line x1="${X0}" x2="${X1}" y1="${AY}" y2="${AY}" class="s-line" stroke-width="2"/>`;
+            for (let s = 0; s <= 210; s += N ? 60 : 30) {
+              h += `<line x1="${x(s)}" x2="${x(s)}" y1="${AY}" y2="${AY + 6}" class="s-line" stroke-width="2"/><text x="${x(s)}" y="${AY + 22}" font-size="13" text-anchor="${N && s === 0 ? "start" : "middle"}" class="t-muted mono-t">${fmt(s).replace(".0", "")}</text>`;
+            }
+            const B = 5,
+              NB = Math.ceil(DUR / B),
+              counts = new Array(NB).fill(0);
+            E.forEach((e) => counts[Math.floor(e.t / B)]++);
+            const maxC = Math.max(...counts),
+              HH = 44;
+            const HY = N ? AY + 100 : AY + 82;
+            h += N
+              ? `<text x="${X0}" y="${AY + 46}" class="t-muted disp-t" font-size="11" letter-spacing="1">EVENTS / 5S <tspan class="mono-t" font-size="12" letter-spacing="0">· peak ${maxC}</tspan></text>`
+              : `<text x="0" y="${HY - 14}" class="t-muted disp-t" font-size="12" letter-spacing="1">EVENTS / 5S</text><text x="0" y="${HY + 2}" class="t-muted mono-t" font-size="13">peak ${maxC}</text>`;
+            counts.forEach((c, i) => {
+              if (!c) return;
+              const bh = Math.max(3, (c / maxC) * HH);
+              h += `<rect class="f-line hist" data-t="${i * B}" x="${x(i * B) + 0.5}" y="${HY - bh}" width="${Math.max(1, x(B) - x(0) - 1.5)}" height="${bh}" rx="1.5"/>`;
+            });
+            h += `<line id="swim-head" x1="${x(END)}" x2="${x(END)}" y1="${BY - 6}" y2="${HY}" class="s-fg" stroke-width="2"/>`;
+            setBox(svg, W, HY + 6, N ? 0 : 720);
+            svg.innerHTML = h;
+            const bars = [...svg.querySelectorAll(".lane-bar")],
+              evs = [...svg.querySelectorAll(".ev")],
+              durs = [...svg.querySelectorAll(".lane-dur")],
+              hist = [...svg.querySelectorAll(".hist")],
+              phs = [...svg.querySelectorAll(".ph")];
+            const head = svg.querySelector("#swim-head");
+            const keep = N ? 4 : 7;
+            let lastShown = -1;
+            return function frame(t) {
+              bars.forEach((b) => {
+                const s = +b.dataset.s,
+                  f = +b.dataset.f;
+                const w = clamp(Math.min(t, f) - s, 0, f - s);
+                b.setAttribute("width", Math.max(0, x(s + w) - x(s)));
+              });
+              evs.forEach((e) => (e.style.opacity = +e.dataset.t <= t ? 1 : 0));
+              durs.forEach((d) => (d.style.opacity = +d.dataset.f <= t ? 1 : 0));
+              hist.forEach((r) => r.setAttribute("class", (+r.dataset.t <= t ? "f-mag" : "f-line") + " hist"));
+              phs.forEach((r) => (r.style.opacity = +r.dataset.a <= t ? 1 : 0.25));
+              head.setAttribute("x1", x(t));
+              head.setAttribute("x2", x(t));
+              let n = 0;
+              while (n < E.length && E[n].t <= t) n++;
+              if (n !== lastShown) {
+                lastShown = n;
+                log.innerHTML = E.slice(Math.max(0, n - keep), n)
+                  .reverse()
+                  .map(
+                    (e) =>
+                      `<li><span>${e.seq}</span><span><b>${esc(e.type)}</b><em>${esc(e.actor)}${e.target && !e.actor.startsWith(e.target) ? " · " + esc(e.target) : ""} · ${esc(e.detail)}</em></span></li>`,
+                  )
+                  .join("");
+              }
+            };
+          }
+          responsive(build, document.getElementById("fig-swim"), { from: 0, to: END, ms: 15000 });
+
+          // where the time went
+          const SEG = [
+            ["Startup", 0, 8.987],
+            ["Grill + spec", 8.987, 75.099],
+            ["Your approval", 75.099, 91.357, "you"],
+            ["Planning", 91.357, 129.66],
+            ["Plan review", 129.66, 148.609],
+            ["Building", 148.609, 188.86, "build"],
+            ["Testing", 188.86, 213.085],
+            ["Finalize", 213.085, END],
+          ];
+          document.getElementById("timebar").innerHTML = SEG.map(
+            (s) => `<div class="${s[3] || ""}" style="flex:${(s[2] - s[1]).toFixed(2)}"></div>`,
+          ).join("");
+          document.getElementById("timelegend").innerHTML = SEG.map(
+            (s) => `<span class="${s[3] || ""}">${s[0]}<b>${(s[2] - s[1]).toFixed(0)}s</b></span>`,
+          ).join("");
+        })();
+
+        // ---------- 2. state machine ----------
+        (function () {
+          const svg = document.getElementById("state");
+          const PP = ["specifying", "awaiting-approval", "running", "finalizing", "done"];
+          const CP = ["pending", "planning", "plan-review", "implementing", "testing", "post-test", "done"];
+          const pch = E.filter((e) => e.type === "phase.changed").map((e) => {
+            const to = e.detail.split("→").pop().trim();
+            return { t: e.t, target: e.target, to };
+          });
+          pch.unshift({ t: 0, target: null, to: "specifying" });
+          const dur = {};
+          ["api", "web", null].forEach((tg) => {
+            const list = pch.filter((p) => p.target === tg);
+            dur[tg] = {};
+            list.forEach((p, i) => {
+              if (list[i + 1]) dur[tg][p.to] = { d: list[i + 1].t - p.t, end: list[i + 1].t };
+            });
+          });
+          const at = (tg, t) => {
+            let cur = null;
+            pch.forEach((p) => {
+              if (p.target === tg && p.t <= t) cur = p.to;
+            });
+            return cur;
+          };
+          function build() {
+            const N = isNarrow();
+            // node centres
+            const pp = (i) => (N ? { x: 26, y: 62 + i * 70 } : { x: 110 + i * 195, y: 64 });
+            const cp = (i) => (N ? { x: 210, y: 62 + i * 70 } : { x: 75 + i * 141.6, y: 210 });
+            const H = N ? 62 + 6 * 70 + 60 : 350;
+            let h = `<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="f-line"/></marker></defs>`;
+            h += N
+              ? `<text x="10" y="22" class="t-yel disp-t" font-size="11" letter-spacing="1">PROJECT</text><text x="194" y="22" class="t-muted disp-t" font-size="11" letter-spacing="1">CHILDREN</text>`
+              : `<text x="0" y="30" class="t-yel disp-t" font-size="12" letter-spacing="1">PROJECT</text><text x="0" y="166" class="t-muted disp-t" font-size="12" letter-spacing="1">CHILDREN</text>`;
+            const edge = (a, b) =>
+              N
+                ? `<line x1="${a.x}" x2="${b.x}" y1="${a.y + 18}" y2="${b.y - 22}" class="s-line" stroke-width="2" marker-end="url(#ah)"/>`
+                : `<line x1="${a.x + 18}" x2="${b.x - 22}" y1="${a.y}" y2="${b.y}" class="s-line" stroke-width="2" marker-end="url(#ah)"/>`;
+            PP.forEach((p, i) => {
+              const c = pp(i);
+              if (i) h += edge(pp(i - 1), c);
+              h += `<circle cx="${c.x}" cy="${c.y}" r="14" class="f-raised s-line" stroke-width="2"/>`;
+              const d = dur[null][p];
+              if (N) {
+                h += `<text x="${c.x + 24}" y="${c.y + 5}" font-size="14" class="t-fg">${p}</text>`;
+                if (d)
+                  h += `<text class="t-yel mono-t pd" data-end="${d.end}" x="${c.x + 24}" y="${c.y + 24}" font-size="13">${d.d.toFixed(1)}s</text>`;
+              } else {
+                h += `<text x="${c.x}" y="${c.y + 36}" text-anchor="middle" font-size="15" class="t-fg">${p}</text>`;
+                if (d)
+                  h += `<text class="t-yel mono-t pd" data-end="${d.end}" x="${c.x}" y="${c.y + 56}" text-anchor="middle" font-size="13">${d.d.toFixed(1)}s</text>`;
+              }
+            });
+            CP.forEach((p, i) => {
+              const c = cp(i);
+              if (i) h += edge(cp(i - 1), c);
+              h += `<circle cx="${c.x}" cy="${c.y}" r="14" class="f-raised s-line" stroke-width="2"/>`;
+              h += N
+                ? `<text x="${c.x + 24}" y="${c.y + 5}" font-size="14" class="t-fg">${p}</text>`
+                : `<text x="${c.x}" y="${c.y + 40}" text-anchor="middle" font-size="15" class="t-fg">${p}</text>`;
+              ["api", "web"].forEach((ch, k) => {
+                const d = dur[ch][p];
+                if (!d) return;
+                const pos = N
+                  ? `x="${c.x + 24 + k * 84}" y="${c.y + 24}"`
+                  : `x="${c.x}" y="${c.y + 62 + k * 18}" text-anchor="middle"`;
+                h += `<text class="${ch === "api" ? "t-cyan" : "t-mag"} mono-t pd" data-end="${d.end}" ${pos} font-size="13">${ch} ${d.d.toFixed(1)}s</text>`;
+              });
+            });
+            h += `<g id="tok-p" class="chip"><circle r="9" class="f-yel s-ink" stroke-width="2"/></g>`;
+            h += `<g id="tok-api" class="chip"><circle r="9" class="f-cyan s-ink" stroke-width="2"/></g>`;
+            h += `<g id="tok-web" class="chip"><circle r="9" class="f-mag s-ink" stroke-width="2"/></g>`;
+            h += N
+              ? `<text id="st-now" x="10" y="${H - 14}" font-size="12" class="t-muted mono-t"></text>`
+              : `<text id="st-now" x="1000" y="328" text-anchor="end" font-size="14" class="t-muted mono-t"></text>`;
+            setBox(svg, N ? 400 : 1000, H, N ? 0 : 760);
+            svg.innerHTML = h;
+            const tp = svg.querySelector("#tok-p"),
+              ta = svg.querySelector("#tok-api"),
+              tw = svg.querySelector("#tok-web"),
+              pds = [...svg.querySelectorAll(".pd")],
+              now = svg.querySelector("#st-now");
+            return function frame(t) {
+              const p = at(null, t),
+                a = at("api", t),
+                w = at("web", t);
+              const P = pp(PP.indexOf(p));
+              tp.style.transform = `translate(${P.x}px, ${P.y}px)`;
+              [
+                [ta, a, -1],
+                [tw, w, 1],
+              ].forEach(([g, ph, s]) => {
+                const C = cp(ph ? CP.indexOf(ph) : 0);
+                const off = N ? { x: 0, y: s * 9 } : { x: s * 10, y: 0 };
+                g.style.opacity = ph ? 1 : 0;
+                g.style.transform = `translate(${C.x + off.x}px, ${C.y + off.y}px)`;
+              });
+              pds.forEach((d) => (d.style.opacity = +d.dataset.end <= t ? 1 : 0));
+              now.textContent = `project ${p}  ·  api ${a || "—"}  ·  web ${w || "—"}`;
+            };
+          }
+          responsive(build, document.getElementById("fig-state"), { from: 0, to: END, ms: 12000 });
+        })();
+
+        // ---------- 3. hub ----------
+        (function () {
+          const svg = document.getElementById("hub");
+          const META = {
+            you: { label: "YOU", cls: "yel" },
+            "api/planner": { label: "api · planner", cls: "cyan" },
+            "api/implementer": { label: "api · implementer", cls: "cyan" },
+            "api/tester": { label: "api · tester", cls: "cyan" },
+            "web/planner": { label: "web · planner", cls: "mag" },
+            "web/implementer": { label: "web · implementer", cls: "mag" },
+            "web/tester": { label: "web · tester", cls: "mag" },
+          };
+          const LAYOUT = {
+            wide: {
+              w: 1000,
+              h: 470,
+              minW: 680,
+              C: { x: 500, y: 270, r: 74 },
+              nodeW: 210,
+              youW: 120,
+              P: {
+                you: [500, 52],
+                "api/planner": [130, 130],
+                "api/implementer": [130, 270],
+                "api/tester": [130, 410],
+                "web/planner": [870, 130],
+                "web/implementer": [870, 270],
+                "web/tester": [870, 410],
+              },
+            },
+            narrow: {
+              w: 400,
+              h: 560,
+              minW: 0,
+              C: { x: 200, y: 178, r: 58 },
+              nodeW: 184,
+              youW: 140,
+              P: {
+                you: [200, 40],
+                "api/planner": [100, 340],
+                "api/implementer": [100, 420],
+                "api/tester": [100, 500],
+                "web/planner": [300, 340],
+                "web/implementer": [300, 420],
+                "web/tester": [300, 500],
+              },
+            },
+          };
+          const REPORTS = {
+            "api/planner":
+              "Plan: add a lang map and URL parsing in server.js, update tests, add a contract test over the example and schema fixtures, update the README. Question: the contracts folder sits outside the worktree. Copy the fixtures into test/fixtures/?",
+            "web/planner":
+              "Plan: optional lang in fetchGreeting, render the language, read GREETING_LANG in the CLI, contract tests with copied fixtures.",
+            "api/implementer":
+              "Implemented lang support in src/server.js, updated and added tests with fixtures copied into test/fixtures/, updated the README. npm test 13/13. No deviations from plan.",
+            "web/implementer":
+              "fetchGreeting takes an optional lang and stays backward-compatible; renderGreeting adds the language paragraph; CLI reads GREETING_LANG. npm test passes, 11 tests. No deviations.",
+            "api/tester":
+              "npm test 13/13 pass. Contract tests cover all 5 example rows, using fixtures identical to contracts/. All acceptance criteria met. Findings: none.",
+            "web/tester":
+              "npm test 11/11 pass, including contract tests. Fixtures identical to contracts/. All 4 acceptance criteria met. Findings: none.",
+          };
+          const span = {};
+          Object.keys(REPORTS).forEach((k) => {
+            span[k] = {
+              s: E.find((e) => e.actor === k && e.type === "agent.spawned").t,
+              f: E.find((e) => e.actor === k && e.type === "agent.stopped").t,
+            };
+          });
+          const packets = [];
+          E.forEach((e) => {
+            if (e.type === "message.sent") {
+              const to = e.detail.replace("→", "").trim().split(" ")[0];
+              packets.push({ t: e.t, from: "c", to, cls: "yel" });
+            }
+            if (e.type === "agent.stopped") packets.push({ t: e.t, from: e.actor, to: "c", cls: META[e.actor].cls });
+            if (e.type === "spec.written") packets.push({ t: e.t, from: "c", to: "you", cls: "yel" });
+            if (e.type === "spec.approved") packets.push({ t: e.t - 3, from: "you", to: "c", cls: "yel" });
+          });
+          const rep = document.getElementById("report");
+          let lastRep;
+          function build() {
+            const N = isNarrow(),
+              L = N ? LAYOUT.narrow : LAYOUT.wide,
+              C = L.C;
+            const pos = (k) => (k === "c" ? C : { x: L.P[k][0], y: L.P[k][1] });
+            let h = "";
+            Object.keys(META).forEach((k) => {
+              const n = pos(k);
+              h += `<line x1="${C.x}" y1="${C.y}" x2="${n.x}" y2="${n.y}" class="s-line" stroke-width="2" stroke-dasharray="${k === "you" ? "4 6" : "0"}"/>`;
+            });
+            Object.keys(META).forEach((k) => {
+              const n = pos(k),
+                w = k === "you" ? L.youW : L.nodeW;
+              h += `<g class="node" data-k="${k}"><rect x="${n.x - w / 2}" y="${n.y - 26}" width="${w}" height="52" rx="16" class="f-raised s-line nb" stroke-width="2"/>`;
+              h += `<text x="${n.x}" y="${n.y - 2}" text-anchor="middle" font-size="${k === "you" ? 14 : N ? 15 : 17}" class="${k === "you" ? "t-yel disp-t" : "t-fg"} nl">${META[k].label}</text>`;
+              h += `<text x="${n.x}" y="${n.y + 17}" text-anchor="middle" font-size="12" class="t-muted mono-t ns">${k === "you" ? "approve the spec" : "idle"}</text></g>`;
+            });
+            const R = C.r + 10;
+            h += `<circle cx="${C.x}" cy="${C.y}" r="${C.r}" class="f-card s-ink" stroke-width="3"/>`;
+            [
+              ["s-cyan", -90],
+              ["s-mag", 30],
+              ["s-yel", 150],
+            ].forEach(([c, rot]) => {
+              h += `<circle cx="${C.x}" cy="${C.y}" r="${R}" fill="none" class="${c}" stroke-width="5" stroke-dasharray="${R * 0.52} 600" transform="rotate(${rot} ${C.x} ${C.y})"/>`;
+            });
+            h += `<text x="${C.x}" y="${C.y - 6}" text-anchor="middle" font-size="${N ? 12 : 15}" class="t-ink disp-t">COORDINATOR</text>`;
+            h += `<text id="hub-count" x="${C.x}" y="${C.y + 20}" text-anchor="middle" font-size="18" class="mono-t" style="fill:var(--counter)">6 / 6</text>`;
+            h += `<text x="${C.x}" y="${C.y + 38}" text-anchor="middle" font-size="10" class="disp-t" style="fill:var(--ink-muted)">REPORTS IN</text>`;
+            packets.forEach((p, i) => {
+              h += `<circle class="f-${p.cls} s-ink pk" stroke-width="2" r="${N ? 7 : 8}" data-i="${i}" style="opacity:0"/>`;
+            });
+            setBox(svg, L.w, L.h, L.minW);
+            svg.innerHTML = h;
+            const pk = [...svg.querySelectorAll(".pk")],
+              nodes = [...svg.querySelectorAll(".node")],
+              count = svg.querySelector("#hub-count");
+            const FLY = 5;
+            lastRep = undefined;
+            return function frame(t) {
+              packets.forEach((p, i) => {
+                const k = (t - p.t) / FLY;
+                if (k < 0 || k > 1) {
+                  pk[i].style.opacity = 0;
+                  return;
+                }
+                const a = pos(p.from),
+                  b = pos(p.to),
+                  e = 1 - Math.pow(1 - k, 3);
+                pk[i].setAttribute("cx", a.x + (b.x - a.x) * e);
+                pk[i].setAttribute("cy", a.y + (b.y - a.y) * e);
+                pk[i].style.opacity = 1;
+              });
+              let done = 0;
+              nodes.forEach((g) => {
+                const k = g.dataset.k,
+                  rect = g.querySelector(".nb"),
+                  lab = g.querySelector(".nl"),
+                  st = g.querySelector(".ns");
+                if (k === "you") {
+                  const busy = t >= 75.1 && t < 91.0;
+                  rect.setAttribute("class", (busy ? "f-yel" : "f-raised") + " s-line nb");
+                  lab.setAttribute("class", (busy ? "t-ink" : "t-yel") + " disp-t nl");
+                  st.setAttribute("class", (busy ? "t-ink" : "t-muted") + " mono-t ns");
+                  st.textContent = t < 75.1 ? "answering questions" : busy ? "reviewing spec…" : "approved";
+                  return;
+                }
+                const s = span[k],
+                  cls = META[k].cls;
+                if (t < s.s) {
+                  rect.setAttribute("class", "f-raised s-line nb");
+                  lab.setAttribute("class", "t-muted nl");
+                  st.setAttribute("class", "t-muted mono-t ns");
+                  st.textContent = "not spawned";
+                } else if (t < s.f) {
+                  rect.setAttribute("class", `f-raised s-${cls} nb`);
+                  lab.setAttribute("class", "t-fg nl");
+                  st.setAttribute("class", `t-${cls} mono-t ns`);
+                  st.textContent = "working " + (t - s.s).toFixed(1) + "s";
+                } else {
+                  done++;
+                  rect.setAttribute("class", `f-${cls} s-ink nb`);
+                  lab.setAttribute("class", "t-ink nl");
+                  st.setAttribute("class", "t-ink mono-t ns");
+                  st.textContent = "reported · " + (s.f - s.s).toFixed(1) + "s";
+                }
+              });
+              count.textContent = done + " / 6";
+              let latest = null;
+              Object.keys(span).forEach((k) => {
+                if (span[k].f <= t && (!latest || span[k].f > span[latest].f)) latest = k;
+              });
+              if (latest !== lastRep) {
+                lastRep = latest;
+                rep.innerHTML = latest
+                  ? `<div class="who">${META[latest].label.toUpperCase()} · OPENFLEET-REPORT <b>status: done</b></div><p>${esc(REPORTS[latest])}</p>`
+                  : `<div class="who">WAITING FOR THE FIRST REPORT <b>—</b></div><p>Reports appear here as each sub-agent finishes.</p>`;
+              }
+            };
+          }
+          responsive(build, document.getElementById("fig-hub"), { from: 0, to: END, ms: 15000 });
+        })();
+
+        // ---------- 4. diff ----------
+        (function () {
+          const FILES = [
+            ["api", "src/server.js", 8, 4, false],
+            ["api", "README.md", 6, 1, false],
+            ["api", "test/contract.test.js", 53, 0, true],
+            ["api", "test/server.test.js", 42, 12, false],
+            ["api", "test/fixtures/greeting.example.json", 7, 0, true],
+            ["api", "test/fixtures/greeting.schema.json", 11, 0, true],
+            ["web", "src/cli.js", 1, 1, false],
+            ["web", "test/greeting.test.js", 21, 1, false],
+            ["web", "test/greeting.contract.test.js", 49, 0, true],
+            ["web", "README.md", 3, 1, false],
+            ["web", "src/greeting.js", 13, 4, false],
+            ["web", "test/fixtures/greeting.example.json", 7, 0, true],
+            ["web", "test/fixtures/greeting.schema.json", 11, 0, true],
+          ].map(([repo, path, a, r, isNew]) => {
+            const ev = E.find((e) => e.target === repo && /^file\./.test(e.type) && e.detail.startsWith(path + " "));
+            const snap = E.find(
+              (e) => e.target === repo && e.type === "worktree.snapshot" && e.actor.endsWith("implementer"),
+            );
+            return { repo, path, a, r, isNew, t: ev ? ev.t : snap.t };
+          });
+          const MAX = 60;
+          const box = document.getElementById("diff");
+          box.innerHTML = ["api", "web"]
+            .map((repo) => {
+              const fs = FILES.filter((f) => f.repo === repo);
+              const A = fs.reduce((s, f) => s + f.a, 0),
+                R = fs.reduce((s, f) => s + f.r, 0);
+              return (
+                `<div class="repo"><h3>${repo.toUpperCase()}<span class="mono">+${A} −${R}</span></h3>` +
+                fs
+                  .map(
+                    (f, i) =>
+                      `<div class="frow ${f.isNew ? "new" : ""}" data-repo="${repo}" data-i="${FILES.indexOf(f)}"><span class="path" title="${esc(f.path)}">${esc(f.path)}</span><span class="bar"><i class="a" style="width:${(f.a / MAX) * 100}%"></i><i class="r" style="width:${(f.r / MAX) * 100}%"></i></span><span class="n">+${f.a} −${f.r}</span></div>`,
+                  )
+                  .join("") +
+                `</div>`
+              );
+            })
+            .join("");
+          const rows = [...box.querySelectorAll(".frow")];
+          const ta = document.getElementById("tot-add"),
+            tr = document.getElementById("tot-rem"),
+            tf = document.getElementById("tot-files");
+          function frame(t) {
+            let A = 0,
+              R = 0,
+              F = 0;
+            rows.forEach((row) => {
+              const f = FILES[+row.dataset.i],
+                on = f.t <= t;
+              row.classList.toggle("off", !on);
+              const [ia, ir] = row.querySelectorAll("i");
+              ia.style.width = (on ? (f.a / MAX) * 100 : 0) + "%";
+              ir.style.width = (on ? (f.r / MAX) * 100 : 0) + "%";
+              if (on) {
+                A += f.a;
+                R += f.r;
+                F++;
+              }
+            });
+            ta.textContent = "+" + A;
+            tr.textContent = "−" + R;
+            tf.textContent = F;
+          }
+          player(document.getElementById("fig-diff"), { from: 145, to: 195, ms: 9000, frame });
+        })();
+
+        // ---------- 5. fixtures ----------
+        (function () {
+          const svg = document.getElementById("fix");
+          const STEPS = [
+            {
+              title: "The contract lives outside both repos",
+              text: "The spec phase wrote greeting.schema.json and greeting.example.json into the OpenFleet project folder. Each child works in a git worktree, which is a checkout of its own repo.",
+            },
+            {
+              title: "A relative path works today…",
+              text: "From the api worktree, the contracts are at ../../contracts, so a test could simply read them from there. <q>The worktree is …/worktrees/api and the contracts are at …/projects/greeting-lang/contracts.</q>",
+            },
+            {
+              title: "…and breaks after merge",
+              text: "Once the branch merges into the real api repo, there is no ../../contracts. npm test would fail on every machine but this one. <q>That breaks once the branch is merged into the real api repo.</q>",
+            },
+            {
+              title: "Decision: copy them in",
+              text: "The coordinator told the api implementer to copy the two files into test/fixtures/; the web plan already did. Each repo’s npm test is now self-contained, with no env vars and no extra round trip to the planners.",
+            },
+            {
+              title: "Testers check for drift",
+              text: "Copies can drift from the originals, which the web planner flagged as a risk. Both testers diffed test/fixtures/ against contracts/ and found the files identical.",
+            },
+          ];
+          const repo = (bx, by, bw, bh) => ({
+            box: [bx, by, bw, bh],
+            title: [bx + 20, by + 30],
+            sub: [bx + 20, by + 56],
+            slot: [bx + 20, by + 68, bw - 40, bh - 80],
+            slotL: [bx + 30, by + 86],
+            ok: [bx + bw - 20, by + 32],
+            copies: [
+              [bx + 45, by + 72],
+              [bx + 45, by + 110],
+            ],
+          });
+          const LAYOUT = {
+            wide: {
+              w: 1000,
+              h: 400,
+              minW: 680,
+              cBox: [330, 20, 340, 140],
+              cTitle: [350, 50],
+              chips: [
+                [365, 66],
+                [365, 110],
+              ],
+              api: repo(40, 220, 340, 160),
+              web: repo(620, 220, 340, 160),
+              rel: "M210 220 C210 180 280 160 330 140",
+              relL: [150, 190, "start"],
+              brokeC: [262, 166],
+              brokeL: [40, 208, "PATH NOT FOUND AFTER MERGE"],
+            },
+            narrow: {
+              w: 400,
+              h: 600,
+              minW: 0,
+              cBox: [30, 14, 340, 132],
+              cTitle: [46, 42],
+              chips: [
+                [65, 56],
+                [65, 98],
+              ],
+              api: repo(20, 200, 360, 170),
+              web: repo(20, 412, 360, 170),
+              rel: "M200 200 L200 150",
+              relL: [188, 182, "end"],
+              brokeC: [200, 175],
+              brokeL: [226, 180, "BREAKS AFTER MERGE"],
+            },
+          };
+          const stepsEl = document.getElementById("fixsteps"),
+            cap = document.getElementById("fixcap");
+          stepsEl.innerHTML = STEPS.map(
+            (s, i) => `<button class="btn ghost" type="button" data-step="${i}" aria-pressed="false">${i + 1}</button>`,
+          ).join("");
+          const btns = [...stepsEl.querySelectorAll("button")];
+          let L,
+            cur = 4;
+          const q = (s) => svg.querySelector(s);
+          const chipAt = (id, [x, y], label, hidden) =>
+            `<g id="${id}" class="chip" style="transform:translate(${x}px,${y}px)${hidden ? ";opacity:0" : ""}"><rect width="270" height="${hidden ? 30 : 34}" rx="8" class="f-card s-ink" stroke-width="2"/><text x="14" y="${hidden ? 20 : 22}" font-size="14" class="t-ink mono-t">${label}</text></g>`;
+          function build() {
+            L = isNarrow() ? LAYOUT.narrow : LAYOUT.wide;
+            let h = "";
+            const [cx, cy, cw, ch] = L.cBox;
+            h += `<rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="16" class="f-raised s-yel" stroke-width="2"/>`;
+            h += `<text x="${L.cTitle[0]}" y="${L.cTitle[1]}" font-size="14" class="t-yel mono-t">projects/greeting-lang/contracts/</text>`;
+            h += chipAt("c1", L.chips[0], "greeting.schema.json") + chipAt("c2", L.chips[1], "greeting.example.json");
+            [
+              ["api", "cyan"],
+              ["web", "mag"],
+            ].forEach(([r, c]) => {
+              const R = L[r];
+              h += `<rect x="${R.box[0]}" y="${R.box[1]}" width="${R.box[2]}" height="${R.box[3]}" rx="16" class="f-raised s-${c}" stroke-width="2"/>`;
+              h += `<text x="${R.title[0]}" y="${R.title[1]}" font-size="14" class="t-${c} mono-t">worktrees/${r}</text>`;
+              h += `<text x="${R.sub[0]}" y="${R.sub[1]}" font-size="13" class="t-muted mono-t">src/ · README.md · test/</text>`;
+              h += `<rect x="${R.slot[0]}" y="${R.slot[1]}" width="${R.slot[2]}" height="${R.slot[3]}" rx="10" fill="none" class="s-line" stroke-width="2" stroke-dasharray="6 6"/>`;
+              h += `<text x="${R.slotL[0]}" y="${R.slotL[1]}" font-size="12" class="t-muted mono-t fade slotl-${r}">test/fixtures/</text>`;
+              h += `<g class="fade ok-${r}" style="opacity:0"><text x="${R.ok[0]}" y="${R.ok[1]}" text-anchor="end" font-size="13" class="t-yel disp-t">IDENTICAL ✓</text></g>`;
+            });
+            h += `<g class="fade rel" style="opacity:0"><path d="${L.rel}" fill="none" class="s-fg" stroke-width="2" stroke-dasharray="5 5"/><text x="${L.relL[0]}" y="${L.relL[1]}" text-anchor="${L.relL[2]}" font-size="14" class="t-fg mono-t">../../contracts</text></g>`;
+            h += `<g class="fade broke" style="opacity:0"><circle cx="${L.brokeC[0]}" cy="${L.brokeC[1]}" r="15" class="f-yel s-ink" stroke-width="2"/><text x="${L.brokeC[0]}" y="${L.brokeC[1] + 6}" text-anchor="middle" font-size="17" class="t-ink disp-t">✗</text><text x="${L.brokeL[0]}" y="${L.brokeL[1]}" font-size="12" class="t-yel disp-t">${L.brokeL[2]}</text></g>`;
+            h +=
+              chipAt("a1", L.chips[0], "greeting.schema.json", true) +
+              chipAt("a2", L.chips[1], "greeting.example.json", true);
+            h +=
+              chipAt("w1", L.chips[0], "greeting.schema.json", true) +
+              chipAt("w2", L.chips[1], "greeting.example.json", true);
+            setBox(svg, L.w, L.h, L.minW);
+            svg.innerHTML = h;
+            show(cur);
+          }
+          function show(i) {
+            cur = i;
+            btns.forEach((b, k) => b.setAttribute("aria-pressed", k === i ? "true" : "false"));
+            cap.innerHTML = `<h3>${i + 1} · ${STEPS[i].title.toUpperCase()}</h3><p>${STEPS[i].text}</p>`;
+            q(".rel").style.opacity = i === 1 || i === 2 ? 1 : 0;
+            q(".broke").style.opacity = i === 2 ? 1 : 0;
+            const copied = i >= 3;
+            [
+              ["a1", "api", 0],
+              ["a2", "api", 1],
+              ["w1", "web", 0],
+              ["w2", "web", 1],
+            ].forEach(([id, r, k]) => {
+              const g = q("#" + id),
+                to = L[r].copies[k],
+                from = L.chips[k];
+              g.style.opacity = copied ? 1 : 0;
+              g.style.transform = `translate(${(copied ? to : from)[0]}px, ${(copied ? to : from)[1]}px)`;
+            });
+            ["api", "web"].forEach((r) => {
+              q(".slotl-" + r).style.opacity = copied ? 0 : 1;
+              q(".ok-" + r).style.opacity = i === 4 ? 1 : 0;
+            });
+          }
+          btns.forEach((b, i) =>
+            b.addEventListener("click", () => {
+              stopAuto();
+              show(i);
+            }),
+          );
+          let timer = 0;
+          const playBtn = document.getElementById("fixplay");
+          function stopAuto() {
+            clearInterval(timer);
+            timer = 0;
+            playBtn.textContent = "▶ PLAY";
+          }
+          playBtn.addEventListener("click", () => {
+            if (timer) {
+              stopAuto();
+              return;
+            }
+            show(0);
+            playBtn.textContent = "❚❚ PAUSE";
+            timer = setInterval(
+              () => {
+                if (cur + 1 >= STEPS.length) {
+                  stopAuto();
+                  return;
+                }
+                show(cur + 1);
+              },
+              reduce ? 1200 : 2600,
+            );
+          });
+          build();
+          onMode(build);
+        })();
+
+        // ---------- 6. playground ----------
+        (function () {
+          const MESSAGES = { en: "Hello", es: "Hola", fr: "Bonjour" };
+          const ROWS = [
+            ["(no query)", ""],
+            ["?lang=en", "en"],
+            ["?lang=es", "es"],
+            ["?lang=fr", "fr"],
+            ["?lang=xx", "xx"],
+          ];
+          const rowsEl = document.getElementById("rows");
+          rowsEl.innerHTML =
+            ROWS.map(
+              (r, i) => `<button class="btn ghost" type="button" data-row="${i}" aria-pressed="false">${r[0]}</button>`,
+            ).join("") +
+            `<label for="custom-lang" class="mono" style="font-size:14px;color:var(--muted)">lang=</label><input id="custom-lang" type="text" placeholder="de" maxlength="20" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="runall">RUN ALL 5</button>`;
+          const btns = [...rowsEl.querySelectorAll("[data-row]")];
+          const greeting = (lang) => {
+            const l = lang && Object.prototype.hasOwnProperty.call(MESSAGES, lang) ? lang : "en";
+            return { message: MESSAGES[l], language: l };
+          };
+          const $ = (id) => document.getElementById(id);
+          let timers = [];
+          function run(lang, idx) {
+            timers.forEach(clearTimeout);
+            timers = [];
+            btns.forEach((b, k) => b.setAttribute("aria-pressed", k === idx ? "true" : "false"));
+            const url = "/greeting" + (lang ? "?lang=" + encodeURIComponent(lang) : "");
+            const body = greeting(lang);
+            const fell = lang !== body.language;
+            $("req").textContent = "GET " + url;
+            $("req-note").textContent = lang
+              ? "adds ?lang= because a language was given"
+              : "no language given, so no query string";
+            $("res").textContent = "200  " + JSON.stringify(body);
+            $("res-note").textContent =
+              fell && lang
+                ? `“${lang}” isn’t supported, so it falls back to en`
+                : lang
+                  ? "supported language"
+                  : "defaults to en";
+            const htmlStr = `<h1>${body.message}</h1><p>Language: ${body.language}</p>`;
+            $("html").textContent = htmlStr;
+            const out = $("out");
+            out.innerHTML = "";
+            const h4 = document.createElement("h4");
+            h4.textContent = body.message;
+            const p = document.createElement("p");
+            p.textContent = "Language: " + body.language;
+            out.append(h4, p);
+            const st = ["st-req", "st-api", "st-web"].map($);
+            st.forEach((s) => s.classList.remove("lit"));
+            if (reduce) return;
+            st.forEach((s, k) => {
+              timers.push(
+                setTimeout(() => {
+                  st.forEach((x) => x.classList.remove("lit"));
+                  s.classList.add("lit");
+                }, k * 380),
+              );
+            });
+            timers.push(setTimeout(() => st.forEach((x) => x.classList.remove("lit")), 3 * 380 + 500));
+          }
+          btns.forEach((b, i) =>
+            b.addEventListener("click", () => {
+              $("custom-lang").value = "";
+              run(ROWS[i][1], i);
+            }),
+          );
+          $("custom-lang").addEventListener("input", (e) => run(e.target.value, -1));
+          // tallies
+          const cells = (id, n, contract) => {
+            $(id).innerHTML = Array.from(
+              { length: n },
+              (_, i) => `<i class="${i < contract ? "contract" : ""}"></i>`,
+            ).join("");
+            return [...$(id).children];
+          };
+          const apiC = cells("api-cells", 13, 5),
+            webC = cells("web-cells", 11, 5);
+          function fillAll(on) {
+            apiC.concat(webC).forEach((c) => c.classList.toggle("on", on));
+            $("api-score").textContent = on ? "13/13 PASS" : "";
+            $("web-score").textContent = on ? "11/11 PASS" : "";
+          }
+          fillAll(true);
+          $("runall").addEventListener("click", () => {
+            timers.forEach(clearTimeout);
+            fillAll(false);
+            let k = 0;
+            const step = reduce ? 0 : 900;
+            ROWS.forEach((r, i) => setTimeout(() => run(r[1], i), i * step));
+            const total = Math.max(apiC.length, webC.length);
+            for (let i = 0; i < total; i++)
+              setTimeout(
+                () => {
+                  if (apiC[i]) apiC[i].classList.add("on");
+                  if (webC[i]) webC[i].classList.add("on");
+                  $("api-score").textContent = Math.min(i + 1, 13) + "/13";
+                  $("web-score").textContent = Math.min(i + 1, 11) + "/11";
+                  if (i === total - 1) {
+                    $("api-score").textContent = "13/13 PASS";
+                    $("web-score").textContent = "11/11 PASS";
+                  }
+                },
+                reduce ? 0 : 200 + i * 330,
+              );
+          });
+          run("es", 2);
+        })();
+      })();
+    </script>
+  </body>
+</html>
