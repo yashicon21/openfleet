@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { packageVersion } from "./core.js";
 import { cmdAdd, cmdExtensions, cmdRemove, runExtensionCommand } from "./commands/extensions.js";
+import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
@@ -34,6 +35,9 @@ Agent helpers (used by OpenFleet agents)
   state <project> [--patch <json>] [--actor <a>]
   event <project> --type <t> [--actor <a>] [--target <child>] [--payload <json>] [--patch-file <f>]
   worktree <project> <child> --repo <key> --branch <b> [--package <p>] [--base <ref>]
+  ext plan <project> <slot> [--child <id>]
+  ext result <project> <extension> --slot <s> [--child <id>] --report <json>
+  ext fail <project> <extension> --slot <s> [--child <id>] --reason <text>
 
   help, version
 Sessions auto-approve tool use (\`--allow-all-tools\`). File access stays limited to the workspace,
@@ -116,6 +120,15 @@ export function run(argv: string[]): number {
         base: { type: "string" },
       });
       return cmdWorktree(positionals, values);
+    }
+    case "ext": {
+      const { values, positionals } = parse(rest, {
+        child: { type: "string" },
+        slot: { type: "string" },
+        report: { type: "string" },
+        reason: { type: "string" },
+      });
+      return cmdExt(positionals, values);
     }
     default: {
       const ask = rest.includes("--ask");

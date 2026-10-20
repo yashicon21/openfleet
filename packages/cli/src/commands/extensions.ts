@@ -1,6 +1,6 @@
 import { syncExtensions, installedCoreVersion, packageVersion } from "../core.js";
 import { readCoreIndex } from "../coreindex.js";
-import { addExtension, describePermissions, readLock, removeExtension } from "../extensions.js";
+import { addExtension, describePermissions, phaseAgentNames, readLock, removeExtension } from "../extensions.js";
 import { launch } from "../launcher.js";
 import { requireWorkspace, UserError } from "../workspace.js";
 import { out, warn } from "./output.js";
@@ -15,11 +15,14 @@ export function cmdAdd(args: string[]): number {
   out(
     `${replaced ? "Updated" : "Added"} extension ${manifest.name}@${manifest.version} (${entry.sha === "local" ? "local" : entry.sha.slice(0, 12)}).`,
   );
-  out(
-    manifest.mode === "phase"
-      ? `Mode: phase, slot ${manifest.slot} (runs as agent openfleet:openfleet-ext-${manifest.name}).`
-      : `Mode: augment, appended to the ${manifest.role} agent's instructions.`,
-  );
+  const agents = phaseAgentNames(manifest);
+  (manifest.phases ?? []).forEach((p, i) => {
+    const extra = [p.blocking ? "blocking" : "advisory", p.when ? `when ${p.when.files.join(", ")}` : ""];
+    out(`Phase: ${p.slot} (${extra.filter(Boolean).join(", ")}) runs as agent openfleet:${agents[i]}.`);
+  });
+  for (const a of manifest.augments ?? []) out(`Augment: appended to the ${a.role} agent's instructions.`);
+  const settings = Object.keys(manifest.settings ?? {});
+  if (settings.length) out(`Settings: ${settings.join(", ")} (override in openfleet/extensions.config.json).`);
   out("Declared permissions:");
   out(describePermissions(manifest));
   const cmds = Object.keys(manifest.commands ?? {});
@@ -60,7 +63,8 @@ export function runExtensionCommand(
   opts: { ask?: boolean } = {},
 ): number | undefined {
   const ws = requireWorkspace();
-  const cmd = readCoreIndex(ws)?.commands[command];
+  if (!readCoreIndex(ws)?.commands[command]) return undefined;
+  const cmd = syncExtensions(ws, warn).commands[command];
   if (!cmd) return undefined;
   const prompt = [
     `Run the OpenFleet extension command \`openfleet ${command}\` from extension \`${cmd.extension}\`.`,

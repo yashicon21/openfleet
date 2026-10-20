@@ -50,4 +50,12 @@ Parse this block to decide the next step. If the block is missing, use `write_ag
 
 ## Extensions
 
-`openfleet/core/extensions.json` lists the phase extensions for each slot (`pre-spec`, `post-plan`, `post-test`, `post-run`). At each slot, run each listed `agent` in order (for example `openfleet:openfleet-ext-<name>`). Give it the project name and the relevant child id. Log `extension.ran` with its summary. Phase extensions are advisory: an extension failure never blocks the run. Report the failure and continue.
+`openfleet/core/extensions.json` lists the phase entries for each slot (`pre-spec`, `post-plan`, `post-test`, `post-run`). Each entry has an `agent` (for example `openfleet:openfleet-ext-<name>-<slot>`), `blocking`, an optional `when.files` and `timeoutMinutes`. Run a slot like this:
+
+1. `npx openfleet ext plan <project> <slot> [--child <id>]` prints the entries to `run` and logs `extension.skipped` for entries whose `when.files` do not exist. Never run a skipped entry.
+2. Spawn each `run` entry's agent in order. Give it the project name and, for `post-plan`/`post-test`, the child id and worktree. If it runs past `timeoutMinutes`, stop it and treat the attempt as failed.
+3. Record its `openfleet-report` block with `npx openfleet ext result <project> <extension> --slot <slot> [--child <id>] --report '<json>'`. This logs `extension.ran`, stores `outputs` and `followUps` on the child, and sets the child's `prUrl` from an output named `prUrl`.
+4. **Advisory** entries (`blocking: false`): a failure is reported and the run continues.
+5. **Blocking** entries (`blocking: true`, `post-plan`/`post-test` only): on a failure or timeout, spawn a **fresh** agent for the entry once. If that also fails, run `npx openfleet ext fail <project> <extension> --slot <slot> --child <id> --reason '<why>'`. This marks the child `failed`, blocks its dependents and logs `extension.failed` and `child.failed`. Then continue with the other children.
+
+A child reaches `done` only after all of its `post-test` entries have finished, so dependents never start before a blocking `post-test` entry succeeds. The spawn hook injects recorded outputs into the planner, implementer and tester prompts of every dependent child as "Upstream outputs".

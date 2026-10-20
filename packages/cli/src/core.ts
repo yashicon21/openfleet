@@ -2,7 +2,21 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { qualifiedAgentName } from "./attribution.js";
-import { loadExtensions, permissionsOf, ROLES, SLOTS, toolsFor, type LoadedExtension } from "./extensions.js";
+import {
+  DEFAULT_TIMEOUT_MINUTES,
+  loadExtensions,
+  permissionsOf,
+  phaseAgentNames,
+  readExtensionsConfig,
+  resolveSettings,
+  ROLES,
+  settingsSection,
+  SLOTS,
+  toolsFor,
+  type ExtensionManifest,
+  type LoadedExtension,
+  type PhaseEntry,
+} from "./extensions.js";
 import type { CoreIndex } from "./coreindex.js";
 import { copyDir, readJson, writeFileAtomic, writeJson } from "./fsutil.js";
 import type { Workspace } from "./workspace.js";
@@ -58,22 +72,89 @@ function frontmatter(fields: Record<string, unknown>): string {
   return `---\n${lines.join("\n")}\n---\n`;
 }
 
-function readInstructions(ext: LoadedExtension): string {
-  return fs.readFileSync(path.join(ext.dir, ext.manifest.instructions ?? "instructions.md"), "utf8").trim();
+function readMd(ext: LoadedExtension, rel: string): string {
+  return fs.readFileSync(path.join(ext.dir, rel), "utf8").trim();
 }
 
-function extAgentName(ext: string): string {
+/** Agent used by an extension's CLI commands. */
+export function commandAgentName(ext: string): string {
   return `${AGENT_PREFIX}ext-${ext}`;
+}
+
+const REPORT_PROTOCOL = [
+  "## Report",
+  "",
+  "End your final reply with exactly one fenced block:",
+  "",
+  "````",
+  "```openfleet-report",
+  '{"status": "done" | "failed", "summary": "…", "outputs": {"<key>": "<string>"}, "followUps": ["…"]}',
+  "```",
+  "````",
+  "",
+  "- `outputs` (optional): flat string values only. OpenFleet records them on the child and injects them into the",
+  "  prompts of every child that depends on it. An output named `prUrl` marks the pull request you opened for this",
+  "  child; finalize then updates that PR instead of opening a new one.",
+  "- `followUps` (optional): short reminders for people after the run. They are listed in the run summary and in",
+  "  the child's PR body.",
+].join("\n");
+
+function phaseAgentBody(ext: LoadedExtension, entry: PhaseEntry, settings: string): string {
+  const m = ext.manifest;
+  const perms = permissionsOf(m);
+  const facts = [
+    `- slot: \`${entry.slot}\``,
+    `- blocking: ${entry.blocking ? "yes. If you fail, the child fails" : "no (advisory)"}`,
+    `- time limit: ${entry.timeoutMinutes ?? DEFAULT_TIMEOUT_MINUTES} minutes`,
+    entry.when ? `- runs only when one of these exists: ${entry.when.files.map((f) => `\`${f}\``).join(", ")}` : "",
+  ].filter(Boolean);
+  return [
+    `You are the OpenFleet extension **${m.name}**, running in the \`${entry.slot}\` phase slot.`,
+    "",
+    ...facts,
+    "",
+    `Declared permissions: ${perms.join(", ")}. Do not attempt actions outside these permissions.`,
+    "The OpenFleet workspace is the current working directory; project data lives in `openfleet/projects/<name>/`",
+    "(spec.md, state.json, events.jsonl, contracts/). Treat events.jsonl as append-only and never edit it.",
+    "The coordinator's prompt names the project and, for per-child slots, the child id and its worktree.",
+    "",
+    REPORT_PROTOCOL,
+    settings ? `\n${settings}` : "",
+    "",
+    readMd(ext, entry.instructions),
+  ].join("\n");
+}
+
+function commandAgentBody(m: ExtensionManifest, settings: string): string {
+  return [
+    `You are the OpenFleet extension **${m.name}**, running one of its CLI commands.`,
+    "",
+    `Declared permissions: ${permissionsOf(m).join(", ")}. Do not attempt actions outside these permissions.`,
+    "The OpenFleet workspace is the current working directory; project data lives in `openfleet/projects/<name>/`",
+    "(spec.md, state.json, events.jsonl, contracts/). Treat events.jsonl as append-only and never edit it.",
+    "When you finish, reply with a concise summary of what you produced.",
+    settings ? `\n${settings}` : "",
+  ].join("\n");
 }
 
 /**
  * Regenerate everything in core that depends on installed extensions:
- * role agents (template + augment instructions), one agent per extension,
- * command skills and `extensions.json`.
+ * role agents (template + augment instructions), one agent per phase entry,
+ * a command agent and skills per extension with commands, and `extensions.json`.
  */
 export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () => {}): CoreIndex {
   const coreVersion = installedCoreVersion(ws) ?? packageVersion();
   const exts = loadExtensions(ws, warn);
+  const config = readExtensionsConfig(ws);
+  const installed = new Set(exts.map((e) => e.manifest.name));
+  for (const name of Object.keys(config)) {
+    if (!installed.has(name))
+      warn(`openfleet/extensions.config.json has settings for "${name}", which is not installed.`);
+  }
+  const resolved = new Map(exts.map((e) => [e.manifest.name, resolveSettings(e.manifest, config)]));
+  const sections = new Map(
+    exts.map((e) => [e.manifest.name, settingsSection(e.manifest, resolved.get(e.manifest.name)!)]),
+  );
   const agentsDir = path.join(ws.core, "agents");
   const skillsDir = path.join(ws.core, "skills");
   const templates = path.join(ws.core, "templates", "agents");
@@ -85,19 +166,27 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
   }
 
   const index: CoreIndex = {
-    v: 1,
+    v: 2,
     coreVersion,
     slots: Object.fromEntries(SLOTS.map((s) => [s, []])) as unknown as CoreIndex["slots"],
     augments: Object.fromEntries(ROLES.map((r) => [r, []])) as unknown as CoreIndex["augments"],
     commands: {},
+    settings: Object.fromEntries(
+      exts
+        .filter((e) => Object.keys(e.manifest.settings ?? {}).length)
+        .map((e) => [e.manifest.name, resolved.get(e.manifest.name)!]),
+    ),
   };
 
   for (const role of ROLES) {
     const file = `${AGENT_PREFIX}${role}.agent.md`;
     let body = fs.readFileSync(path.join(templates, file), "utf8").trimEnd() + "\n";
     for (const ext of exts) {
-      if (ext.manifest.mode !== "augment" || ext.manifest.role !== role) continue;
-      body += `\n## Extension: ${ext.manifest.name}\n\n${readInstructions(ext)}\n`;
+      const augments = (ext.manifest.augments ?? []).filter((a) => a.role === role);
+      if (!augments.length) continue;
+      const parts = augments.map((a) => readMd(ext, a.instructions));
+      const settings = sections.get(ext.manifest.name)!.replace(/^## Settings/, "### Settings");
+      body += `\n## Extension: ${ext.manifest.name}\n\n${parts.join("\n\n")}\n${settings ? `\n${settings}\n` : ""}`;
       index.augments[role].push(ext.manifest.name);
     }
     if (body.length > MAX_AGENT_PROMPT) {
@@ -110,46 +199,50 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
 
   for (const ext of exts) {
     const m = ext.manifest;
-    const agent = extAgentName(m.name);
-    const perms = permissionsOf(m);
-    const needsAgent = m.mode === "phase" || Object.keys(m.commands ?? {}).length > 0;
-    if (needsAgent) {
+    const tools = toolsFor(permissionsOf(m));
+    const settings = sections.get(m.name)!;
+    const names = phaseAgentNames(m);
+    (m.phases ?? []).forEach((entry, i) => {
+      const agent = names[i]!;
       const header = frontmatter({
         name: agent,
-        description: m.description ?? `OpenFleet extension ${m.name}`,
-        tools: toolsFor(perms),
+        description: `${m.description ?? `OpenFleet extension ${m.name}`} (${entry.slot} phase)`,
+        tools,
       });
-      const role =
-        m.mode === "phase"
-          ? `You are the OpenFleet extension **${m.name}**, running in the \`${m.slot}\` phase slot.`
-          : `You are the OpenFleet extension **${m.name}**, running one of its CLI commands.`;
-      const body = [
-        header,
-        role,
-        "",
-        `Declared permissions: ${perms.join(", ")}. Do not attempt actions outside these permissions.`,
-        "The OpenFleet workspace is the current working directory; project data lives in `openfleet/projects/<name>/`",
-        "(spec.md, state.json, events.jsonl, contracts/). Treat events.jsonl as append-only and never edit it.",
-        "When you finish, reply with a concise summary of what you produced.",
-        "",
-        m.mode === "phase" ? readInstructions(ext) : "",
-      ].join("\n");
-      writeFileAtomic(path.join(agentsDir, `${agent}.agent.md`), body.trimEnd() + "\n");
-    }
-    if (m.mode === "phase" && m.slot) index.slots[m.slot].push({ extension: m.name, agent: qualifiedAgentName(agent) });
-    for (const [cmd, rel] of Object.entries(m.commands ?? {})) {
+      writeFileAtomic(
+        path.join(agentsDir, `${agent}.agent.md`),
+        header + phaseAgentBody(ext, entry, settings).trimEnd() + "\n",
+      );
+      index.slots[entry.slot].push({
+        extension: m.name,
+        agent: qualifiedAgentName(agent),
+        blocking: entry.blocking ?? false,
+        ...(entry.when ? { when: { files: [...entry.when.files] } } : {}),
+        timeoutMinutes: entry.timeoutMinutes ?? DEFAULT_TIMEOUT_MINUTES,
+      });
+    });
+    const commands = Object.entries(m.commands ?? {});
+    if (!commands.length) continue;
+    const agent = commandAgentName(m.name);
+    writeFileAtomic(
+      path.join(agentsDir, `${agent}.agent.md`),
+      frontmatter({ name: agent, description: m.description ?? `OpenFleet extension ${m.name}`, tools }) +
+        commandAgentBody(m, settings).trimEnd() +
+        "\n",
+    );
+    for (const [cmd, rel] of commands) {
       if (index.commands[cmd]) {
         warn(`Command "${cmd}" from extension "${m.name}" shadows "${index.commands[cmd].extension}"; ignoring.`);
         continue;
       }
       const skill = `${AGENT_PREFIX}ext-${m.name}-${cmd}`;
-      const content = fs.readFileSync(path.join(ext.dir, rel), "utf8").trim();
       writeFileAtomic(
         path.join(skillsDir, skill, "SKILL.md"),
         frontmatter({ name: skill, description: `OpenFleet extension ${m.name}: \`openfleet ${cmd}\` command.` }) +
           "\n" +
-          content +
-          "\n",
+          readMd(ext, rel) +
+          "\n" +
+          (settings ? `\n${settings}\n` : ""),
       );
       index.commands[cmd] = { extension: m.name, agent: qualifiedAgentName(agent), skill };
     }

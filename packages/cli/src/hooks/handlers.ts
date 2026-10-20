@@ -2,10 +2,10 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { actorFor, bareAgentName, candidateProjects, locatePath, roleFromAgentName, roleOf } from "../attribution.js";
-import { readCoreIndex } from "../coreindex.js";
+import { findSlotEntry, readCoreIndex } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { filePatch, snapshotWorktree, type FileKind } from "../git.js";
-import { readState, updateState, type ChildState, type ProjectState, type Role } from "../state.js";
+import { dependenciesOf, readState, updateState, type ChildState, type ProjectState, type Role } from "../state.js";
 import { findWorkspace, projectPaths, type ProjectPaths, type Workspace } from "../workspace.js";
 
 export interface HookPayload {
@@ -105,9 +105,49 @@ export function onSessionEnd(ctx: HookContext, payload: HookPayload): HookOutput
 
 // ---------------------------------------------------------------- subagents
 
-function extName(agentName: string | undefined): string | undefined {
+/** Extension name for an `openfleet-ext-*` agent: phase agents via the core index, else the command agent. */
+function extName(ctx: HookContext, agentName: string | undefined): string | undefined {
   const bare = bareAgentName(agentName);
-  return bare?.startsWith("openfleet-ext-") ? bare.slice("openfleet-ext-".length) : undefined;
+  if (!bare?.startsWith("openfleet-ext-")) return undefined;
+  const index = readCoreIndex(ctx.ws);
+  if (index) {
+    const entry = findSlotEntry(index, bare);
+    if (entry) return entry.extension;
+    const cmd = Object.values(index.commands).find((c) => bareAgentName(c.agent) === bare);
+    if (cmd) return cmd.extension;
+  }
+  return bare.slice("openfleet-ext-".length);
+}
+
+function cell(s: string): string {
+  return s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+
+/**
+ * Outputs that extensions recorded on the children this child depends on, directly
+ * or transitively. Injected deterministically so planners, implementers and testers
+ * of dependents see them without relying on the coordinator to relay them.
+ */
+export function upstreamOutputs(state: ProjectState, childId: string): string {
+  const rows: string[] = [];
+  for (const dep of dependenciesOf(state, childId)) {
+    for (const [ext, values] of Object.entries(state.children[dep]?.outputs ?? {})) {
+      for (const [key, value] of Object.entries(values)) {
+        rows.push(`| ${cell(dep)} | ${cell(ext)} | \`${cell(key)}\` | ${cell(value)} |`);
+      }
+    }
+  }
+  if (!rows.length) return "";
+  return [
+    "## Upstream outputs",
+    "",
+    "Values recorded by extensions on the children this child depends on (directly or transitively).",
+    "Use them exactly as given (for example, pin a published version). Do not guess other values.",
+    "",
+    "| Child | Extension | Key | Value |",
+    "| ----- | --------- | --- | ----- |",
+    ...rows,
+  ].join("\n");
 }
 
 function pickPending(state: ProjectState, role: Role): string | undefined {
@@ -117,7 +157,9 @@ function pickPending(state: ProjectState, role: Role): string | undefined {
   return ids[0];
 }
 
-function childContext(p: ProjectPaths, childId: string, child: ChildState, role: Role): string {
+function childContext(p: ProjectPaths, state: ProjectState, childId: string, role: Role): string {
+  const child = state.children[childId]!;
+  const upstream = upstreamOutputs(state, childId);
   return [
     `# OpenFleet assignment`,
     `- project: ${p.name}`,
@@ -128,6 +170,7 @@ function childContext(p: ProjectPaths, childId: string, child: ChildState, role:
     `- spec: ${p.spec}`,
     `- contracts: ${p.contracts}`,
     child.plan ? `- approved plan: ${child.plan}` : "",
+    upstream ? `\n${upstream}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -135,7 +178,7 @@ function childContext(p: ProjectPaths, childId: string, child: ChildState, role:
 
 export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOutput {
   const role = roleFromAgentName(payload.agentName);
-  const ext = extName(payload.agentName);
+  const ext = extName(ctx, payload.agentName);
   if (!role && !ext) return {};
   const p = activeProject(ctx);
   if (!p) return {};
@@ -165,7 +208,7 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     payload: { agentName: payload.agentName ?? null, agentDisplayName: payload.agentDisplayName ?? null },
   });
   if (!childId) return {};
-  return { additionalContext: childContext(p, childId, state.children[childId]!, role as Role) };
+  return { additionalContext: childContext(p, state, childId, role as Role) };
 }
 
 function snapshotChild(p: ProjectPaths, childId: string, child: ChildState, actor: string, at: string): void {
@@ -203,7 +246,7 @@ function snapshotChild(p: ProjectPaths, childId: string, child: ChildState, acto
 
 export function onSubagentStop(ctx: HookContext, payload: HookPayload): HookOutput {
   const role = roleFromAgentName(payload.agentName);
-  const ext = extName(payload.agentName);
+  const ext = extName(ctx, payload.agentName);
   if (!role && !ext) return {};
   const p = activeProject(ctx);
   if (!p) return {};

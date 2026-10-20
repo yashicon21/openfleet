@@ -11,7 +11,7 @@ The goal is to collect everything that `openfleet-spec` needs, so that no child 
 
 - Read `openfleet/repos.json` (known repos and packages, with confirmed build/test commands).
 - Read the project's `state.json`. If `spec.md` already exists, you are refining it. Start from it.
-- If `openfleet/core/extensions.json` lists `pre-spec` agents, run them after step 4 (see the coordinator rules).
+- If `openfleet/core/extensions.json` lists `pre-spec` agents, run that slot after step 4 with `npx openfleet ext plan <project> pre-spec` (see the coordinator rules).
 
 ## 1. Goal
 

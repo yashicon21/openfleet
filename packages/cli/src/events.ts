@@ -33,6 +33,9 @@ export const EVENT_TYPES = [
   "child.failed",
   "run.completed",
   "extension.ran",
+  "extension.skipped",
+  "extension.outputs",
+  "extension.failed",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];
