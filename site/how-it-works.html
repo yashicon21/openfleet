@@ -627,6 +627,8 @@
 
       /* figures */
       figure.fig {
+        width: 100%;
+        box-sizing: border-box;
         background: var(--raised);
         border: 2px solid var(--line);
         border-radius: 28px;
@@ -924,6 +926,221 @@
         font-family: var(--mono);
         font-weight: 400;
         color: var(--fg);
+      }
+
+      /* part 1: example run */
+      .part {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-top: 72px;
+      }
+      .part .kicker {
+        margin: 0;
+      }
+      .part .prose {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+      .part h2 {
+        font-size: clamp(34px, 4.4vw, 52px);
+        line-height: 1.08;
+      }
+      .tag {
+        align-self: flex-start;
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--ink);
+      }
+      p.figcap code.wrap-ok {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      #hx-swim {
+        width: 100%;
+      }
+      .log.mmss li {
+        grid-template-columns: 36px minmax(0, 1fr);
+      }
+      .swleg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--muted);
+      }
+      .swleg span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .swleg i {
+        display: inline-block;
+        width: 18px;
+        height: 10px;
+        border-radius: 3px;
+      }
+      .swleg i.hatch {
+        background: repeating-linear-gradient(135deg, var(--yellow) 0 3px, var(--ink) 3px 5px);
+      }
+      .swleg i.ext {
+        box-shadow: inset 0 0 0 2px var(--fg);
+      }
+      .swleg i.fail {
+        background: #fff1cc;
+        box-shadow: inset 0 0 0 2px #8a5300;
+      }
+      .swleg i.dash {
+        height: 0;
+        border-top: 2px dashed var(--muted);
+        border-radius: 0;
+      }
+      .swleg i.dia {
+        width: 10px;
+        height: 10px;
+        margin-inline: 4px;
+        border-radius: 1px;
+        background: var(--fg);
+        transform: rotate(45deg);
+      }
+      .swleg i.dia.k {
+        background: #fff1cc;
+        box-shadow: inset 0 0 0 2px #8a5300;
+      }
+      .swleg i.gate {
+        width: 2px;
+        height: 16px;
+        border-radius: 0;
+        background: var(--fg);
+      }
+      .panel {
+        background: var(--ground);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+      }
+      .panel h3 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .panel pre {
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 19px;
+        color: var(--fg);
+        overflow-x: auto;
+        white-space: pre;
+      }
+      .panel pre:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+      .panel pre .h {
+        color: var(--yellow);
+      }
+      .panel pre .m {
+        color: var(--muted);
+      }
+      .qa {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .qa li {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 2px 12px;
+        padding: 9px 0;
+        border-top: 2px solid var(--line);
+        font-size: 15px;
+        line-height: 22px;
+        color: #dcdbe0;
+      }
+      .qa li:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .qa b {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        padding-top: 2px;
+      }
+      .qa li.you {
+        color: var(--fg);
+        font-weight: 700;
+      }
+      .qa li.you b {
+        color: var(--fg);
+      }
+      .rows-t {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .rows-t li {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 4px 12px;
+        padding: 8px 0;
+        border-top: 2px solid var(--line);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--fg);
+      }
+      .rows-t li:first-child {
+        border-top: 0;
+      }
+      .rows-t .st {
+        font-family: var(--display);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: var(--raised-2);
+        color: var(--fg);
+        white-space: nowrap;
+      }
+      .rows-t .st.warn {
+        background: #fff1cc;
+        color: #8a5300;
+      }
+      .rows-t .st.ok {
+        background: var(--card);
+        color: var(--ink);
+      }
+      .rows-t .note {
+        flex-basis: 100%;
+        font-family: var(--sans);
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .gate-open {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--card);
+        border-radius: 12px;
+        padding: 10px 14px;
       }
 
       /* hub report */
@@ -1692,48 +1909,438 @@
     <div class="marquee" aria-hidden="true">
       <div class="band c">
         <span
-          >GREETING-LANG · RUN REPLAY · 63 EVENTS · 6 AGENTS · 2 REPOS · 3:47 · GREETING-LANG · RUN REPLAY · 63 EVENTS ·
-          6 AGENTS · 2 REPOS · 3:47 ·</span
+          >UI-KIT-V2 · EXAMPLE RUN · 6 CHILDREN · 3 REPOS · 3 DRAFT PRS · UI-KIT-V2 · EXAMPLE RUN · 6 CHILDREN · 3 REPOS
+          · 3 DRAFT PRS ·</span
         >
       </div>
       <div class="band m">
         <span
-          >PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST · PLAN · BUILD · TEST ·
-          PLAN · BUILD · TEST ·</span
+          >SPEC · PLAN · PLAN GATE · BASELINE · IMPLEMENT · TEST · MERGE · SPEC · PLAN · PLAN GATE · BASELINE ·
+          IMPLEMENT · TEST · MERGE ·</span
         >
       </div>
       <div class="band y">
         <span
-          >STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT COMMITTED · 24 / 24 TESTS PASS · STAGED · NOT
-          COMMITTED ·</span
+          >GREETING-LANG · A REAL RUN · 63 EVENTS · 24 / 24 TESTS PASS · GREETING-LANG · A REAL RUN · 63 EVENTS · 24 /
+          24 TESTS PASS ·</span
         >
       </div>
     </div>
 
     <header class="wrap">
       <div class="wide hero">
-        <p class="kicker">HOW IT WORKS · A REAL RUN, REPLAYED</p>
-        <h1>Two repos, six agents, <span class="lcd">3:47</span></h1>
+        <p class="kicker">HOW IT WORKS · AN EXAMPLE RUN, THEN A REAL ONE</p>
+        <h1>One prompt, three repos, <span class="lcd">8:05</span></h1>
         <p class="dek">
-          One prompt went into an agent CLI session: add a language field to the greeting API and show it in web. This
-          page replays what happened next, straight from the run’s event log. It’s the toy example in
-          <code>examples/demo</code>, so you can run the same thing yourself with <code>pnpm demo</code>.
+          Part 1 walks through an example run, step by step: the grill, the spec, a plan gate, baseline tests, one agent
+          per page, a library published for the apps that use it, and one PR per repo. Its events are mocked and its
+          timings are illustrative. Part 2 replays a smaller run that really happened, straight from its event log.
         </p>
-        <p class="byline">project greeting-lang · 17 Oct 2026 · 03:04:35 → 03:08:22 UTC</p>
+        <p class="byline">example run · project ui-kit-v2 · events are mocked</p>
       </div>
       <div class="wide stats">
-        <div class="stat"><b>3:47</b><span>START TO DONE</span></div>
-        <div class="stat"><b>63</b><span>EVENTS LOGGED</span></div>
-        <div class="stat"><b>6</b><span>SUB-AGENTS</span></div>
-        <div class="stat"><b>+232/−24</b><span>LINES, 13 FILES</span></div>
-        <div class="stat"><b>24/24</b><span>TESTS PASS</span></div>
+        <div class="stat"><b>8:05</b><span>EXAMPLE TIMELINE</span></div>
+        <div class="stat"><b>6</b><span>CHILDREN, 3 REPOS</span></div>
+        <div class="stat"><b>1</b><span>PLAN SENT BACK</span></div>
+        <div class="stat"><b>4</b><span>BASELINE SUITES</span></div>
+        <div class="stat"><b>3</b><span>DRAFT PRS</span></div>
       </div>
     </header>
 
     <main class="wrap" id="content">
       <article>
+        <section class="part col">
+          <p class="kicker">PART 1 · EXAMPLE RUN</p>
+          <h2>Moving two apps to ui-kit v2</h2>
+          <span class="tag">EXAMPLE RUN · EVENTS ARE MOCKED · TIMINGS ARE ILLUSTRATIVE</span>
+        </section>
+
         <section class="col prose">
-          <h2><small>01 · THE WHOLE RUN</small>Three minutes, eight lanes</h2>
+          <h2><small>1.1 · THE GRILL</small>Questions first, once</h2>
+          <p>
+            The prompt:
+            <q
+              >Move acme-web and acme-admin to ui-kit v2, one agent per page in acme-web. Every page must look and work
+              as it does today.</q
+            >
+            ui-kit lives in <code>shared-lib</code>, so that repo is in the run too.
+          </p>
+          <p>
+            The coordinator reads <code>repos.json</code> and the repos, then asks only what it can’t work out. It
+            proposes one child per page in acme-web, plus a <strong>setup</strong> child that adds the shared pieces the
+            pages need. It asks about any extension setting that has no value yet, and shows the workspace’s
+            <code>maxParallel</code>. Then it writes <code>spec.md</code>, including a <strong>Shared approach</strong>
+            that every plan has to follow.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-grill">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE · GRILL AND SPEC</span
+            >
+          </div>
+          <div class="diffgrid">
+            <div class="panel">
+              <h3>THE GRILL · EXCERPT</h3>
+              <ol class="qa">
+                <li>
+                  <b>ASKS</b
+                  ><span
+                    >acme-web has three pages under <code>app/</code>: settings, billing and profile. One child per
+                    page, plus a setup child for shared components?</span
+                  >
+                </li>
+                <li class="you"><b>YOU</b><span>Yes.</span></li>
+                <li>
+                  <b>ASKS</b
+                  ><span
+                    >Write Playwright baseline tests for each page and for acme-admin, on today’s code, before anything
+                    changes?</span
+                  >
+                </li>
+                <li class="you"><b>YOU</b><span>Yes, not for setup.</span></li>
+                <li>
+                  <b>ASKS</b
+                  ><span
+                    >The <code>publish</code> extension’s <code>label</code> setting has no value. Keep the default,
+                    <code>preview</code>?</span
+                  >
+                </li>
+                <li class="you"><b>YOU</b><span>Keep it.</span></li>
+                <li>
+                  <b>ASKS</b
+                  ><span><code>maxParallel</code> is 6 for this workspace, so 6 agents work at once. Keep it?</span>
+                </li>
+                <li class="you"><b>YOU</b><span>Keep it.</span></li>
+              </ol>
+            </div>
+            <div class="panel">
+              <h3>SPEC.MD · EXCERPT</h3>
+              <pre tabindex="0" aria-label="spec.md excerpt"><span class="h">## Children</span>
+shared-lib          ui-kit v2
+acme-admin          after shared-lib
+acme-web/setup      after shared-lib
+acme-web/settings   app/settings/**  after setup
+acme-web/billing    app/billing/**   after setup
+acme-web/profile    app/profile/**   after setup
+
+<span class="h">## Shared approach</span>
+- Import from ui-kit v2 only, never ui-kit/legacy.
+- Forms use ui-kit FormField and its validation.
+- Shared pieces go in acme-web/setup, not in a page.
+
+<span class="h">## Baselines</span>
+acme-admin and each acme-web page: Playwright,
+passing on the unchanged code.
+
+<span class="h">## Completion</span>
+draft PRs, cross-linked</pre>
+            </div>
+          </div>
+          <p class="figcap">
+            Your answer to the last question, “anything to change?”, starts the run. After that, agents ask the
+            coordinator, not you. acme-web has more than one child, so it gets its own repo coordinator.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>1.2 · THE WHOLE RUN</small>Eight minutes, seven lanes</h2>
+          <p>
+            Every planner starts at once, read-only. Nothing is implemented until all the plans pass the
+            <strong>plans-ready</strong> gate. Then the baseline tests run on the unchanged code, and children implement
+            and test in dependency order, never more than six agents at a time.
+          </p>
+          <p>
+            <code>shared-lib</code> has a blocking <code>post-test</code> extension that publishes a snapshot of ui-kit.
+            Everything else depends on shared-lib, so it waits for that version. The acme-web lane is its repo
+            coordinator: it merges each page into one integration branch and runs the full build and tests before the
+            PR.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-hx">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE RUN · UI-KIT-V2 · MOCKED EVENTS</span
+            >
+            <div class="controls">
+              <button class="btn" id="hx-play" type="button">▶ PLAY</button
+              ><input
+                type="range"
+                min="0"
+                max="1000"
+                value="1000"
+                id="hx-scrub"
+                aria-label="Scrub the example run timeline"
+              /><span class="clock" id="hx-clock">8:05</span>
+            </div>
+          </div>
+          <div class="split">
+            <div class="scroll-x">
+              <svg
+                id="hx-swim"
+                viewBox="0 0 1000 480"
+                role="img"
+                aria-label="Swimlane of the example run. All six planners run at once. The acme-web repo coordinator checks its page plans and sends the billing plan back as inconsistent; it is re-planned before the plans-ready gate. After the gate, acme-admin and the three acme-web pages write baseline tests on the unchanged code while shared-lib implements, tests and runs its blocking publish extension. The apps wait for the published version, then acme-admin and acme-web setup implement and test. setup is merged first, then the pages implement in parallel. profile fails a test once and retries. billing hits a merge conflict that its own implementer resolves. The repo coordinator runs the full build and tests on the integration branch, and the run finishes with three draft PRs."
+              ></svg>
+            </div>
+            <div class="log mmss" aria-live="off">
+              <h3>LATEST EVENTS</h3>
+              <ol id="hx-log"></ol>
+            </div>
+          </div>
+          <div class="swleg" aria-hidden="true">
+            <span><i style="background: var(--cyan)"></i>Plan</span><span><i class="hatch"></i>Baseline tests</span
+            ><span><i style="background: var(--magenta)"></i>Implement</span
+            ><span><i style="background: var(--yellow)"></i>Test</span
+            ><span><i class="fail"></i>Failed or rejected</span><span><i class="dash"></i>Waiting</span
+            ><span><i class="ext"></i>Extension</span><span><i style="background: var(--fg)"></i>Repo coordinator</span
+            ><span><i class="dia"></i>Merged</span><span><i class="dia k"></i>Merge conflict</span
+            ><span><i class="gate"></i>Plan gate</span>
+          </div>
+          <p class="figcap">
+            An example run: the events are mocked and the timings are illustrative. Lane names are child ids. Press play
+            to watch it, or drag the slider.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>1.3 · THE PLAN GATE</small>Every plan checked before any code changes</h2>
+          <p>
+            The gate has two levels. The acme-web repo coordinator checks its page plans against each other. The top
+            coordinator checks every plan against the spec’s Shared approach and against the plans in other repos.
+          </p>
+          <p>
+            Here the billing plan builds its own form field. That would leave acme-web with two. The plan goes back with
+            the reason, <code>FormField</code> is added to the setup child’s shared items, and billing re-plans to
+            import it. When every plan agrees, <code>plans.consistent</code> is logged, the
+            <code>plans-ready</code> extension slot runs, and the gate opens.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-gate">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE · PLANS-READY GATE</span
+            >
+          </div>
+          <div class="diffgrid">
+            <div class="panel">
+              <h3>PLANS · 6 CHILDREN</h3>
+              <ul class="rows-t">
+                <li>shared-lib <span class="st ok">VALIDATED</span></li>
+                <li>acme-admin <span class="st ok">VALIDATED</span></li>
+                <li>acme-web/setup <span class="st ok">RE-VALIDATED</span></li>
+                <li>acme-web/settings <span class="st ok">VALIDATED</span></li>
+                <li>
+                  acme-web/billing <span class="st warn">REJECTED · INCONSISTENT</span
+                  ><span class="note">Re-planned to import FormField from setup, then validated.</span>
+                </li>
+                <li>acme-web/profile <span class="st ok">VALIDATED</span></li>
+              </ul>
+            </div>
+            <div class="panel">
+              <h3>EVENTS.JSONL · EXCERPT</h3>
+              <pre tabindex="0" aria-label="Plan gate events">{"type": "plan.rejected",
+ "target": "acme-web/billing",
+ "payload": {"reason": <span class="h">"inconsistent"</span>,
+   "reasons": ["Builds its own FormField.
+     FormField is a shared item: setup
+     adds it, billing imports it."]}}
+
+{"type": "plans.consistent",
+ "payload": {"children": [6 ids],
+   "gateOpen": <span class="h">true</span>}}</pre>
+              <p class="gate-open">gate open · nothing was implemented before this</p>
+            </div>
+          </div>
+          <p class="figcap">
+            A question that would change a cross-repo contract or the Shared approach doesn’t get decided inside a repo.
+            The repo coordinator escalates it to the top coordinator, and only the children it affects wait.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>1.4 · BASELINE TESTS</small>Today’s behaviour, pinned first</h2>
+          <p>
+            Right after the gate, before waiting on shared-lib, a <strong>baseline</strong> agent for each page and for
+            acme-admin writes Playwright tests for the behaviour about to change. It runs them on the unchanged code and
+            fixes only the tests until they pass, then logs <code>baseline.passed</code>.
+          </p>
+          <p>
+            From then on the tests are protected. The tester checks them by file hash and fails the child on any edit
+            that the spec doesn’t list as a behaviour change. Each child also has its own range of ports for its dev
+            server, and gets a copy of <code>.env.local</code> from the repo’s checkout. That file is never committed
+            and its values are redacted from the event log.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-base">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE · BASELINE AND WORKTREE</span
+            >
+          </div>
+          <div class="diffgrid">
+            <div class="panel">
+              <h3>BASELINE SUITES · ON THE UNCHANGED CODE</h3>
+              <ul class="rows-t">
+                <li>acme-admin <span class="st ok">6 PASS</span></li>
+                <li>acme-web/settings <span class="st ok">7 PASS</span></li>
+                <li>acme-web/billing <span class="st ok">9 PASS</span></li>
+                <li>acme-web/profile <span class="st ok">5 PASS</span></li>
+              </ul>
+            </div>
+            <div class="panel">
+              <h3>ACME-WEB/BILLING · WORKTREE</h3>
+              <pre
+                tabindex="0"
+                aria-label="Worktree details for acme-web/billing"
+              ><span class="m">branch</span>   openfleet/ui-kit-v2--acme-web-billing
+<span class="m">ports</span>    4130–4139  (PORT=4130)
+<span class="m">copied</span>   .env.local  <span class="m">(never committed)</span>
+<span class="m">paths</span>    app/billing/**
+<span class="m">baseline</span> e2e/billing.spec.ts  <span class="h">protected</span></pre>
+            </div>
+          </div>
+          <p class="figcap">
+            The scope check, <code class="wrap-ok">npx openfleet scope ui-kit-v2 acme-web/billing --check</code>, lists
+            any changed file outside the child’s paths. The tester fails the child if there is one.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>1.5 · UPSTREAM OUTPUTS</small>A published version, handed down</h2>
+          <p>
+            After shared-lib’s tests pass, its <code>publish</code> extension runs at <code>post-test</code>. It is
+            blocking: if it fails it gets one retry with a fresh agent, and if that fails too, shared-lib fails and
+            everything that depends on it is blocked. It only runs in repos that have
+            <code>.changeset/config.json</code>, so for acme-admin it is skipped.
+          </p>
+          <p>
+            Its report returns two outputs. OpenFleet stores them and adds an <strong>Upstream outputs</strong> table to
+            the prompt of every agent that works on a child depending on shared-lib, directly or through another child.
+            The pages get it through setup. The <code>prUrl</code> output means finalize updates that PR instead of
+            opening a second one.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-out">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE · EXTENSION OUTPUTS</span
+            >
+          </div>
+          <div class="diffgrid">
+            <div class="panel">
+              <h3>SHARED-LIB · PUBLISH · REPORT</h3>
+              <pre tabindex="0" aria-label="The publish extension's report">{"status": "done",
+ "summary": "Published ui-kit snapshot",
+ "outputs": {
+   "version": <span class="h">"2.0.0-snapshot.1"</span>,
+   "prUrl": "https://git.example.com/
+             acme/shared-lib/pull/41"},
+ "followUps": ["Release 2.0.0 once
+                acme-web is merged"]}</pre>
+            </div>
+            <div class="panel">
+              <h3>ACME-WEB/BILLING · IMPLEMENTER PROMPT</h3>
+              <pre
+                tabindex="0"
+                aria-label="Upstream outputs table in a dependent agent's prompt"
+              ><span class="h">## Upstream outputs</span>
+
+| Child      | Extension | Key     | Value            |
+| ---------- | --------- | ------- | ---------------- |
+| shared-lib | publish   | version | 2.0.0-snapshot.1 |
+| shared-lib | publish   | prUrl   | https://…/41     |</pre>
+            </div>
+          </div>
+          <p class="figcap">
+            The table is added by a hook from <code>state.json</code>, so it doesn’t depend on the coordinator passing
+            the value on.
+          </p>
+        </figure>
+
+        <section class="col prose">
+          <h2><small>1.6 · MERGE AND FINISH</small>Four children, one PR</h2>
+          <p>
+            The acme-web repo coordinator merges each finished child into the integration branch
+            <code>openfleet/ui-kit-v2</code>, setup first. billing’s merge conflicts on <code>app/nav.ts</code>, a file
+            it owns: its branch is rebased, its own implementer resolves the conflict and its tester runs again. Then
+            the repo coordinator runs the full build and tests on the merged branch. If those failed, it would send an
+            implementer and tester to fix the integration.
+          </p>
+          <p>
+            Finalize opens one draft PR per repo and links them to each other. Follow-ups from extensions go into the PR
+            bodies and the summary.
+          </p>
+        </section>
+
+        <figure class="fig wide" id="fig-fin">
+          <div class="fig-head">
+            <span class="fig-title"
+              ><span class="dot3"><i></i><i></i><i></i></span>EXAMPLE · FINALIZE</span
+            >
+          </div>
+          <div class="diffgrid">
+            <div class="panel">
+              <h3>ACME-WEB · INTEGRATION BRANCH</h3>
+              <ul class="rows-t">
+                <li>acme-web/setup <span class="st ok">MERGED</span></li>
+                <li>acme-web/settings <span class="st ok">MERGED</span></li>
+                <li>acme-web/profile <span class="st ok">MERGED</span></li>
+                <li>
+                  acme-web/billing <span class="st warn">CONFLICT · RESOLVED</span
+                  ><span class="note">app/nav.ts, fixed by billing’s implementer, then re-tested and merged.</span>
+                </li>
+                <li>full build and tests <span class="st ok">PASS</span></li>
+              </ul>
+            </div>
+            <div class="panel">
+              <h3>DRAFT PRS · RELATED PRS</h3>
+              <pre
+                tabindex="0"
+                aria-label="The three draft PRs and their links"
+              ><span class="h">shared-lib #41</span>   <span class="m">updated, opened by publish</span>
+<span class="h">acme-admin #208</span>  <span class="m">new</span>
+<span class="h">acme-web #1173</span>   <span class="m">new, 4 children in one</span>
+
+<span class="m">## Related PRs</span>  <span class="m">(in each body)</span>
+- shared-lib #41
+- acme-admin #208
+- acme-web #1173
+
+<span class="m">## Follow-ups</span>
+- Release 2.0.0 once acme-web is merged</pre>
+            </div>
+          </div>
+          <p class="figcap">
+            Repo names, PR numbers and the URL are made up. <code>npx openfleet status ui-kit-v2</code> shows each child
+            grouped under its repo while a run is going.
+          </p>
+        </figure>
+
+        <section class="part col">
+          <p class="kicker">PART 2 · A REAL RUN, REPLAYED</p>
+          <h2>Two repos, six agents, 3:47</h2>
+          <p class="byline">project greeting-lang · 17 Oct 2026 · 03:04:35 → 03:08:22 UTC</p>
+          <div class="prose">
+            <p>
+              One prompt went into an agent CLI session: add a language field to the greeting API and show it in web.
+              This part replays what happened next, straight from the run’s event log. It’s the toy example in
+              <code>examples/demo</code>, so you can run the same thing yourself with <code>pnpm demo</code>.
+            </p>
+            <p>
+              It was recorded before the plan gate and baseline tests existed, with one child per repo and staged
+              changes at the end. The planner, implementer and tester steps are the same today.
+            </p>
+          </div>
+        </section>
+
+        <section class="col prose">
+          <h2><small>2.1 · THE WHOLE RUN</small>Three minutes, eight lanes</h2>
           <p>
             OpenFleet writes every step of a run to <code>events.jsonl</code>: who did what, to which repo, and when.
             The <strong>coordinator</strong> is the agent you talk to. It spends the first minute with you, settling
@@ -1787,7 +2394,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>02 · STATE</small>Every child walks the same path</h2>
+          <h2><small>2.2 · STATE</small>Every child walks the same path</h2>
           <p>
             The coordinator moves the project, and each child, through a fixed set of phases. The run only ever goes
             forward. There is no retry arrow in this replay because no child needed one: every plan validated first time
@@ -1831,7 +2438,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>03 · MESSAGES</small>The coordinator talks, agents report back</h2>
+          <h2><small>2.3 · MESSAGES</small>The coordinator talks, agents report back</h2>
           <p>
             Sub-agents never talk to each other. Each one gets a single instruction from the coordinator, does its job
             in the child’s git worktree, and ends with a structured <code>openfleet-report</code> block: a status, a
@@ -1869,7 +2476,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>04 · THE CODE</small>232 lines in a ten-second burst</h2>
+          <h2><small>2.4 · THE CODE</small>232 lines in a ten-second burst</h2>
           <p>
             The implementers each spent about half a minute reading before touching anything. Then the edits landed
             almost at once: the first at 03:07:27.9, the last at 03:07:38.1. The api agent rewrote
@@ -1913,7 +2520,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>05 · THE ONE DECISION</small>Where should the fixtures live?</h2>
+          <h2><small>2.5 · THE ONE DECISION</small>Where should the fixtures live?</h2>
           <p>
             Both repos test against the same contract: <code>greeting.schema.json</code> and five example rows in
             <code>greeting.example.json</code>. Those files live in the OpenFleet project, outside either repo. The api
@@ -1947,7 +2554,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>06 · VERIFY</small>Five rows of contract, both sides</h2>
+          <h2><small>2.6 · VERIFY</small>Five rows of contract, both sides</h2>
           <p>
             The testers each ran <code>npm test</code> once. The api suite passed 13 of 13, including a live request for
             every contract row. The web suite passed 11 of 11, rendering each row’s response through a stubbed fetch.
@@ -2003,7 +2610,7 @@
         </figure>
 
         <section class="col prose">
-          <h2><small>07 · WHAT’S LEFT</small>Staged, not committed</h2>
+          <h2><small>2.7 · WHAT’S LEFT</small>Staged, not committed</h2>
           <p>
             The run ended in <strong>staged</strong> mode, as agreed in the grill: both worktrees hold their changes on
             <code>openfleet/greeting-lang</code>, waiting for a person to look. Nothing was pushed and no PR was opened.
@@ -2109,6 +2716,148 @@
         </nav>
       </div>
     </footer>
+    <script src="swim.js"></script>
+    <script>
+      (function () {
+        var fig = document.getElementById("fig-hx");
+        if (!fig || !window.OFSwim) return;
+        // Example run, illustrative timings in seconds. See swim.js for the segment kinds.
+        window.OFSwim({
+          fig: fig,
+          svg: document.getElementById("hx-swim"),
+          log: document.getElementById("hx-log"),
+          btn: document.getElementById("hx-play"),
+          range: document.getElementById("hx-scrub"),
+          clock: document.getElementById("hx-clock"),
+          narrowMq: window.matchMedia ? window.matchMedia("(max-width: 639px)") : null,
+          duration: 16000,
+          minWidth: 760,
+          data: {
+            end: 485,
+            labelWidth: 168,
+            tick: 60,
+            tickNarrow: 120,
+            project: [
+              ["GRILL", 0, 60],
+              ["YOU", 60, 68, "you"],
+              ["PLANNING", 68, 162],
+              ["BUILDING", 162, 470],
+              ["FINALIZE", 470, 485],
+            ],
+            lanes: [
+              {
+                name: "shared-lib",
+                segs: [
+                  ["p", 70, 115],
+                  ["i", 165, 240],
+                  ["t", 242, 262],
+                  ["x", 264, 300, "PUBLISH"],
+                ],
+              },
+              {
+                name: "acme-admin",
+                segs: [
+                  ["p", 72, 120],
+                  ["b", 165, 215],
+                  ["w", 217, 300, "waits on shared-lib"],
+                  ["i", 302, 360],
+                  ["t", 362, 385],
+                ],
+              },
+              {
+                name: "acme-web",
+                coord: true,
+                segs: [
+                  ["c", 140, 151, "GATE"],
+                  ["c", 450, 470, "BUILD + TESTS"],
+                ],
+              },
+              {
+                name: "acme-web/setup",
+                short: "· setup",
+                sub: true,
+                segs: [
+                  ["p", 74, 125],
+                  ["w", 165, 300],
+                  ["i", 302, 335],
+                  ["t", 337, 350],
+                  ["m", 352, 0, "setup first", "acme-web/setup", "left"],
+                ],
+              },
+              {
+                name: "acme-web/settings",
+                short: "· settings",
+                sub: true,
+                segs: [
+                  ["p", 76, 130],
+                  ["b", 165, 210],
+                  ["w", 212, 352],
+                  ["i", 354, 395],
+                  ["t", 397, 415],
+                  ["m", 418, 0],
+                ],
+              },
+              {
+                name: "acme-web/billing",
+                short: "· billing",
+                sub: true,
+                segs: [
+                  ["p", 78, 138],
+                  ["f", 141, 151, "REJECTED"],
+                  ["p", 152, 160],
+                  ["b", 165, 212],
+                  ["w", 214, 352],
+                  ["i", 354, 400],
+                  ["t", 402, 420],
+                  ["k", 422, 0],
+                  ["i", 425, 436],
+                  ["t", 438, 446],
+                  ["m", 448, 0],
+                ],
+              },
+              {
+                name: "acme-web/profile",
+                short: "· profile",
+                sub: true,
+                segs: [
+                  ["p", 80, 135],
+                  ["b", 165, 205],
+                  ["w", 207, 352],
+                  ["i", 354, 392],
+                  ["f", 394, 410],
+                  ["i", 412, 428],
+                  ["t", 430, 440],
+                  ["m", 442, 0],
+                ],
+              },
+            ],
+            marks: [
+              { t: 162, label: "plans-ready", solid: true, left: true },
+              { t: 300, label: "extension.outputs" },
+            ],
+            events: [
+              { t: 0, type: "project.created", text: "ui-kit-v2" },
+              { t: 58, type: "spec.written", text: "6 children, Shared approach" },
+              { t: 68, type: "spec.approved", text: "you: no changes" },
+              { t: 141, type: "plan.rejected", text: "acme-web/billing · inconsistent" },
+              { t: 152, type: "plan.validated", text: "acme-web/setup · FormField added" },
+              { t: 162, type: "plans.consistent", text: "6 plans agree, gate open" },
+              { t: 205, type: "baseline.passed", text: "acme-web/profile · 5 tests" },
+              { t: 210, type: "baseline.passed", text: "acme-web/settings · 7 tests" },
+              { t: 212, type: "baseline.passed", text: "acme-web/billing · 9 tests" },
+              { t: 215, type: "baseline.passed", text: "acme-admin · 6 tests" },
+              { t: 300, type: "extension.ran", text: "shared-lib · publish · done" },
+              { t: 300, type: "extension.outputs", text: "version 2.0.0-snapshot.1, prUrl" },
+              { t: 302, type: "worktree.synced", text: "acme-web/setup" },
+              { t: 386, type: "extension.skipped", text: "acme-admin · publish · no changeset" },
+              { t: 422, type: "merge.conflict", text: "acme-web/billing · app/nav.ts" },
+              { t: 470, type: "test.run", text: "acme-web integration · pass" },
+              { t: 484, type: "run.completed", text: "3 draft PRs, Related PRs linked" },
+            ],
+          },
+        });
+      })();
+    </script>
     <script>
       (function () {
         const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

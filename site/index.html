@@ -314,8 +314,8 @@
           font-size: 0.55em !important;
         }
         .of-rname {
-          width: 80px !important;
-          font-size: 14px !important;
+          width: 92px !important;
+          font-size: 13px !important;
           white-space: nowrap;
         }
         .of-slug,
@@ -332,7 +332,7 @@
           width: 56px !important;
         }
         .of-legend {
-          padding-left: 90px !important;
+          padding-left: 104px !important;
         }
         .of-term {
           font-size: 15px !important;
@@ -636,6 +636,26 @@
         width: 18px;
         height: 10px;
         border-radius: 3px;
+      }
+      .rp-legend i.rp-hatch {
+        background: repeating-linear-gradient(135deg, #edeb3c 0 3px, #2b1e1b 3px 5px);
+      }
+      .rp-legend i.rp-ext {
+        box-shadow: inset 0 0 0 2px #f4f4f6;
+      }
+      .rp-legend i.rp-merge {
+        width: 10px;
+        height: 10px;
+        margin-inline: 4px;
+        border-radius: 1px;
+        background: #f4f4f6;
+        transform: rotate(45deg);
+      }
+      .rp-legend i.rp-gate {
+        width: 2px;
+        height: 16px;
+        border-radius: 0;
+        background: #f4f4f6;
       }
       .rp-legend i.rp-dash {
         height: 0;
@@ -982,8 +1002,9 @@
               "
             >
               <p style="margin: 0; font-size: 20px; line-height: 30px; color: #a8a6af">
-                Describe the change once. A coordinator agent turns it into a spec with you, then runs a planner →
-                implementer → tester pipeline for each repo or package, in parallel, each in its own git worktree.
+                Describe the change once. A coordinator agent turns it into a spec with you, checks every plan before
+                any code changes, then runs a planner → implementer → tester pipeline for each repo, package or page, in
+                parallel, each in its own git worktree.
               </p>
               <div class="of-herobtns" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
                 <a
@@ -1165,8 +1186,8 @@
                       padding-right: 16px;
                       white-space: nowrap;
                     "
-                    ><span class="of-slug">account-id · </span
-                    ><span style="color: #edeb3c"><span id="of-done">1</span>/7</span> done</span
+                    ><span class="of-slug">auth-kit · </span
+                    ><span style="color: #edeb3c"><span id="of-done">2</span>/7</span> done</span
                   >
                   <button
                     id="of-replay"
@@ -1209,16 +1230,15 @@
               </div>
               <div style="padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px">
                 <p style="margin: 0; font-size: 18px; line-height: 25px; font-weight: 600">
-                  “Rename
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">user_id</code> to
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">account_id</code> in
-                  the API, both SDKs and every client”
+                  “Move the web app, admin and mobile to
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">auth-kit</code> v2.
+                  Login must work exactly as it does today.”
                 </p>
                 <div
                   class="of-legend"
                   aria-hidden="true"
                   style="
-                    padding-left: 104px;
+                    padding-left: 120px;
                     margin-bottom: -6px;
                     font-size: 12px;
                     line-height: 16px;
@@ -1226,11 +1246,11 @@
                     color: #5f5754;
                   "
                 >
-                  Plan · Implement · Test
+                  Plan · Baseline · Implement · Test
                 </div>
                 <ul
                   id="of-rows"
-                  aria-label="Repos in this run"
+                  aria-label="Children in this run"
                   style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column"
                 >
                   <li
@@ -1245,13 +1265,24 @@
                     <span
                       class="of-rname"
                       style="
-                        width: 92px;
+                        width: 108px;
                         flex: none;
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
+                        font-size: 16px;
+                        white-space: nowrap;
                       "
-                      >api</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      >shared-lib</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
                       ><span
                         class="of-sg"
                         style="
@@ -1335,13 +1366,24 @@
                     <span
                       class="of-rname"
                       style="
-                        width: 92px;
+                        width: 108px;
                         flex: none;
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
+                        font-size: 16px;
+                        white-space: nowrap;
                       "
-                      >sdk-js</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      >api</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
                       ><span
                         class="of-sg"
                         style="
@@ -1413,13 +1455,115 @@
                     <span
                       class="of-rname"
                       style="
-                        width: 92px;
+                        width: 108px;
                         flex: none;
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
+                        font-size: 16px;
+                        white-space: nowrap;
                       "
-                      >sdk-python</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      >web/setup</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span></span
+                    ><span
+                      class="of-st"
+                      style="
+                        margin-left: auto;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 4px 9px;
+                        border-radius: 8px;
+                        background: #2b1e1b;
+                        color: #edeb3c;
+                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                        font-size: 11px;
+                        letter-spacing: 0.04em;
+                        white-space: nowrap;
+                      "
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#EDEB3C"
+                        stroke-width="3.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12.5l4.5 4.5L19 7.5"></path></svg
+                      >DONE<span
+                        style="
+                          position: absolute;
+                          width: 1px;
+                          height: 1px;
+                          overflow: hidden;
+                          clip: rect(0 0 0 0);
+                          white-space: nowrap;
+                        "
+                        >: plan, implement and test complete</span
+                      ></span
+                    >
+                  </li>
+                  <li
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      padding: 9px 0;
+                      border-bottom: 2px solid #dfe2e6;
+                    "
+                  >
+                    <span
+                      class="of-rname"
+                      style="
+                        width: 108px;
+                        flex: none;
+                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                        font-size: 16px;
+                        white-space: nowrap;
+                      "
+                      >web/login</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
                       ><span
                         class="of-sg"
                         style="
@@ -1448,6 +1592,105 @@
                           border-radius: 3px;
                           background: #48a6ee;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #dfe2e6;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span></span
+                    ><span
+                      class="of-st"
+                      style="
+                        margin-left: auto;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 4px 9px;
+                        border-radius: 8px;
+                        background: #48a6ee;
+                        color: #2b1e1b;
+                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                        font-size: 11px;
+                        letter-spacing: 0.04em;
+                        white-space: nowrap;
+                      "
+                      >IMPLEMENT<span
+                        style="
+                          position: absolute;
+                          width: 1px;
+                          height: 1px;
+                          overflow: hidden;
+                          clip: rect(0 0 0 0);
+                          white-space: nowrap;
+                        "
+                        >: implementing</span
+                      ></span
+                    >
+                  </li>
+                  <li
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      padding: 9px 0;
+                      border-bottom: 2px solid #dfe2e6;
+                    "
+                  >
+                    <span
+                      class="of-rname"
+                      style="
+                        width: 108px;
+                        flex: none;
+                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                        font-size: 16px;
+                        white-space: nowrap;
+                      "
+                      >web/account</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg of-cur"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #dfe2e6;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1504,13 +1747,14 @@
                     <span
                       class="of-rname"
                       style="
-                        width: 92px;
+                        width: 108px;
                         flex: none;
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
+                        font-size: 16px;
+                        white-space: nowrap;
                       "
-                      >billing</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      >admin</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
                       ><span
                         class="of-sg"
                         style="
@@ -1540,74 +1784,6 @@
                           background: #dfe2e6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
-                      ></span></span
-                    ><span
-                      class="of-st"
-                      style="
-                        margin-left: auto;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 5px;
-                        padding: 4px 9px;
-                        border-radius: 8px;
-                        background: #48a6ee;
-                        color: #2b1e1b;
-                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
-                        letter-spacing: 0.04em;
-                        white-space: nowrap;
-                      "
-                      >IMPLEMENT<span
-                        style="
-                          position: absolute;
-                          width: 1px;
-                          height: 1px;
-                          overflow: hidden;
-                          clip: rect(0 0 0 0);
-                          white-space: nowrap;
-                        "
-                        >: implementing</span
-                      ></span
-                    >
-                  </li>
-                  <li
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 12px;
-                      padding: 9px 0;
-                      border-bottom: 2px solid #dfe2e6;
-                    "
-                  >
-                    <span
-                      class="of-rname"
-                      style="
-                        width: 92px;
-                        flex: none;
-                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
-                      "
-                      >web/app</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #2b1e1b;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg of-cur"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #48a6ee;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
-                        "
                       ></span
                       ><span
                         class="of-sg"
@@ -1635,7 +1811,7 @@
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >IMPLEMENT<span
+                      >BASELINE<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1644,85 +1820,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: implementing</span
-                      ></span
-                    >
-                  </li>
-                  <li
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 12px;
-                      padding: 9px 0;
-                      border-bottom: 2px solid #dfe2e6;
-                    "
-                  >
-                    <span
-                      class="of-rname"
-                      style="
-                        width: 92px;
-                        flex: none;
-                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
-                      "
-                      >web/ui</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
-                      ><span
-                        class="of-sg of-cur"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #48a6ee;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span></span
-                    ><span
-                      class="of-st"
-                      style="
-                        margin-left: auto;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 5px;
-                        padding: 4px 9px;
-                        border-radius: 8px;
-                        background: #48a6ee;
-                        color: #2b1e1b;
-                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
-                        letter-spacing: 0.04em;
-                        white-space: nowrap;
-                      "
-                      >PLAN<span
-                        style="
-                          position: absolute;
-                          width: 1px;
-                          height: 1px;
-                          overflow: hidden;
-                          clip: rect(0 0 0 0);
-                          white-space: nowrap;
-                        "
-                        >: planning</span
+                        >: writing baseline tests</span
                       ></span
                     >
                   </li>
@@ -1730,20 +1828,21 @@
                     <span
                       class="of-rname"
                       style="
-                        width: 92px;
+                        width: 108px;
                         flex: none;
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
+                        font-size: 16px;
+                        white-space: nowrap;
                       "
                       >mobile</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none"
                       ><span
                         class="of-sg"
                         style="
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #dfe2e6;
+                          background: #2b1e1b;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1753,8 +1852,18 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #dfe2e6;
+                          background: #2b1e1b;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg of-cur"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span
                       ><span
@@ -1776,14 +1885,14 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #dfe2e6;
-                        color: #5f5754;
+                        background: #48a6ee;
+                        color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 11px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >AFTER SDK-JS<span
+                      >IMPLEMENT<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1792,7 +1901,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: blocked until sdk-js finishes</span
+                        >: implementing</span
                       ></span
                     >
                   </li>
@@ -1817,14 +1926,12 @@
                 >
                   <div aria-hidden="true" style="color: #a8a6af">events.jsonl</div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #48a6ee">contract.changed</span
-                    ><span style="min-width: 0; overflow-wrap: anywhere">contracts/account.json → 5 repos</span>
+                    <span style="color: #48a6ee">plan.rejected</span
+                    ><span style="min-width: 0; overflow-wrap: anywhere">web/account: own session hook, re-plan</span>
                   </div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #edeb3c">assumption</span
-                    ><span style="min-width: 0; overflow-wrap: anywhere"
-                      >sdk-python keeps user_id as a deprecated alias</span
-                    >
+                    <span style="color: #edeb3c">baseline.passed</span
+                    ><span style="min-width: 0; overflow-wrap: anywhere">web/login: 9 Playwright tests, old code</span>
                   </div>
                 </div>
               </div>
@@ -1845,23 +1952,23 @@
               "
             >
               <span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>PLAN GATE<i class="of-sep"></i>BASELINE<i
                   class="of-sep"
                 ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i
                   class="of-sep"
                 ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >PLAN GATE<i class="of-sep"></i>BASELINE<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
                   class="of-sep"
                 ></i></span
               ><span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>PLAN GATE<i class="of-sep"></i>BASELINE<i
                   class="of-sep"
                 ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i
                   class="of-sep"
                 ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                >PLAN GATE<i class="of-sep"></i>BASELINE<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
                   class="of-sep"
                 ></i
               ></span>
@@ -1879,17 +1986,13 @@
               "
             >
               <span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i></span
+                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE AGENT PER PAGE<i class="of-sep"></i
+                >ONE PR PER REPO<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i
+                >ONE AGENT PER PAGE<i class="of-sep"></i>ONE PR PER REPO<i class="of-sep"></i></span
               ><span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i
+                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE AGENT PER PAGE<i class="of-sep"></i
+                >ONE PR PER REPO<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i
+                >ONE AGENT PER PAGE<i class="of-sep"></i>ONE PR PER REPO<i class="of-sep"></i
               ></span>
             </div>
           </div>
@@ -1905,17 +2008,17 @@
               "
             >
               <span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EXTENSIONS<i class="of-sep"></i>EVENT
+                LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i
                   class="of-sep"
                 ></i
-                >DRAFT PRS<i class="of-sep"></i></span
+                >EXTENSIONS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i></span
               ><span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EXTENSIONS<i class="of-sep"></i>EVENT
+                LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i
                   class="of-sep"
                 ></i
-                >DRAFT PRS<i class="of-sep"></i
+                >EXTENSIONS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i
               ></span>
             </div>
           </div>
@@ -1923,20 +2026,21 @@
 
         <section id="run" aria-labelledby="run-h" class="rp-sec">
           <div class="rp-intro">
-            <h2 id="run-h" class="rp-h2">Seven repos. One coordinator. All at once.</h2>
+            <h2 id="run-h" class="rp-h2">Every plan checked. Then everyone builds at once.</h2>
             <div class="rp-introside">
               <p>
-                For every repo, the coordinator spawns a planner, an implementer and a tester, then lets them work side
-                by side. Ordering still holds: <code>mobile</code> waits for <code>sdk-js</code>. A failed test gets a
-                fresh implementer. Every step lands in <code>events.jsonl</code>.
+                Every planner runs at once. At the plan gate the coordinator checks each plan against the spec’s Shared
+                approach and against the others, and sends a plan that doesn’t fit back. Then baseline tests run on the
+                old code, and each child builds and tests in dependency order. <code>web</code> is split into one agent
+                per page and merged into one PR.
               </p>
-              <a class="of-ghost rp-link" href="how-it-works.html">WATCH A REAL RUN, EVENT BY EVENT</a>
+              <a class="of-ghost rp-link" href="how-it-works.html">SEE HOW A RUN WORKS, STEP BY STEP</a>
             </div>
           </div>
           <figure class="rp-fig" id="rp-fig">
             <div class="rp-head">
               <span class="rp-title"
-                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · ACCOUNT-ID ·
+                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · AUTH-KIT ·
                 ILLUSTRATIVE TIMINGS</span
               >
               <div class="rp-controls">
@@ -1948,16 +2052,16 @@
                   value="1000"
                   id="rp-scrub"
                   aria-label="Scrub the example run"
-                /><span class="rp-clock" id="rp-clock">4:40</span>
+                /><span class="rp-clock" id="rp-clock">5:30</span>
               </div>
             </div>
             <div class="rp-split">
               <div class="rp-scroll">
                 <svg
                   id="rp-swim"
-                  viewBox="0 0 1000 420"
+                  viewBox="0 0 1000 480"
                   role="img"
-                  aria-label="Swimlane of the example run: the project bar on top, then one lane per repo showing plan, implement and test. mobile waits for sdk-js; sdk-python fails a test once and retries."
+                  aria-label="Swimlane of the example run. All seven planners run at once, with mobile queued until a slot frees up under maxParallel 6. At the plans-ready gate the web/account plan is rejected as inconsistent and re-planned. After the gate, web/login, web/account and admin write baseline tests on the old code, shared-lib implements, tests and runs its blocking publish extension, and the apps wait for its snapshot version. web/account fails a test once and retries. The web pages are merged into one integration branch."
                 ></svg>
               </div>
               <div class="rp-log">
@@ -1966,11 +2070,12 @@
               </div>
             </div>
             <div class="rp-legend" aria-hidden="true">
-              <span><i style="background: #48a6ee"></i>Plan</span
+              <span><i style="background: #48a6ee"></i>Plan</span><span><i class="rp-hatch"></i>Baseline tests</span
               ><span><i style="background: #ee5ad6"></i>Implement</span
               ><span><i style="background: #edeb3c"></i>Test</span
-              ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
-              ><span><i class="rp-dash"></i>Waiting on another repo</span>
+              ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed or rejected</span
+              ><span><i class="rp-dash"></i>Waiting</span><span><i class="rp-ext"></i>Extension</span
+              ><span><i class="rp-merge"></i>Merged</span><span><i class="rp-gate"></i>Plan gate</span>
             </div>
           </figure>
         </section>
@@ -2015,8 +2120,9 @@
               You answer questions once. Then it’s hands-off.
             </h2>
             <p style="margin: 0; max-width: 40ch; font-size: 18px; line-height: 28px; color: #a8a6af">
-              Questions from the per-repo agents go to the coordinator. It answers from the spec, or decides and logs an
-              assumption for you to review.
+              Questions from the agents go to the coordinator. It answers from the spec, or decides and logs an
+              assumption for you to review. A repo coordinator passes up any question that changes a contract or the
+              Shared approach.
             </p>
           </div>
           <ol
@@ -2082,10 +2188,15 @@
                 Grill
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                The coordinator interviews you about the change, suggests repos from
+                The coordinator interviews you, suggests repos from
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #2b1e1b"
                   >repos.json</code
-                >, and discovers and confirms build and test commands.
+                >, confirms build and test commands and asks for unset extension settings. It proposes one child per
+                repo, package or page, and shows
+                <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #2b1e1b"
+                  >maxParallel</code
+                >
+                so you can change it.
               </p>
             </li>
             <li
@@ -2142,8 +2253,8 @@
                 It writes
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #2b1e1b"
                   >spec.md</code
-                >: goal, repos, contracts, ordering, acceptance criteria and branches. One last question, “anything to
-                change?”, and your answer starts the run.
+                >: goal, children, contracts, ordering, acceptance criteria and a Shared approach that every plan must
+                follow. One last question, “anything to change?”, and your answer starts the run.
               </p>
             </li>
             <li
@@ -2194,11 +2305,11 @@
                   line-height: 34px;
                 "
               >
-                Plan, build, test
+                Plan gate
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                Per repo, in parallel: a read-only planner, then an implementer and a tester. A failing test gets up to
-                3 retries, then one guided attempt by the coordinator.
+                Every planner runs at once, read-only. Before any code changes, the coordinator checks each plan against
+                the Shared approach and against the other plans, and sends a plan that doesn’t fit back.
               </p>
             </li>
             <li
@@ -2232,6 +2343,116 @@
                   style="
                     padding: 4px 10px;
                     border-radius: 8px;
+                    background: #edeb3c;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 12px;
+                    letter-spacing: 0.06em;
+                  "
+                  >HANDS-OFF</span
+                >
+              </div>
+              <h3
+                style="
+                  margin: 0;
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-weight: 400;
+                  font-size: 30px;
+                  line-height: 34px;
+                "
+              >
+                Baseline tests
+              </h3>
+              <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
+                Optional. A baseline agent writes tests, for example Playwright, that pass on the unchanged code. The
+                tester fails any edit to them that the spec doesn’t list, so the new code has to keep the old behaviour.
+              </p>
+            </li>
+            <li
+              class="of-stack"
+              style="
+                position: sticky;
+                top: 232px;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border: 2px solid #2b1e1b;
+                box-shadow: 0 4px 0 0 #2b1e1b;
+                border-radius: 28px;
+                padding: 32px;
+                min-height: 260px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+              "
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <span
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 48px;
+                    line-height: 48px;
+                    color: #1632e6;
+                  "
+                  >5</span
+                ><span
+                  style="
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                    background: #edeb3c;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 12px;
+                    letter-spacing: 0.06em;
+                  "
+                  >HANDS-OFF</span
+                >
+              </div>
+              <h3
+                style="
+                  margin: 0;
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-weight: 400;
+                  font-size: 30px;
+                  line-height: 34px;
+                "
+              >
+                Build and test
+              </h3>
+              <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
+                Each child implements and tests in dependency order, in its own worktree and port range. A failing test
+                gets up to 3 retries, then one guided attempt by the coordinator.
+              </p>
+            </li>
+            <li
+              class="of-stack"
+              style="
+                position: sticky;
+                top: 260px;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border: 2px solid #2b1e1b;
+                box-shadow: 0 4px 0 0 #2b1e1b;
+                border-radius: 28px;
+                padding: 32px;
+                min-height: 260px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+              "
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <span
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 48px;
+                    line-height: 48px;
+                    color: #1632e6;
+                  "
+                  >6</span
+                ><span
+                  style="
+                    padding: 4px 10px;
+                    border-radius: 8px;
                     background: #2b1e1b;
                     color: #edeb3c;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
@@ -2253,8 +2474,9 @@
                 Finish
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                Changes come back staged in each worktree for your review, or as draft PRs that link to each other. The
-                summary lists every assumption and failure.
+                A repo with several children gets a repo coordinator. It merges them into one integration branch and
+                runs the full build and tests. Then you get the changes staged, or one draft PR per repo that links to
+                the others.
               </p>
             </li>
           </ol>
@@ -2309,7 +2531,7 @@
                 box-sizing: border-box;
               "
             >
-              <div style="display: flex; flex-direction: column; gap: 12px; max-width: 440px">
+              <div style="display: flex; flex-direction: column; gap: 12px; max-width: 460px">
                 <h3
                   style="
                     margin: 0;
@@ -2319,11 +2541,11 @@
                     line-height: 34px;
                   "
                 >
-                  A worktree and branch for every repo.
+                  A worktree and branch for every child.
                 </h3>
                 <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                  Each repo, or each package in a monorepo, gets its own git worktree and branch. Agents never share a
-                  working tree.
+                  A child is a repo, a package or a page. Each one gets its own git worktree, branch and port range.
+                  Children of one repo branch from that repo’s integration branch and are merged back into it.
                 </p>
               </div>
               <div
@@ -2343,7 +2565,7 @@
                   >main</span
                 >
                 <ul
-                  aria-label="Example branches for the account-id run"
+                  aria-label="Example branches for the auth-kit run"
                   style="
                     margin: 0 0 0 20px;
                     padding: 0;
@@ -2353,15 +2575,16 @@
                     align-self: stretch;
                   "
                 >
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 0px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2370,7 +2593,49 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
+                    >
+                      <span
+                        style="
+                          width: 92px;
+                          font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                          font-size: 17px;
+                          line-height: 22px;
+                          color: #2b1e1b;
+                        "
+                        >shared-lib</span
+                      >
+                      <span
+                        style="
+                          font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                          font-size: 15px;
+                          line-height: 22px;
+                          color: #1632e6;
+                          overflow-wrap: anywhere;
+                        "
+                        >openfleet/auth-kit</span
+                      >
+                    </span>
+                  </li>
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 0px">
+                    <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
+                        style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
+                      ></span
+                      ><span
+                        style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
+                      ></span
+                    ></span>
+                    <span
+                      style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-items: baseline;
+                        gap: 0 14px;
+                        padding: 8px 0;
+                        min-width: 0;
+                      "
+                    >
+                      <span
                         style="
                           width: 92px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
@@ -2379,7 +2644,8 @@
                           color: #2b1e1b;
                         "
                         >api</span
-                      ><span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2387,19 +2653,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id</span
-                      ></span
-                    >
+                        >openfleet/auth-kit</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 0px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2408,7 +2675,8 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
                           width: 92px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
@@ -2416,8 +2684,9 @@
                           line-height: 22px;
                           color: #2b1e1b;
                         "
-                        >sdk-js</span
-                      ><span
+                        >web</span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2425,19 +2694,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id</span
-                      ></span
-                    >
+                        >openfleet/auth-kit · integration</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 34px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2446,16 +2716,18 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
-                          width: 92px;
+                          width: 110px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 17px;
                           line-height: 22px;
                           color: #2b1e1b;
                         "
-                        >sdk-python</span
-                      ><span
+                        >web/setup</span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2463,19 +2735,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id</span
-                      ></span
-                    >
+                        >openfleet/auth-kit--web-setup</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 34px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2484,16 +2757,18 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
-                          width: 92px;
+                          width: 110px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 17px;
                           line-height: 22px;
                           color: #2b1e1b;
                         "
-                        >billing</span
-                      ><span
+                        >web/login</span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2501,19 +2776,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id</span
-                      ></span
-                    >
+                        >openfleet/auth-kit--web-login</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 34px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2522,16 +2798,18 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
-                          width: 92px;
+                          width: 110px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 17px;
                           line-height: 22px;
                           color: #2b1e1b;
                         "
-                        >web/app</span
-                      ><span
+                        >web/account</span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2539,19 +2817,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id-app</span
-                      ></span
-                    >
+                        >openfleet/auth-kit--web-account</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 0px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2560,7 +2839,8 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
                           width: 92px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
@@ -2568,8 +2848,9 @@
                           line-height: 22px;
                           color: #2b1e1b;
                         "
-                        >web/ui</span
-                      ><span
+                        >admin</span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2577,19 +2858,20 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id-ui</span
-                      ></span
-                    >
+                        >openfleet/auth-kit</span
+                      >
+                    </span>
                   </li>
-                  <li style="display: flex; align-items: stretch; gap: 10px">
+                  <li style="display: flex; align-items: stretch; gap: 10px; margin-left: 0px">
                     <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
                       ><span
                         style="position: absolute; left: 0; top: 0; height: 20px; width: 2px; background: #2b1e1b"
                       ></span
                       ><span
                         style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
-                      ></span></span
-                    ><span
+                      ></span
+                    ></span>
+                    <span
                       style="
                         display: flex;
                         flex-wrap: wrap;
@@ -2598,7 +2880,8 @@
                         padding: 8px 0;
                         min-width: 0;
                       "
-                      ><span
+                    >
+                      <span
                         style="
                           width: 92px;
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
@@ -2607,7 +2890,8 @@
                           color: #2b1e1b;
                         "
                         >mobile</span
-                      ><span
+                      >
+                      <span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                           font-size: 15px;
@@ -2615,9 +2899,9 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id</span
-                      ></span
-                    >
+                        >openfleet/auth-kit</span
+                      >
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -2630,17 +2914,16 @@
                 background: #48a6ee;
                 color: #2b1e1b;
                 border-radius: 28px;
-                padding: 32px;
+                padding: 28px;
                 overflow: hidden;
                 display: flex;
-                flex-wrap: wrap;
-                gap: 20px 32px;
-                align-items: flex-end;
+                flex-direction: column;
                 justify-content: space-between;
+                gap: 20px;
                 box-sizing: border-box;
               "
             >
-              <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; flex-direction: column; gap: 10px; max-width: 520px">
                 <h3
                   style="
                     margin: 0;
@@ -2650,25 +2933,28 @@
                     line-height: 30px;
                   "
                 >
-                  Shared contracts keep repos in step.
+                  Every plan checked before any code changes.
                 </h3>
                 <p style="margin: 0; font-size: 17px; line-height: 25px; font-weight: 600">
-                  The coordinator writes shared fixtures, and every repo’s contract tests run against them. A contract
-                  change is broadcast to the repos it affects.
+                  All planners run at once. The coordinator checks each plan against the spec’s Shared approach and
+                  against the other plans. A plan that doesn’t fit goes back with the reason, and the gate opens when
+                  they all agree.
                 </p>
               </div>
               <code
                 class="of-tile"
                 style="
-                  flex: none;
-                  padding: 10px 16px;
+                  align-self: flex-start;
+                  padding: 8px 14px;
                   border-radius: 16px;
                   background: #2b1e1b;
                   color: #edeb3c;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 26px;
+                  font-size: 20px;
+                  line-height: 28px;
+                  transform-origin: left top;
                 "
-                >contracts/</code
+                >plans.consistent</code
               >
             </article>
 
@@ -2699,9 +2985,9 @@
                   color: #a8a6af;
                   transform-origin: left top;
                 "
-              >{"seq": 7,
- "actor": <span style="color: #EDEB3C;">"api/implementer"</span>,
- "type": <span style="color: #48A6EE;">"file.edited"</span>}</pre>
+              >{"seq": 41,
+ "actor": <span style="color: #EDEB3C;">"web/login/baseline"</span>,
+ "type": <span style="color: #48A6EE;">"baseline.passed"</span>}</pre>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
                   style="
@@ -2719,7 +3005,7 @@
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                     >events.jsonl</code
                   >
-                  with patches. Secrets are redacted.
+                  with patches. Secrets and copied env values are redacted.
                 </p>
               </div>
             </article>
@@ -2752,8 +3038,8 @@
                 aria-hidden="true"
                 style="transform-origin: left top"
               >
-                <path d="M20 12a8 8 0 1 1-3-6.2"></path>
-                <path d="M20 4v5h-5"></path>
+                <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                <path d="M8.5 12.5l2.5 2.5 4.5-5"></path>
               </svg>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
@@ -2765,17 +3051,223 @@
                     line-height: 26px;
                   "
                 >
-                  Pick up where it stopped.
+                  Old behaviour, tested first.
                 </h3>
                 <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">
-                  A failed repo doesn’t stop the run. State lives in
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">state.json</code>, so
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
-                    >openfleet resume</code
-                  >
-                  continues later.
+                  Optional baseline tests, for example Playwright, must pass on the unchanged code. The tester fails any
+                  edit to them that the spec doesn’t list.
                 </p>
               </div>
+            </article>
+
+            <article
+              class="of-cell of-b-b of-rise"
+              style="
+                grid-column: span 2;
+                background: #ee5ad6;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                gap: 20px;
+                box-sizing: border-box;
+              "
+            >
+              <div style="display: flex; flex-direction: column; gap: 10px; max-width: 520px">
+                <h3
+                  style="
+                    margin: 0;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-weight: 400;
+                    font-size: 26px;
+                    line-height: 30px;
+                  "
+                >
+                  One agent per page. One PR per repo.
+                </h3>
+                <p style="margin: 0; font-size: 17px; line-height: 25px; font-weight: 600">
+                  Split a repo into children by page, module or unit, each limited to its own paths. A setup child adds
+                  shared code first. A repo coordinator merges the children into one integration branch, has a child’s
+                  own implementer fix a merge conflict, and runs the full build and tests before the repo’s PR.
+                </p>
+              </div>
+              <code
+                class="of-tile"
+                style="
+                  align-self: flex-start;
+                  padding: 8px 14px;
+                  border-radius: 16px;
+                  background: #2b1e1b;
+                  color: #edeb3c;
+                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                  font-size: 16px;
+                  line-height: 28px;
+                  transform-origin: left top;
+                "
+                >npx openfleet scope &lt;project&gt; &lt;child&gt; --check</code
+              >
+            </article>
+
+            <article
+              class="of-cell of-b-b of-rise"
+              style="
+                grid-column: span 2;
+                background: #26252c;
+                color: #f4f4f6;
+                border-radius: 28px;
+                padding: 28px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                gap: 20px;
+                box-sizing: border-box;
+              "
+            >
+              <div style="display: flex; flex-direction: column; gap: 10px; max-width: 520px">
+                <h3
+                  style="
+                    margin: 0;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-weight: 400;
+                    font-size: 26px;
+                    line-height: 30px;
+                  "
+                >
+                  Sized for your machine.
+                </h3>
+                <p style="margin: 0; font-size: 17px; line-height: 25px; color: #a8a6af">
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >maxParallel</code
+                  >
+                  caps how many agents work at once across every run, 6 by default. Each child gets its own range of
+                  ports, and files like
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >.env.local</code
+                  >
+                  are copied into its worktree but never committed.
+                </p>
+              </div>
+              <code
+                class="of-tile"
+                style="
+                  align-self: flex-start;
+                  padding: 8px 14px;
+                  border-radius: 16px;
+                  background: #0e0e10;
+                  color: #edeb3c;
+                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                  font-size: 16px;
+                  line-height: 28px;
+                  transform-origin: left top;
+                "
+                >npx openfleet config set maxParallel 4</code
+              >
+            </article>
+
+            <article
+              class="of-cell of-b-b of-rise"
+              style="
+                grid-column: span 2;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                gap: 20px;
+                box-sizing: border-box;
+              "
+            >
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <h3
+                  style="
+                    margin: 0;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-weight: 400;
+                    font-size: 22px;
+                    line-height: 26px;
+                  "
+                >
+                  Shared contracts keep repos in step.
+                </h3>
+                <p style="margin: 0; font-size: 15px; line-height: 22px; color: #5f5754">
+                  The coordinator writes shared fixtures, and every repo’s contract tests run against them. A contract
+                  change is broadcast to the children it affects.
+                </p>
+              </div>
+              <code
+                class="of-tile"
+                style="
+                  align-self: flex-start;
+                  padding: 8px 14px;
+                  border-radius: 16px;
+                  background: #2b1e1b;
+                  color: #edeb3c;
+                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                  font-size: 20px;
+                  line-height: 28px;
+                  transform-origin: left top;
+                "
+                >contracts/</code
+              >
+            </article>
+
+            <article
+              class="of-cell of-b-b of-rise"
+              style="
+                grid-column: span 2;
+                background: #2b1e1b;
+                color: #f4f4f6;
+                border-radius: 28px;
+                padding: 28px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                gap: 20px;
+                box-sizing: border-box;
+              "
+            >
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <h3
+                  style="
+                    margin: 0;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-weight: 400;
+                    font-size: 22px;
+                    line-height: 26px;
+                  "
+                >
+                  Pick up where it stopped.
+                </h3>
+                <p style="margin: 0; font-size: 15px; line-height: 22px; color: #a8a6af">
+                  A failed child blocks only the children that depend on it. State lives in
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >state.json</code
+                  >, so a run can continue later.
+                </p>
+              </div>
+              <code
+                class="of-tile"
+                style="
+                  align-self: flex-start;
+                  padding: 8px 14px;
+                  border-radius: 16px;
+                  background: #0e0e10;
+                  color: #edeb3c;
+                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                  font-size: 16px;
+                  line-height: 28px;
+                  transform-origin: left top;
+                "
+                >npx openfleet resume auth-kit</code
+              >
             </article>
           </div>
         </section>
@@ -2937,7 +3429,7 @@
                     Parallel subagents inside one session and repo
                   </td>
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    One change across many repos and packages
+                    One change across many repos, packages or pages, one agent pipeline each
                   </td>
                 </tr>
                 <tr style="border-bottom: 2px solid #dfe2e6">
@@ -2946,14 +3438,14 @@
                     Shared working tree
                   </td>
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    One git worktree and branch per repo or package
+                    One git worktree, branch and port range per child
                   </td>
                 </tr>
                 <tr style="border-bottom: 2px solid #dfe2e6">
                   <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Process</th>
                   <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">Free-form</td>
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    Spec → plan → implement → test, with retries
+                    Spec → plans checked together → baseline tests → implement → test, with retries
                   </td>
                 </tr>
                 <tr style="border-bottom: 2px solid #dfe2e6">
@@ -2973,6 +3465,15 @@
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
                     <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code>
                     with attribution, patches and diff snapshots
+                  </td>
+                </tr>
+                <tr style="border-bottom: 2px solid #dfe2e6">
+                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Merging</th>
+                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">
+                    You merge the branches yourself
+                  </td>
+                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
+                    A repo coordinator merges its children, then runs the full build and tests: one PR per repo
                   </td>
                 </tr>
                 <tr>
@@ -3118,7 +3619,7 @@ mkdir my-fleet &amp;&amp; cd my-fleet
 npm create @openfleet-tools@latest
 
 <span style="color: #5F5754;"># 3. describe the change</span>
-npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <span style="white-space: nowrap;">account_id</span> everywhere"</span></pre>
+npx openfleet new auth-kit <span style="color: #1632E6;">"Move every app to <span style="white-space: nowrap;">auth-kit v2</span>"</span></pre>
           </div>
         </section>
 
@@ -3223,7 +3724,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   >
                 </dt>
                 <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Each repo’s phase, retries and open questions
+                  Each child’s phase, retries and open questions, grouped by repo
                 </dd>
               </div>
               <div
@@ -3249,7 +3750,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   >
                 </dt>
                 <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Remove the project’s worktrees, and branches if you ask
+                  Remove the project’s child and integration worktrees, and branches if you ask
                 </dd>
               </div>
               <div
@@ -3275,6 +3776,60 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 </dt>
                 <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
                   Install or update an extension and print its permissions
+                </dd>
+              </div>
+              <div
+                class="of-cmd"
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 4px 24px;
+                  align-items: baseline;
+                  padding: 18px 0;
+                  border-bottom: 2px solid #dfe2e6;
+                "
+              >
+                <dt style="flex: 1 1 360px; min-width: 0">
+                  <code
+                    style="
+                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                      font-size: 18px;
+                      color: #1632e6;
+                    "
+                    ><span style="color: #5f5754">npx</span> openfleet config set maxParallel &lt;n&gt;</code
+                  >
+                </dt>
+                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
+                  Cap how many agents work at once across all projects (default 6)
+                </dd>
+              </div>
+              <div
+                class="of-cmd"
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 4px 24px;
+                  align-items: baseline;
+                  padding: 18px 0;
+                  border-bottom: 2px solid #dfe2e6;
+                "
+              >
+                <dt style="flex: 1 1 360px; min-width: 0">
+                  <code
+                    style="
+                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                      font-size: 18px;
+                      color: #1632e6;
+                    "
+                    ><span style="color: #5f5754">npx</span> openfleet ext settings
+                    <span style="white-space: nowrap">[--unset]</span></code
+                  >
+                </dt>
+                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
+                  List extension settings; set one with
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
+                    >ext settings set</code
+                  >
                 </dd>
               </div>
               <div
@@ -3363,8 +3918,9 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 Install an extension with
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                   >openfleet add</code
-                >. It can run as its own agent at a phase slot, add to a role’s instructions, or add CLI commands. Write
-                and shell access must be declared, and the tool allow-list enforces it.
+                >. It can run as its own agent at a phase slot, add to a role’s instructions, or add CLI commands. It is
+                instructions only, with no code. Write and shell access must be declared, and the tool allow-list
+                enforces it.
               </p>
               <a
                 class="of-ghost"
@@ -3394,10 +3950,58 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               padding: 0;
               list-style: none;
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+              grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
               gap: 12px;
             "
           >
+            <li
+              class="of-slot"
+              style="
+                min-width: 0;
+                min-height: 200px;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <code
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
+                  "
+                  >pre-spec</code
+                >
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 18px;
+                    line-height: 22px;
+                  "
+                  >During the grill</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >Runs once, before the coordinator writes
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">spec.md</code>.</span
+                >
+              </div>
+            </li>
             <li
               class="of-slot"
               style="
@@ -3411,55 +4015,40 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
-                gap: 28px;
+                gap: 20px;
               "
             >
-              <code
+              <div
                 style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
                 "
-                >pre-spec</code
               >
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
+                <code
                   style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
                   "
-                  >Before the spec is written</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs as its own agent, ahead of the coordinator writing
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">spec.md</code>.</span
+                  >post-plan</code
+                ><span
+                  style="
+                    align-self: flex-start;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    background: #2b1e1b;
+                    color: #eef0f2;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 11px;
+                    line-height: 16px;
+                    letter-spacing: 0.06em;
+                  "
+                  >CAN BLOCK</span
                 >
               </div>
-            </li>
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #ee5ad6;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >post-plan</code
-              >
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <span
                   style="
@@ -3467,46 +4056,9 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     font-size: 18px;
                     line-height: 22px;
                   "
-                  >After each plan is approved</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs once the coordinator has validated a repo’s plan, before implementation.</span
-                >
-              </div>
-            </li>
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #edeb3c;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >post-test</code
-              >
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
-                  style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
-                  "
-                  >After tests pass</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs for each repo whose build, tests and contract tests pass.</span
+                  >After each plan is validated</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >Runs per child, for example to review a plan against team rules.</span
                 >
               </div>
             </li>
@@ -3523,17 +4075,40 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
-                gap: 28px;
+                gap: 20px;
               "
             >
-              <code
+              <div
                 style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
                 "
-                >post-run</code
               >
+                <code
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
+                  "
+                  >plans-ready</code
+                ><span
+                  style="
+                    align-self: flex-start;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    background: #2b1e1b;
+                    color: #eef0f2;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 11px;
+                    line-height: 16px;
+                    letter-spacing: 0.06em;
+                  "
+                  >CAN BLOCK</span
+                >
+              </div>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <span
                   style="
@@ -3541,15 +4116,304 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     font-size: 18px;
                     line-height: 22px;
                   "
-                  >When every repo is done</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >For example, an audit that summarises a finished run from
+                  >At the plan gate</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >Runs once, after every plan passed the consistency check and before anything is implemented.</span
+                >
+              </div>
+            </li>
+            <li
+              class="of-slot"
+              style="
+                min-width: 0;
+                min-height: 200px;
+                background: #ee5ad6;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <code
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
+                  "
+                  >pre-implement</code
+                ><span
+                  style="
+                    align-self: flex-start;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    background: #2b1e1b;
+                    color: #eef0f2;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 11px;
+                    line-height: 16px;
+                    letter-spacing: 0.06em;
+                  "
+                  >CAN BLOCK</span
+                >
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 18px;
+                    line-height: 22px;
+                  "
+                  >Before each implementer</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >Runs per child, after the gate and its baseline tests.</span
+                >
+              </div>
+            </li>
+            <li
+              class="of-slot"
+              style="
+                min-width: 0;
+                min-height: 200px;
+                background: #edeb3c;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <code
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
+                  "
+                  >post-test</code
+                ><span
+                  style="
+                    align-self: flex-start;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    background: #2b1e1b;
+                    color: #eef0f2;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 11px;
+                    line-height: 16px;
+                    letter-spacing: 0.06em;
+                  "
+                  >CAN BLOCK</span
+                >
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 18px;
+                    line-height: 22px;
+                  "
+                  >After tests pass</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >Runs per child. The child is done only when these finish, so dependents wait for them.</span
+                >
+              </div>
+            </li>
+            <li
+              class="of-slot"
+              style="
+                min-width: 0;
+                min-height: 200px;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border-radius: 28px;
+                padding: 28px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px 12px;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <code
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 28px;
+                    line-height: 30px;
+                  "
+                  >post-run</code
+                >
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 18px;
+                    line-height: 22px;
+                  "
+                  >When the run finishes</span
+                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 34ch"
+                  >For example, an audit that summarises the run from
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code
                   >.</span
                 >
               </div>
             </li>
           </ul>
+          <div style="display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: flex-start">
+            <figure style="margin: 0; flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+              <pre
+                tabindex="0"
+                aria-label="Example manifest: openfleet.extension.json for a publish extension"
+                style="
+                  margin: 0;
+                  padding: 22px 24px;
+                  border-radius: 28px;
+                  background: #2b1e1b;
+                  color: #eef0f2;
+                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                  font-size: 14px;
+                  line-height: 21px;
+                  overflow-x: auto;
+                  white-space: pre;
+                "
+              >{
+  "manifest": 2,
+  "name": "publish",
+  "permissions": ["shell"],
+  "phases": [{
+    "slot": <span style="color: #EDEB3C;">"post-test"</span>,
+    "instructions": "publish.md",
+    "blocking": true,
+    "when": { "files": [".changeset/config.json"] }
+  }],
+  "settings": { "label": { "default": "preview" } }
+}</pre>
+              <figcaption style="font-size: 14px; line-height: 20px; color: #a8a6af">
+                An example
+                <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                  >openfleet.extension.json</code
+                >: publish a preview after tests pass, only in repos that use changesets.
+              </figcaption>
+            </figure>
+            <ul
+              aria-label="What a phase entry can do"
+              style="margin: 0; padding: 0; list-style: none; flex: 1 1 380px; min-width: 0"
+            >
+              <li
+                style="display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-top: 2px solid #45434c"
+              >
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #f4f4f6;
+                  "
+                  >Blocking</span
+                >
+                <span style="font-size: 16px; line-height: 24px; color: #a8a6af"
+                  >A failed blocking entry gets one retry with a fresh agent. If that fails too, the child fails and the
+                  children that depend on it are blocked.</span
+                >
+              </li>
+              <li
+                style="display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-top: 2px solid #45434c"
+              >
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #f4f4f6;
+                  "
+                  >Only when it applies</span
+                >
+                <span style="font-size: 16px; line-height: 24px; color: #a8a6af"
+                  >With
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >when.files</code
+                  >, an entry runs only in repos that have one of the files, and is logged as skipped elsewhere.</span
+                >
+              </li>
+              <li
+                style="display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-top: 2px solid #45434c"
+              >
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #f4f4f6;
+                  "
+                  >Outputs for dependents</span
+                >
+                <span style="font-size: 16px; line-height: 24px; color: #a8a6af"
+                  >A report can return outputs, such as a published
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >version</code
+                  >. Every dependent child’s planner, baseline, implementer and tester gets them as “Upstream outputs”.
+                  A
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >prUrl</code
+                  >
+                  output makes finalize update that PR instead of opening a new one.</span
+                >
+              </li>
+              <li
+                style="display: flex; flex-direction: column; gap: 4px; padding: 14px 0; border-top: 2px solid #45434c"
+              >
+                <span
+                  style="
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #f4f4f6;
+                  "
+                  >Settings, asked once</span
+                >
+                <span style="font-size: 16px; line-height: 24px; color: #a8a6af"
+                  >Settings are workspace-wide. The grill asks about any without a value, and
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >npx openfleet ext settings</code
+                  >
+                  lists them.</span
+                >
+              </li>
+            </ul>
+          </div>
         </section>
 
         <section
@@ -3604,7 +4468,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >api</span
+                >shared-lib</span
               ><span
                 class="of-chip"
                 aria-hidden="true"
@@ -3621,7 +4485,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >sdk-js</span
+                >api</span
               ><span
                 class="of-chip"
                 aria-hidden="true"
@@ -3638,7 +4502,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >sdk-python</span
+                >web/login</span
               ><span
                 class="of-chip"
                 aria-hidden="true"
@@ -3655,7 +4519,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >web/ui</span
+                >admin</span
               ><span
                 class="of-chip"
                 aria-hidden="true"
@@ -3796,25 +4660,27 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         </div>
       </footer>
     </div>
+    <script src="swim.js"></script>
     <script>
       (function () {
-        var NAMES = ["api", "sdk-js", "sdk-python", "billing", "web/app", "web/ui", "mobile"];
-        var SNAPSHOT = [4, 3, "r", 2, 2, 1, "w"];
+        var NAMES = ["shared-lib", "api", "web/setup", "web/login", "web/account", "admin", "mobile"];
+        var AFTER = ["", "", "", "SETUP", "SETUP", "SHARED-LIB", "SHARED-LIB"];
+        // 1 plan, 2 baseline, 3 implement, 4 test, 5 done, g = plan waiting at the gate, r = retry, w = waiting on a dependency
         var STEPS = [
-          [1, 1, 1, 1, 1, 1, "w"],
-          [2, 2, 2, 1, 1, 1, "w"],
-          [3, 2, 2, 2, 2, 1, "w"],
-          [4, 3, 3, 2, 2, 2, "w"],
-          [4, 4, "r", 3, 2, 2, 1],
-          [4, 4, 3, 4, 3, 3, 2],
-          [4, 4, 4, 4, 4, 4, 3],
-          [4, 4, 4, 4, 4, 4, 4],
+          [1, 1, 1, 1, 1, 1, 1],
+          ["g", "g", "g", "g", 1, "g", "g"],
+          [3, 3, 3, 2, 2, 2, "w"],
+          [4, 4, 4, "w", 2, "w", "w"],
+          [5, 5, 5, 3, 3, 3, 3],
+          [5, 5, 5, 4, "r", 4, 4],
+          [5, 5, 5, 5, 4, 5, 5],
+          [5, 5, 5, 5, 5, 5, 5],
         ];
-        var EVENTS_AT_STEP = [0, 0, 1, 1, 2, 2, 2, 3];
+        var EVENTS_AT_STEP = [0, 1, 1, 2, 2, 2, 2, 3];
         var EVENTS = [
-          { color: "#48A6EE", type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { color: "#EDEB3C", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
-          { color: "#F4F4F6", type: "run.completed", text: "staged for review in 7 worktrees" },
+          { color: "#48A6EE", type: "plan.rejected", text: "web/account: own session hook, re-plan" },
+          { color: "#EDEB3C", type: "baseline.passed", text: "web/login: 9 Playwright tests, old code" },
+          { color: "#F4F4F6", type: "run.completed", text: "5 PRs, web pages merged into one" },
         ];
         var SR =
           "position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;";
@@ -3829,7 +4695,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           var bg = "#DFE2E6";
           var ring = "0px";
           var cls = "of-sg";
-          if (p === 4 || p > k + 1) {
+          if (p === 5 || p > k + 1) {
             bg = "#2B1E1B";
           } else if (p === k + 1) {
             bg = "#48A6EE";
@@ -3853,10 +4719,11 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
             .map(function (ph, i) {
               var retry = ph === "r";
               var wait = ph === "w";
-              var p = retry ? 3 : wait ? 0 : ph;
+              var gate = ph === "g";
+              var p = retry ? 3 : ph;
               var label, sr, bg, fg, icon;
               icon = "";
-              if (p === 4) {
+              if (p === 5) {
                 done += 1;
                 label = "DONE";
                 sr = ": plan, implement and test complete";
@@ -3869,29 +4736,37 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 bg = "#FFF1CC";
                 fg = "#8A5300";
                 icon = RETRY;
+              } else if (gate) {
+                label = "AT PLAN GATE";
+                sr = ": plan ready, waiting for every plan to be checked";
+                bg = "#DFE2E6";
+                fg = "#5F5754";
               } else if (wait) {
-                label = "AFTER SDK-JS";
-                sr = ": blocked until sdk-js finishes";
+                label = "AFTER " + AFTER[i];
+                sr = ": waiting until " + AFTER[i].toLowerCase() + " finishes";
                 bg = "#DFE2E6";
                 fg = "#5F5754";
               } else {
-                label = ["", "PLAN", "IMPLEMENT", "TEST"][p];
-                sr = ["", ": planning", ": implementing", ": testing"][p];
+                label = ["", "PLAN", "BASELINE", "IMPLEMENT", "TEST"][p];
+                sr = ["", ": planning", ": writing baseline tests", ": implementing", ": testing"][p];
                 bg = "#48A6EE";
                 fg = "#2B1E1B";
               }
+              if (gate) p = 1.5;
+              if (wait) p = i === 6 ? 1.5 : 2.5;
               var border = i === phases.length - 1 ? "0" : "2px solid #DFE2E6";
               return (
                 '<li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: ' +
                 border +
-                ';"><span class="of-rname" style="width: 92px; flex: none; ' +
+                ';"><span class="of-rname" style="width: 108px; flex: none; ' +
                 MONO +
-                ' font-size: 17px;">' +
+                ' font-size: 16px; white-space: nowrap;">' +
                 NAMES[i] +
-                '</span><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none;">' +
+                '</span><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 92px; flex: none;">' +
                 segment(p, 0) +
                 segment(p, 1) +
                 segment(p, 2) +
+                segment(p, 3) +
                 '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; background: ' +
                 bg +
                 "; color: " +
@@ -3982,437 +4857,118 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
       })();
       (function () {
         var fig = document.getElementById("rp-fig");
-        if (!fig) return;
-        var svg = document.getElementById("rp-swim");
-        var logEl = document.getElementById("rp-log");
-        var btn = document.getElementById("rp-play");
-        var range = document.getElementById("rp-scrub");
-        var clock = document.getElementById("rp-clock");
-        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var narrowMq = window.matchMedia ? window.matchMedia("(max-width: 639px)") : { matches: false };
-        var NS = "http://www.w3.org/2000/svg";
-
-        // Illustrative timings, in seconds. p = plan, i = implement, t = test, f = failed test, w = waiting.
-        var LANES = [
-          {
-            name: "api",
-            segs: [
-              ["p", 50, 80],
-              ["i", 82, 140],
-              ["t", 142, 165],
+        if (!fig || !window.OFSwim) return;
+        // Illustrative timings, in seconds. See swim.js for the segment kinds.
+        window.OFSwim({
+          fig: fig,
+          svg: document.getElementById("rp-swim"),
+          log: document.getElementById("rp-log"),
+          btn: document.getElementById("rp-play"),
+          range: document.getElementById("rp-scrub"),
+          clock: document.getElementById("rp-clock"),
+          narrowMq: window.matchMedia ? window.matchMedia("(max-width: 639px)") : null,
+          data: {
+            end: 330,
+            labelWidth: 120,
+            project: [
+              ["GRILL + SPEC", 0, 40],
+              ["YOU", 40, 48, "you"],
+              ["PLANNING", 48, 116],
+              ["BUILDING", 118, 322],
+              ["FINALIZE", 322, 330],
             ],
-          },
-          {
-            name: "sdk-js",
-            segs: [
-              ["p", 52, 85],
-              ["i", 87, 150],
-              ["t", 152, 180],
-            ],
-          },
-          {
-            name: "sdk-python",
-            segs: [
-              ["p", 54, 88],
-              ["i", 90, 150],
-              ["f", 152, 172],
-              ["i", 174, 200],
-              ["t", 202, 222],
-            ],
-          },
-          {
-            name: "billing",
-            segs: [
-              ["p", 56, 95],
-              ["i", 97, 160],
-              ["t", 162, 190],
-            ],
-          },
-          {
-            name: "web/app",
-            segs: [
-              ["p", 58, 100],
-              ["i", 102, 175],
-              ["t", 177, 205],
-            ],
-          },
-          {
-            name: "web/ui",
-            segs: [
-              ["p", 60, 110],
-              ["i", 112, 185],
-              ["t", 187, 212],
-            ],
-          },
-          {
-            name: "mobile",
-            segs: [
-              ["w", 50, 180],
-              ["p", 182, 205],
-              ["i", 207, 250],
-              ["t", 252, 270],
-            ],
-          },
-        ];
-        var PROJECT = [
-          ["GRILL + SPEC", 0, 40, "raised"],
-          ["YOU", 40, 48, "you"],
-          ["RUNNING", 48, 272, "raised"],
-          ["FINALIZE", 272, 280, "raised"],
-        ];
-        var MARKS = [
-          { t: 120, label: "contract.changed", color: "#48A6EE" },
-          { t: 176, label: "assumption", color: "#EDEB3C" },
-        ];
-        var END = 280;
-        var COLORS = { p: "#48A6EE", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC" };
-        var ROLE = { p: "planner", i: "implementer", t: "tester", f: "tester" };
-
-        var EVENTS = [
-          { t: 0, type: "project.created", text: "account-id" },
-          { t: 40, type: "spec.written", text: "spec.md, 7 repos" },
-          { t: 48, type: "spec.approved", text: "you approved the spec" },
-          { t: 120, type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { t: 176, type: "assumption", text: "sdk-python keeps user_id as an alias" },
-          { t: 275, type: "run.completed", text: "staged in 7 worktrees" },
-        ];
-        LANES.forEach(function (lane) {
-          lane.segs.forEach(function (s) {
-            if (s[0] === "w") {
-              EVENTS.push({ t: s[1], type: "ordering", text: lane.name + " waits on sdk-js" });
-              return;
-            }
-            EVENTS.push({ t: s[1], type: "agent.spawned", text: lane.name + "/" + ROLE[s[0]] });
-            if (s[0] === "t") EVENTS.push({ t: s[2], type: "test.run", text: lane.name + " · pass" });
-            if (s[0] === "f") EVENTS.push({ t: s[2], type: "test.run", text: lane.name + " · fail, retry 1/3" });
-          });
-        });
-        EVENTS.sort(function (a, b) {
-          return a.t - b.t;
-        });
-
-        function fmt(t) {
-          t = Math.max(0, Math.round(t));
-          var s = t % 60;
-          return Math.floor(t / 60) + ":" + (s < 10 ? "0" : "") + s;
-        }
-        function el(name, attrs, text) {
-          var n = document.createElementNS(NS, name);
-          for (var k in attrs) n.setAttribute(k, attrs[k]);
-          if (text != null) n.textContent = text;
-          svg.appendChild(n);
-          return n;
-        }
-
-        var bars = [];
-        var dims;
-        var markEls = [];
-        var head;
-        var projEls = [];
-
-        function build() {
-          var narrow = narrowMq.matches;
-          while (svg.firstChild) svg.removeChild(svg.firstChild);
-          bars = [];
-          markEls = [];
-          projEls = [];
-          var W = narrow ? 400 : 1000;
-          var X0 = narrow ? 4 : 120;
-          var X1 = narrow ? 396 : 990;
-          var x = function (t) {
-            return X0 + (t / END) * (X1 - X0);
-          };
-          var PY = narrow ? 20 : 10;
-          var LY = narrow ? 70 : 60;
-          var LH = narrow ? 46 : 42;
-          if (!narrow)
-            el(
-              "text",
+            lanes: [
               {
-                x: 0,
-                y: PY + 18,
-                fill: "#A8A6AF",
-                "font-size": 12,
-                "letter-spacing": 1,
-                style: "font-family: 'Russo One', sans-serif",
+                name: "shared-lib",
+                segs: [
+                  ["p", 50, 92],
+                  ["i", 120, 168],
+                  ["t", 170, 190],
+                  ["x", 192, 222, "PUBLISH"],
+                ],
               },
-              "PROJECT",
-            );
-          PROJECT.forEach(function (p) {
-            var w = x(p[2]) - x(p[1]) - 2;
-            var you = p[3] === "you";
-            var r = el("rect", {
-              x: x(p[1]),
-              y: PY,
-              width: Math.max(2, w),
-              height: 26,
-              rx: 6,
-              fill: you ? "#EDEB3C" : "#26252C",
-            });
-            projEls.push({ r: r, a: p[1] });
-            if (w > 70)
-              el(
-                "text",
-                {
-                  x: x(p[1]) + 8,
-                  y: PY + 18,
-                  "font-size": narrow ? 11 : 12,
-                  fill: "#A8A6AF",
-                  style: "font-family: 'Russo One', sans-serif",
-                },
-                p[0],
-              );
-            if (you)
-              el(
-                "text",
-                {
-                  x: x(p[1]) + w / 2,
-                  y: PY + 42,
-                  "font-size": 11,
-                  fill: "#EDEB3C",
-                  "text-anchor": "middle",
-                  style: "font-family: 'Russo One', sans-serif",
-                },
-                "YOU",
-              );
-          });
-          LANES.forEach(function (lane, i) {
-            var y = LY + i * LH;
-            var labY = narrow ? y + 11 : y + 24;
-            var barY = narrow ? y + 17 : y + 8;
-            var barH = narrow ? 18 : 22;
-            el("line", {
-              x1: X0,
-              x2: X1,
-              y1: barY + barH / 2,
-              y2: barY + barH / 2,
-              stroke: "#45434C",
-              "stroke-width": 1,
-              "stroke-dasharray": "2 6",
-            });
-            el(
-              "text",
               {
-                x: narrow ? X0 : 0,
-                y: labY,
-                "font-size": narrow ? 14 : 16,
-                fill: "#F4F4F6",
-                style: "font-family: 'Share Tech Mono', monospace",
+                name: "api",
+                segs: [
+                  ["p", 52, 84],
+                  ["i", 120, 176],
+                  ["t", 178, 200],
+                ],
               },
-              lane.name,
-            );
-            lane.segs.forEach(function (s) {
-              if (s[0] === "w") {
-                var line = el("line", {
-                  x1: x(s[1]),
-                  x2: x(s[1]),
-                  y1: barY + barH / 2,
-                  y2: barY + barH / 2,
-                  stroke: "#A8A6AF",
-                  "stroke-width": 2,
-                  "stroke-dasharray": "5 5",
-                });
-                bars.push({ kind: "w", node: line, a: s[1], b: s[2], x: x });
-                var lab = el(
-                  "text",
-                  {
-                    x: x(s[1]) + 8,
-                    y: barY - 3,
-                    "font-size": 12,
-                    fill: "#A8A6AF",
-                    style: "font-family: 'Share Tech Mono', monospace",
-                  },
-                  "waits on sdk-js",
-                );
-                bars.push({ kind: "label", node: lab, a: s[1] });
-                return;
-              }
-              var attrs = { x: x(s[1]), y: barY, height: barH, rx: 5, width: 0, fill: COLORS[s[0]] };
-              if (s[0] === "f") {
-                attrs.stroke = "#8A5300";
-                attrs["stroke-width"] = 2;
-              }
-              var r = el("rect", attrs);
-              bars.push({ kind: "bar", node: r, a: s[1], b: s[2], x: x });
-              if (s[0] === "f") {
-                var fl = el(
-                  "text",
-                  {
-                    x: x(s[2]) - 4,
-                    y: barY + barH / 2 + 4,
-                    "font-size": 11,
-                    fill: "#8A5300",
-                    "text-anchor": "end",
-                    style: "font-family: 'Russo One', sans-serif",
-                  },
-                  "FAIL",
-                );
-                bars.push({ kind: "label", node: fl, a: s[2] });
-              }
-            });
-          });
-          var bottom = LY + LANES.length * LH + 4;
-          MARKS.forEach(function (m, mi) {
-            var ln = el("line", {
-              x1: x(m.t),
-              x2: x(m.t),
-              y1: LY - 6,
-              y2: bottom,
-              stroke: m.color,
-              "stroke-width": 2,
-              "stroke-dasharray": "3 4",
-            });
-            var tx = el(
-              "text",
               {
-                x: x(m.t) + 6,
-                y: bottom + 18 + (narrow ? mi * 15 : 0),
-                "font-size": 12,
-                fill: m.color,
-                style: "font-family: 'Share Tech Mono', monospace",
+                name: "web/setup",
+                segs: [
+                  ["p", 54, 96],
+                  ["i", 120, 150],
+                  ["t", 152, 164],
+                  ["m", 167, 0, "merged"],
+                ],
               },
-              m.label,
-            );
-            markEls.push({ t: m.t, nodes: [ln, tx] });
-          });
-          var axisY = bottom + (narrow ? 45 : 30);
-          el("line", { x1: X0, x2: X1, y1: axisY, y2: axisY, stroke: "#45434C", "stroke-width": 2 });
-          for (var s = 0; s <= END; s += narrow ? 120 : 60) {
-            el("line", { x1: x(s), x2: x(s), y1: axisY, y2: axisY + 6, stroke: "#45434C", "stroke-width": 2 });
-            el(
-              "text",
               {
-                x: x(s),
-                y: axisY + 22,
-                "font-size": 13,
-                fill: "#A8A6AF",
-                "text-anchor": s === 0 ? "start" : "middle",
-                style: "font-family: 'Share Tech Mono', monospace",
+                name: "web/login",
+                segs: [
+                  ["p", 56, 100],
+                  ["b", 120, 160],
+                  ["w", 162, 224, "waits on shared-lib"],
+                  ["i", 226, 268],
+                  ["t", 270, 288],
+                  ["m", 292, 0],
+                ],
               },
-              fmt(s),
-            );
-          }
-          head = el("line", { x1: x(END), x2: x(END), y1: PY - 4, y2: axisY, stroke: "#F4F4F6", "stroke-width": 2 });
-          svg.setAttribute("viewBox", "0 0 " + W + " " + (axisY + 30));
-          svg.style.minWidth = narrow ? "0" : "720px";
-          dims = { x: x };
-        }
-
-        var lastShown = -1;
-        function frame(t) {
-          var x = dims.x;
-          bars.forEach(function (b) {
-            if (b.kind === "bar") {
-              var w = Math.max(0, Math.min(t, b.b) - b.a);
-              b.node.setAttribute("width", Math.max(0, x(b.a + w) - x(b.a)));
-            } else if (b.kind === "w") {
-              b.node.setAttribute("x2", x(Math.max(b.a, Math.min(t, b.b))));
-              b.node.style.opacity = t >= b.a ? 1 : 0;
-            } else {
-              b.node.style.opacity = t >= b.a ? 1 : 0;
-            }
-          });
-          markEls.forEach(function (m) {
-            m.nodes.forEach(function (n) {
-              n.style.opacity = t >= m.t ? 1 : 0;
-            });
-          });
-          projEls.forEach(function (p) {
-            p.r.style.opacity = t >= p.a ? 1 : 0.3;
-          });
-          head.setAttribute("x1", x(t));
-          head.setAttribute("x2", x(t));
-          var n = 0;
-          while (n < EVENTS.length && EVENTS[n].t <= t) n++;
-          if (n !== lastShown) {
-            lastShown = n;
-            var keep = narrowMq.matches ? 4 : 7;
-            logEl.innerHTML = EVENTS.slice(Math.max(0, n - keep), n)
-              .reverse()
-              .map(function (e) {
-                return (
-                  "<li><span>" + fmt(e.t) + "</span><span><b>" + e.type + "</b><em>" + e.text + "</em></span></li>"
-                );
-              })
-              .join("");
-          }
-        }
-
-        var t = END;
-        var playing = false;
-        var raf = 0;
-        var last = 0;
-        var DURATION_MS = 12000;
-        function set(v) {
-          t = Math.max(0, Math.min(END, v));
-          range.value = Math.round((t / END) * 1000);
-          clock.textContent = fmt(t);
-          frame(t);
-        }
-        function label() {
-          btn.textContent = playing ? "❚❚ PAUSE" : t >= END ? "↺ REPLAY" : "▶ PLAY";
-        }
-        function tick(now) {
-          var dt = now - last;
-          last = now;
-          set(t + (dt / DURATION_MS) * END);
-          if (t >= END) {
-            playing = false;
-            label();
-            return;
-          }
-          raf = requestAnimationFrame(tick);
-        }
-        function play() {
-          if (reduce) {
-            set(END);
-            label();
-            return;
-          }
-          if (t >= END) set(0);
-          playing = true;
-          label();
-          last = performance.now();
-          raf = requestAnimationFrame(tick);
-        }
-        function pause() {
-          playing = false;
-          cancelAnimationFrame(raf);
-          label();
-        }
-        btn.addEventListener("click", function () {
-          if (playing) pause();
-          else play();
+              {
+                name: "web/account",
+                segs: [
+                  ["p", 58, 98],
+                  ["f", 99, 106, "REJECTED"],
+                  ["p", 107, 115],
+                  ["b", 120, 156],
+                  ["w", 158, 224],
+                  ["i", 226, 260],
+                  ["f", 262, 278],
+                  ["i", 280, 296],
+                  ["t", 298, 312],
+                  ["m", 316, 0],
+                ],
+              },
+              {
+                name: "admin",
+                segs: [
+                  ["p", 60, 94],
+                  ["b", 120, 164],
+                  ["w", 166, 224],
+                  ["i", 226, 266],
+                  ["t", 268, 290],
+                ],
+              },
+              {
+                name: "mobile",
+                segs: [
+                  ["w", 50, 86, "queued: maxParallel 6"],
+                  ["p", 87, 112],
+                  ["w", 120, 224],
+                  ["i", 226, 272],
+                  ["t", 274, 296],
+                ],
+              },
+            ],
+            marks: [
+              { t: 116, label: "plans-ready", solid: true, left: true },
+              { t: 222, label: "extension.outputs" },
+            ],
+            events: [
+              { t: 0, type: "project.created", text: "auth-kit" },
+              { t: 40, type: "spec.written", text: "spec.md + Shared approach, 7 children" },
+              { t: 48, type: "spec.approved", text: "you approved the spec" },
+              { t: 99, type: "plan.rejected", text: "web/account: own session hook, inconsistent" },
+              { t: 116, type: "plans.consistent", text: "7 plans agree, gate open" },
+              { t: 156, type: "baseline.passed", text: "web/account · 6 Playwright tests" },
+              { t: 160, type: "baseline.passed", text: "web/login · 9 Playwright tests" },
+              { t: 164, type: "baseline.passed", text: "admin · 5 Playwright tests" },
+              { t: 222, type: "extension.outputs", text: "shared-lib version 2.0.0-snapshot.1" },
+              { t: 326, type: "run.completed", text: "5 draft PRs, web pages in one" },
+            ],
+          },
         });
-        range.addEventListener("input", function () {
-          pause();
-          set((range.value / 1000) * END);
-          label();
-        });
-
-        build();
-        set(END);
-        label();
-        var onChange = function () {
-          build();
-          lastShown = -1;
-          frame(t);
-        };
-        if (narrowMq.addEventListener) narrowMq.addEventListener("change", onChange);
-        if (!reduce && "IntersectionObserver" in window) {
-          var io = new IntersectionObserver(
-            function (entries) {
-              entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                  io.disconnect();
-                  play();
-                }
-              });
-            },
-            { threshold: 0.3 },
-          );
-          io.observe(fig);
-        }
       })();
     </script>
   </body>

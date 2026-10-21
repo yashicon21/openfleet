@@ -16,5 +16,9 @@ export default tseslint.config(
   {
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ["site/**/*.js"],
+    languageOptions: { globals: globals.browser },
+  },
   prettier,
 );
