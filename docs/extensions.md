@@ -56,9 +56,9 @@ my-extension/
 
 | Field            | Default | Notes                                                                                                                |
 | ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| `slot`           | —       | `pre-spec`, `post-plan`, `post-test` or `post-run`.                                                                  |
+| `slot`           | —       | `pre-spec`, `post-plan`, `plans-ready`, `pre-implement`, `post-test` or `post-run`.                                  |
 | `instructions`   | —       | Markdown file with the agent's instructions.                                                                         |
-| `blocking`       | `false` | Only allowed in the per-child slots `post-plan` and `post-test`. See [Blocking phases](#blocking-phases).            |
+| `blocking`       | `false` | Allowed in `post-plan`, `plans-ready`, `pre-implement` and `post-test`. See [Blocking phases](#blocking-phases).     |
 | `when.files`     | —       | Relative paths. The entry runs only if at least one exists. See [Conditional phases](#conditional-phases-whenfiles). |
 | `timeoutMinutes` | `30`    | The coordinator stops the agent after this long and treats the attempt as failed.                                    |
 
@@ -66,12 +66,12 @@ Each phase entry becomes the agent `openfleet:openfleet-ext-<name>-<slot>` (a se
 
 ### Augment entries
 
-| Field          | Notes                                                |
-| -------------- | ---------------------------------------------------- |
-| `role`         | `coordinator`, `planner`, `implementer` or `tester`. |
-| `instructions` | Markdown appended to that role's agent prompt.       |
+| Field          | Notes                                                                                |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `role`         | `coordinator`, `repo-coordinator`, `planner`, `baseline`, `implementer` or `tester`. |
+| `instructions` | Markdown appended to that role's agent prompt.                                       |
 
-Augments are appended under `## Extension: <name>` and use the role's own tools. Copilot limits an agent prompt to 30,000 characters, so keep augments short.
+`repo-coordinator` augments reach the agent that runs a repo with several children (path-scoped children or several monorepo packages): use them for rules about merging into the integration branch or deciding in-repo questions. Augments are appended under `## Extension: <name>` and use the role's own tools. Copilot limits an agent prompt to 30,000 characters, so keep augments short.
 
 ### Version 1 manifests
 
@@ -92,10 +92,19 @@ becomes
 `openfleet/core/extensions.json` lists every phase entry per slot, in lock-file order and then manifest order, with its `agent`, `blocking`, `when` and `timeoutMinutes`. At each slot the coordinator:
 
 1. Runs `npx openfleet ext plan <project> <slot> [--child <id>]`. It prints the entries to run and logs `extension.skipped` for entries whose `when.files` do not exist.
-2. Spawns each entry's agent in order, with the project name and (for `post-plan`/`post-test`) the child id and worktree.
+2. Spawns each entry's agent in order, with the project name and (for per-child slots) the child id and worktree.
 3. Records the agent's report with `npx openfleet ext result …`, which logs `extension.ran`.
 
-`pre-spec` and `post-run` run once per project. `post-plan` and `post-test` run once per child.
+| Slot            | Runs                                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| `pre-spec`      | Once per project, during the grill.                                                                 |
+| `post-plan`     | Per child, after its plan is validated.                                                             |
+| `plans-ready`   | Once per project, after every plan passed the consistency check and before anything is implemented. |
+| `pre-implement` | Per child, after the gate (and its baseline, if any), right before its implementer.                 |
+| `post-test`     | Per child, after the tester passes. The child is `done` only after these finish.                    |
+| `post-run`      | Once per project, during finalize.                                                                  |
+
+For a repo with several children, its repo coordinator runs the per-child slots (`post-plan`, `pre-implement`, `post-test`) for each of its children, with the same `ext plan` / `ext result` / `ext fail` commands. `when.files` is checked in that child's worktree. A blocking failure marks that child `failed`, and its dependents become `blocked`, as for any failed child.
 
 ### Reports
 
@@ -121,7 +130,11 @@ For a blocking entry, a failure, a missing report or a timeout gets **one retry 
 - marks the child `failed`,
 - marks every child that depends on it, directly or transitively, `blocked`.
 
-The run continues with the other children, as for any failed child. A child only reaches `done` after all of its `post-test` entries finish, so dependents never start before a blocking `post-test` entry succeeds.
+The run continues with the other children, as for any failed child.
+
+In `plans-ready` (a project slot), `npx openfleet ext fail` has no `--child`. It marks every active child `blocked` and the gate stays closed, so nothing is implemented. The user decides what to do with `npx openfleet resume`.
+
+A child only reaches `done` after all of its `post-test` entries finish, so dependents never start before a blocking `post-test` entry succeeds.
 
 ### Conditional phases (`when.files`)
 
@@ -136,7 +149,7 @@ If none exist, the entry is skipped and `extension.skipped` is logged with the d
 
 `npx openfleet ext result` stores a report's `outputs` in `state.json` under `children.<id>.outputs.<extension>` and logs `extension.outputs`.
 
-When the coordinator spawns a planner, implementer or tester for another child, the `subagentStart` hook adds an **Upstream outputs** table to its prompt. It lists the outputs of every child it depends on, **directly or transitively**, so a value published by a library reaches every repo downstream of it. The hook does this from `state.json`, so it does not depend on the coordinator relaying values. An implementer augment can tell the implementer how to use them (for example, pin the version exactly).
+When the coordinator spawns a planner, baseline tester, implementer or tester for another child, the `subagentStart` hook adds an **Upstream outputs** table to its prompt. It lists the outputs of every child it depends on, **directly or transitively**, so a value published by a library reaches every repo downstream of it, including path-scoped children run by a repo coordinator. The hook does this from `state.json`, so it does not depend on the coordinator relaying values. An implementer augment can tell the implementer how to use them (for example, pin the version exactly).
 
 An output named **`prUrl`** marks a pull request the extension opened for the child mid-run. It sets the child's `prUrl`. In finalize, OpenFleet commits anything left in the worktree, pushes to the same branch and updates the existing PR body (summary, Related PRs, follow-ups) instead of opening a second PR. This happens in `staged` mode too, because those changes are already pushed.
 
@@ -158,7 +171,17 @@ A workspace overrides them in `openfleet/extensions.config.json`:
 { "publish": { "label": "nightly" } }
 ```
 
-Override keys must be declared by the extension, and values must be strings; anything else is an error. OpenFleet resolves the values and adds a **Settings** table (key, value, description) to every prompt of the extension: its phase agents, its augment sections and its command skills. `new`, `resume` and extension commands re-sync, so edits apply to the next session. There is no CLI command for settings yet.
+Override keys must be declared by the extension, and values must be strings; anything else is an error. OpenFleet resolves the values and adds a **Settings** table (key, value, description) to every prompt of the extension: its phase agents, its augment sections and its command skills. `new`, `resume` and extension commands re-sync, so edits apply to the next session.
+
+Settings are workspace-level: one value per workspace, shared by every project. Manage them with:
+
+```sh
+npx openfleet ext settings            # every declared setting: extension, key, default, description, value, set
+npx openfleet ext settings --unset    # only settings without a value in extensions.config.json
+npx openfleet ext settings set <extension> <key> <value>
+```
+
+`set` validates the key against the manifest (like core does), writes `extensions.config.json` under a lock and regenerates the extension's agents. During the grill, the coordinator runs `ext settings --unset` and asks the user about each unset setting (keep the default or give a value), then writes every answer with `ext settings set`. Once a key is set, later projects do not ask again; the grill skips the step when nothing is unset. Settings are stored in plain text, so do not use them for secrets.
 
 ## Commands
 

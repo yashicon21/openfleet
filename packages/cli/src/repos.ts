@@ -6,6 +6,8 @@ export interface PackageEntry {
   path: string;
   build?: string;
   test?: string;
+  /** End-to-end test command (for example Playwright). */
+  e2e?: string;
 }
 
 export interface RepoEntry {
@@ -16,6 +18,15 @@ export interface RepoEntry {
   defaultBranch?: string;
   build?: string;
   test?: string;
+  /** End-to-end test command (for example Playwright). */
+  e2e?: string;
+  /**
+   * Local, uncommitted files (for example `.env.local`) that `npx openfleet worktree` copies from
+   * the main checkout into each new worktree. Relative to the repo root. Never committed or logged.
+   */
+  copyFiles?: string[];
+  /** Names (never values) of the env vars and credentials the repo needs to build and test. */
+  env?: string[];
   /** Monorepo packages, keyed by package name. */
   packages?: Record<string, PackageEntry>;
   description?: string;

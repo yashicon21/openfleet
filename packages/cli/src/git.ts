@@ -58,14 +58,18 @@ function parseNumstat(out: string): Map<string, { added: number; removed: number
 
 /**
  * Diff of a worktree against `base` (default HEAD), including untracked
- * files, without touching the real index.
+ * files, without touching the real index. `exclude` paths (copied local
+ * files) are left out entirely.
  */
-export function snapshotWorktree(worktree: string, base = "HEAD"): Snapshot {
+export function snapshotWorktree(worktree: string, base = "HEAD", exclude: readonly string[] = []): Snapshot {
   const tmpIndex = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "openfleet-idx-")), "index");
   const env = { ...process.env, GIT_INDEX_FILE: tmpIndex };
   try {
     git(worktree, ["read-tree", base], { env });
-    git(worktree, ["add", "-A", "--", "."], { env });
+    git(worktree, ["add", "-A"], { env });
+    // Put excluded paths back to `base` in the temporary index. (Exclude pathspecs on
+    // `git add` fail when a path is git-ignored, which copied files usually are.)
+    if (exclude.length) git(worktree, ["reset", "-q", base, "--", ...exclude.map((f) => `:(literal)${f}`)], { env });
     const status = git(worktree, ["diff", "--cached", "--name-status", "--no-renames", base], { env });
     const numstat = parseNumstat(git(worktree, ["diff", "--cached", "--numstat", "--no-renames", base], { env }));
     const patch = git(worktree, ["diff", "--cached", "--binary", "--no-renames", base], { env });

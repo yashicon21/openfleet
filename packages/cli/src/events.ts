@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { copiedSecrets } from "./copyfiles.js";
 import { withLock } from "./lock.js";
 import { redact, redactString } from "./redact.js";
 import type { ProjectPaths } from "./workspace.js";
@@ -36,12 +37,19 @@ export const EVENT_TYPES = [
   "extension.skipped",
   "extension.outputs",
   "extension.failed",
+  "plans.consistent",
+  "baseline.passed",
+  "question.escalated",
+  "child.merged",
+  "merge.conflict",
+  "worktree.synced",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];
 
 /**
- * Actor: `coordinator`, `<repo>/<role>` (repo may be `<repo>:<package>`),
+ * Actor: `coordinator`, `<child>/<role>` (child may be `<repo>:<package>` or
+ * `<repo>[:<package>]/<unit>`; role may be `repo-coordinator`),
  * `ext:<name>`, `cli` or `user`.
  */
 export interface EventInput {
@@ -100,11 +108,12 @@ export function appendEvent(p: ProjectPaths, input: EventInput): OpenFleetEvent 
   fs.mkdirSync(p.dir, { recursive: true });
   return withLock(p.eventsLock, () => {
     const seq = readSeq(p) + 1;
-    const payload: Record<string, unknown> = redact({ ...(input.payload ?? {}) });
+    const secrets = copiedSecrets(p);
+    const payload: Record<string, unknown> = redact({ ...(input.payload ?? {}) }, secrets);
     if (input.patch !== undefined && input.patch.length > 0) {
       fs.mkdirSync(p.patches, { recursive: true });
       const rel = path.posix.join("patches", `${seq}.patch`);
-      fs.writeFileSync(path.join(p.dir, rel), redactString(input.patch));
+      fs.writeFileSync(path.join(p.dir, rel), redactString(input.patch, secrets));
       payload.patch = rel;
     }
     const event: OpenFleetEvent = {

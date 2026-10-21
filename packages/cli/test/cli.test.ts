@@ -278,6 +278,12 @@ describe("openfleet CLI", () => {
     expect(cli(root, ["add", publishFixture(path.join(tmp, "publish"))]).stdout).toContain(
       "Phase: post-test (blocking, when .changeset/config.json) runs as agent openfleet:openfleet-ext-publish-post-test.",
     );
+    const unset = () =>
+      (JSON.parse(cli(root, ["ext", "settings", "--unset"]).stdout) as { key: string }[]).map((r) => r.key);
+    expect(unset()).toEqual(["label", "workflow"]);
+    expect(cli(root, ["ext", "settings", "set", "publish", "label", "nightly"]).code).toBe(0);
+    expect(cli(root, ["ext", "settings", "set", "publish", "nope", "x"]).stderr).toMatch(/does not declare setting/);
+    expect(unset()).toEqual(["workflow"]);
     const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
     expect(cli(root, ["new", "pin"], env).code).toBe(0);
     for (const [id, deps] of [
@@ -390,6 +396,162 @@ describe("openfleet CLI", () => {
       payload: { blocked: ["web", "app"], attempts: 2 },
     });
     expect(ofType("child.failed")[0]!.payload.reason).toMatch(/extension publish \(post-test\) failed/);
+  });
+
+  it("runs the plan-first flow: copyFiles, next, gate, baseline and plans-ready failures", () => {
+    const tmp = tmpDir();
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    const lib = gitRepo(path.join(tmp, "lib"), { "package.json": "{}\n" });
+    const app = gitRepo(path.join(tmp, "app"), { ".gitignore": ".env.local\n", "src/a.ts": "a\n" });
+    fs.writeFileSync(path.join(app, ".env.local"), "AUTH_CLIENT_SECRET=local-client-secret-1\n");
+    cli(root, ["init"]);
+    fs.writeFileSync(
+      path.join(root, "openfleet/repos.json"),
+      JSON.stringify({
+        v: 1,
+        repos: {
+          lib: { path: lib },
+          app: { path: app, e2e: "pnpm test:e2e", env: ["AUTH_CLIENT_SECRET"], copyFiles: [".env.local", "nope.env"] },
+        },
+      }),
+    );
+    const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
+    expect(cli(root, ["new", "auth"], env).code).toBe(0);
+    const state = () => readJson<ProjectState>(path.join(root, "openfleet/projects/auth/state.json"));
+    const next = () =>
+      JSON.parse(cli(root, ["next", "auth"]).stdout) as { gate: string; actions: { action: string; child?: string }[] };
+
+    expect(cli(root, ["worktree", "auth", "lib", "--repo", "lib", "--branch", "openfleet/auth"]).code).toBe(0);
+    const wt = cli(root, ["worktree", "auth", "app", "--repo", "app", "--branch", "openfleet/auth"]);
+    expect(wt.code).toBe(0);
+    expect(wt.stderr).toContain("nope.env");
+    const appWt = state().children.app!.worktree!;
+    expect(fs.readFileSync(path.join(appWt, ".env.local"), "utf8")).toContain("local-client-secret-1");
+    expect(state().children.app).toMatchObject({ copiedFiles: [".env.local"] });
+    cli(root, [
+      "state",
+      "auth",
+      "--patch",
+      JSON.stringify({
+        status: "running",
+        children: { app: { dependsOn: ["lib"], baseline: true, baselineCover: "login" } },
+      }),
+    ]);
+    const ports = Object.values(state().children).map((c) => c.portBase);
+    expect(new Set(ports).size).toBe(2);
+
+    expect(next()).toMatchObject({
+      gate: "planning",
+      actions: [
+        { action: "plan", child: "lib" },
+        { action: "plan", child: "app" },
+      ],
+    });
+    cli(root, ["state", "auth", "--patch", '{"children":{"lib":{"phase":"planned"},"app":{"phase":"plan-review"}}}']);
+    expect(cli(root, ["gate", "auth", "consistent"]).stderr).toMatch(/Not every plan is validated yet: app/);
+    cli(root, ["state", "auth", "--patch", '{"children":{"app":{"phase":"planned"}}}']);
+    expect(next()).toMatchObject({ gate: "checking", actions: [{ action: "check-consistency" }] });
+    expect(cli(root, ["gate", "auth", "open"]).stderr).toMatch(/consistency check/);
+    expect(cli(root, ["gate", "auth", "consistent"]).code).toBe(0);
+    expect(next()).toMatchObject({ gate: "plans-ready", actions: [{ action: "plans-ready" }] });
+    expect(cli(root, ["gate", "auth", "open"]).code).toBe(0);
+    expect(next()).toMatchObject({
+      gate: "open",
+      actions: [
+        { action: "implement", child: "lib" },
+        { action: "baseline", child: "app" },
+      ],
+    });
+
+    fs.mkdirSync(path.join(appWt, "e2e"));
+    fs.writeFileSync(path.join(appWt, "e2e/login.spec.ts"), "test('login')\n");
+    cli(root, ["state", "auth", "--patch", '{"children":{"app":{"phase":"baseline"}}}']);
+    expect(
+      cli(root, ["baseline", "auth", "app", "--report", '{"status":"done","files":["e2e/missing.ts"]}']).stderr,
+    ).toMatch(/does not exist/);
+    const report = { status: "done", files: ["e2e/login.spec.ts"], command: "pnpm test:e2e", results: "1/1, 2 runs" };
+    expect(cli(root, ["baseline", "auth", "app", "--report", JSON.stringify(report)]).code).toBe(0);
+    expect(state().children.app).toMatchObject({
+      phase: "planned",
+      baselinePassed: true,
+      baselineFiles: ["e2e/login.spec.ts"],
+    });
+    const check = () => JSON.parse(cli(root, ["baseline", "auth", "app", "--check"]).stdout) as { changed: string[] };
+    expect(check().changed).toEqual([]);
+    fs.writeFileSync(path.join(appWt, "e2e/login.spec.ts"), "test.skip('login')\n");
+    expect(check().changed).toEqual(["e2e/login.spec.ts"]);
+    expect(next().actions).toEqual([{ owner: "top", action: "implement", child: "lib" }]);
+
+    // Re-planning after a contract change clears the consistency check without closing the gate.
+    cli(root, ["state", "auth", "--patch", '{"children":{"lib":{"phase":"plan-review"}}}']);
+    cli(root, ["state", "auth", "--patch", '{"children":{"lib":{"phase":"planned"}}}']);
+    expect(next()).toMatchObject({ gate: "open", actions: [{ action: "check-consistency" }] });
+
+    // A blocking plans-ready failure blocks every active child.
+    expect(
+      cli(root, ["ext", "fail", "auth", "gatekeeper", "--slot", "plans-ready", "--reason", "plans need sign-off"]).code,
+    ).toBe(0);
+    expect(Object.values(state().children).map((c) => c.phase)).toEqual(["blocked", "blocked"]);
+    expect(next().actions).toEqual([{ owner: "top", action: "finalize" }]);
+
+    const events = readEvents({ events: path.join(root, "openfleet/projects/auth/events.jsonl") } as never);
+    expect(events.find((e) => e.type === "worktree.created" && e.target === "app")!.payload).toMatchObject({
+      copiedFiles: [".env.local"],
+      missingCopyFiles: ["nope.env"],
+    });
+    expect(events.find((e) => e.type === "plans.consistent")!.payload).toMatchObject({
+      children: ["lib", "app"],
+      gateOpen: false,
+    });
+    expect(events.find((e) => e.type === "baseline.passed")).toMatchObject({
+      actor: "app/baseline",
+      target: "app",
+      payload: { files: ["e2e/login.spec.ts"], command: "pnpm test:e2e" },
+    });
+    expect(events.find((e) => e.type === "extension.failed")).toMatchObject({ payload: { slot: "plans-ready" } });
+    expect(fs.readFileSync(path.join(root, "openfleet/projects/auth/events.jsonl"), "utf8")).not.toContain(
+      "local-client-secret-1",
+    );
+  });
+
+  it("accepts blocking phases in plans-ready and pre-implement", () => {
+    const tmp = tmpDir();
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    cli(root, ["init"]);
+    const ext = writeExtension(path.join(tmp, "gate"), {
+      manifest: 2,
+      name: "gate",
+      version: "1.0.0",
+      core: ">=0.0.0 <1.0.0",
+      description: "Gate checks",
+      phases: [
+        { slot: "plans-ready", instructions: "a.md", blocking: true },
+        { slot: "pre-implement", instructions: "b.md", blocking: true },
+      ],
+      augments: [{ role: "baseline", instructions: "c.md" }],
+    });
+    const r = cli(root, ["add", ext]);
+    expect(r.stderr).toBe("");
+    expect(r.code).toBe(0);
+    const index = readJson<Record<string, { agent: string; blocking: boolean }[]>>(
+      path.join(root, "openfleet/core/extensions.json"),
+    );
+    expect(JSON.stringify(index)).toContain("openfleet:openfleet-ext-gate-plans-ready");
+    expect(JSON.stringify(index)).toContain("openfleet:openfleet-ext-gate-pre-implement");
+    expect(fs.readFileSync(path.join(root, "openfleet/core/agents/openfleet-baseline.agent.md"), "utf8")).toContain(
+      "## Extension: gate",
+    );
+    const bad = writeExtension(path.join(tmp, "bad"), {
+      manifest: 2,
+      name: "bad",
+      version: "1.0.0",
+      core: ">=0.0.0 <1.0.0",
+      description: "Bad",
+      phases: [{ slot: "post-run", instructions: "a.md", blocking: true }],
+    });
+    expect(cli(root, ["add", bad]).stderr).toMatch(/only supported in the slots/);
   });
 
   it("update reinstalls core and keeps user data", () => {

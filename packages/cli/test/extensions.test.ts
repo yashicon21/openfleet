@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { listSettings, setSetting } from "../src/commands/ext.js";
 import { installedCoreVersion, syncExtensions } from "../src/core.js";
 import { findSlotEntry, readCoreIndex } from "../src/coreindex.js";
 import {
@@ -41,7 +42,7 @@ describe("validateManifest", () => {
       /unknown field/,
     ],
     [{ name: "x", ...phase("post-test", { blocking: "yes" }) }, /blocking/],
-    [{ name: "x", ...phase("post-run", { blocking: true }) }, /only supported in the per-child slots/],
+    [{ name: "x", ...phase("post-run", { blocking: true }) }, /only supported in the slots/],
     [{ name: "x", ...phase("post-test", { when: { files: [] } }) }, /when/],
     [{ name: "x", ...phase("post-test", { when: { files: ["../up"] } }) }, /when/],
     [{ name: "x", ...phase("post-test", { timeoutMinutes: 0 }) }, /timeoutMinutes/],
@@ -137,6 +138,49 @@ describe("settings", () => {
     expect(resolveSettings(m, {})).toEqual({ label: "preview", workflow: "preview.yml" });
     expect(resolveSettings(m, { publish: { label: "snap" } })).toEqual({ label: "snap", workflow: "preview.yml" });
     expect(() => resolveSettings(m, { publish: { lable: "x" } })).toThrow(/does not declare setting "lable"/);
+  });
+
+  it("lists unset settings and writes validated workspace overrides", () => {
+    const ws = workspace();
+    addExtension(ws, publishFixture(tmpDir()), installedCoreVersion(ws)!);
+    addExtension(
+      ws,
+      writeExtension(tmpDir(), { ...base, name: "plain", ...phase("post-run") }),
+      installedCoreVersion(ws)!,
+    );
+    syncExtensions(ws);
+    const unset = () =>
+      listSettings(ws)
+        .filter((r) => !r.set)
+        .map((r) => `${r.extension}.${r.key}`);
+    expect(listSettings(ws)[0]).toEqual({
+      extension: "publish",
+      key: "label",
+      default: "preview",
+      description: "Label that triggers the preview workflow",
+      set: false,
+    });
+    expect(unset()).toEqual(["publish.label", "publish.workflow"]);
+
+    setSetting(ws, "publish", "label", "nightly");
+    expect(unset()).toEqual(["publish.workflow"]);
+    expect(listSettings(ws)[0]).toMatchObject({ value: "nightly", set: true });
+    // Keeping the default is recorded too, so later projects do not ask again.
+    setSetting(ws, "publish", "workflow", "preview.yml");
+    expect(unset()).toEqual([]);
+    expect(JSON.parse(fs.readFileSync(path.join(ws.dir, "extensions.config.json"), "utf8"))).toEqual({
+      publish: { label: "nightly", workflow: "preview.yml" },
+    });
+    expect(fs.readFileSync(path.join(ws.core, "agents", "openfleet-ext-publish-post-test.agent.md"), "utf8")).toMatch(
+      /\| `label` \| nightly \|/,
+    );
+
+    expect(() => setSetting(ws, "publish", "lable", "x")).toThrow(/does not declare setting "lable"/);
+    expect(() => setSetting(ws, "plain", "x", "y")).toThrow(/declares no settings/);
+    expect(() => setSetting(ws, "missing", "x", "y")).toThrow(/not installed/);
+    expect(JSON.parse(fs.readFileSync(path.join(ws.dir, "extensions.config.json"), "utf8"))).toEqual({
+      publish: { label: "nightly", workflow: "preview.yml" },
+    });
   });
 });
 

@@ -3,22 +3,35 @@ import fs from "node:fs";
 import path from "node:path";
 import { readCoreIndex, type SlotEntry } from "../coreindex.js";
 import { appendEvent } from "../events.js";
-import { SLOTS, type Slot } from "../extensions.js";
+import { syncExtensions } from "../core.js";
+import {
+  loadExtensions,
+  readExtensionsConfig,
+  resolveSettings,
+  SETTINGS_FILE,
+  SLOTS,
+  type Slot,
+} from "../extensions.js";
+import { writeJson } from "../fsutil.js";
+import { withLock } from "../lock.js";
 import { readRepos } from "../repos.js";
-import { dependentsOf, readState, updateState, type ChildState, type ProjectState } from "../state.js";
+import { activeChildren, dependentsOf, readState, updateState, type ChildState, type ProjectState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName, type Workspace } from "../workspace.js";
-import { out } from "./output.js";
+import { out, warn } from "./output.js";
 
 export const EXT_USAGE = `Usage:
   openfleet ext plan <project> <slot> [--child <id>]
   openfleet ext result <project> <extension> --slot <slot> [--child <id>] --report <json>
-  openfleet ext fail <project> <extension> --slot <slot> [--child <id>] --reason <text>`;
+  openfleet ext fail <project> <extension> --slot <slot> [--child <id>] --reason <text>
+  openfleet ext settings [--unset]
+  openfleet ext settings set <extension> <key> <value>`;
 
 export interface ExtFlags {
   child?: string;
   slot?: string;
   report?: string;
   reason?: string;
+  unset?: boolean;
 }
 
 function slotOf(raw: string | undefined): Slot {
@@ -193,6 +206,17 @@ function cmdFail(ws: Workspace, args: string[], flags: ExtFlags): number {
       }
     });
     child = next.children[childId];
+  } else if (slot === "plans-ready") {
+    // The gate cannot open: nothing is implemented. Every active child waits for `resume`.
+    updateState(p, (s) => {
+      blocked = activeChildren(s)
+        .filter(([, c]) => c.phase !== "done")
+        .map(([id]) => id);
+      for (const id of blocked) {
+        s.children[id]!.phase = "blocked";
+        s.children[id]!.notes = `plans-ready extension ${ext} failed`;
+      }
+    });
   }
   appendEvent(p, {
     actor: "coordinator",
@@ -218,6 +242,65 @@ function cmdFail(ws: Workspace, args: string[], flags: ExtFlags): number {
   return 0;
 }
 
+export interface SettingInfo {
+  extension: string;
+  key: string;
+  default: string;
+  description: string;
+  /** The workspace override, if any. */
+  value?: string;
+  set: boolean;
+}
+
+/** Every setting declared by an enabled extension, with its workspace override (if any). */
+export function listSettings(ws: Workspace): SettingInfo[] {
+  const config = readExtensionsConfig(ws);
+  const rows: SettingInfo[] = [];
+  for (const { manifest: m } of loadExtensions(ws, warn)) {
+    resolveSettings(m, config);
+    for (const [key, decl] of Object.entries(m.settings ?? {})) {
+      const value = config[m.name]?.[key];
+      rows.push({
+        extension: m.name,
+        key,
+        default: decl.default,
+        description: decl.description ?? "",
+        ...(value !== undefined ? { value } : {}),
+        set: value !== undefined,
+      });
+    }
+  }
+  return rows;
+}
+
+/** Write one workspace-level override to openfleet/extensions.config.json, validated like core does. */
+export function setSetting(ws: Workspace, ext: string, key: string, value: string): void {
+  const m = loadExtensions(ws, warn).find((e) => e.manifest.name === ext)?.manifest;
+  if (!m) throw new UserError(`Extension "${ext}" is not installed (or is disabled).`);
+  withLock(path.join(ws.dir, `${SETTINGS_FILE}.lock`), () => {
+    const config = readExtensionsConfig(ws);
+    const next = { ...config, [ext]: { ...config[ext], [key]: value } };
+    resolveSettings(m, next);
+    writeJson(path.join(ws.dir, SETTINGS_FILE), next);
+  });
+  // Generated agents embed the resolved settings.
+  syncExtensions(ws, warn);
+}
+
+function cmdSettings(ws: Workspace, rest: string[], flags: ExtFlags): number {
+  if (rest[0] === "set") {
+    const [, ext, key, value] = rest;
+    if (!ext || !key || value === undefined || rest.length > 4) throw new UserError(EXT_USAGE);
+    setSetting(ws, ext, key, value);
+    out(JSON.stringify({ extension: ext, key, value }, null, 2));
+    return 0;
+  }
+  if (rest.length) throw new UserError(EXT_USAGE);
+  const rows = listSettings(ws);
+  out(JSON.stringify(flags.unset ? rows.filter((r) => !r.set) : rows, null, 2));
+  return 0;
+}
+
 export function cmdExt(args: string[], flags: ExtFlags): number {
   const ws = requireWorkspace();
   const [sub, ...rest] = args;
@@ -228,6 +311,8 @@ export function cmdExt(args: string[], flags: ExtFlags): number {
       return cmdResult(ws, rest, flags);
     case "fail":
       return cmdFail(ws, rest, flags);
+    case "settings":
+      return cmdSettings(ws, rest, flags);
     default:
       throw new UserError(EXT_USAGE);
   }

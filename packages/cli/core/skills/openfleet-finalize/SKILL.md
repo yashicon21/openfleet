@@ -16,15 +16,22 @@ Run `npx openfleet ext plan <project> post-run` and spawn each entry under `run`
 Write `openfleet/projects/<project>/summary.md`:
 
 - Goal (from the spec).
-- A table of children: child id, outcome (`done`, `failed` or `blocked`), branch, worktree, files changed, lines added/removed (from the latest `worktree.snapshot` event of each child), retries, and tester result.
+- A table of children, grouped by repo (members of a repo with several children under its integration child, with whether they were merged): child id, outcome (`done`, `failed` or `blocked`), branch, worktree, files changed, lines added/removed (from the latest `worktree.snapshot` event of each child), retries, and tester result.
 - **Failed and blocked children:** for each one, the reason, the last tester findings, the worktree path, and which children it blocked (from the `child.failed` events). Say that `npx openfleet resume <project>` continues with them.
 - **Assumptions:** every `assumption` event, as a list of child, question, decision and rationale. Mark the ones that changed a contract. The user did not see these during the run, so make this list complete.
+- **Baselines:** for each child with a baseline, the test files, the command and the results (from `baseline.passed`), and which baseline files changed and why (`npx openfleet baseline <project> <child> --check`).
+- **Local files:** copied files per child, and any `copyFiles` that were missing (from `worktree.created`).
 - The contracts, and any contract changes during the run.
-- The questions asked and how they were answered.
+- The questions asked and how they were answered, including questions escalated by repo coordinators (`question.escalated`) and the decisions.
+- Merge conflicts and integration failures per repo (`merge.conflict`, integration tester findings).
 - Extension reports, including `extension.skipped` and `extension.failed` events.
 - **Follow-ups:** every entry in `children.<id>.followUps` (per child, grouped by extension) and the project-level `followUps`. People must act on these after the run, so list them all.
 
 ## 3. Completion mode
+
+**Repos with several children** (path-scoped children or several packages) are finalized **once per repo**, from the repo's integration child (keyed by the repo): its `worktree` and `branch` are the integration worktree and branch, which already contain every merged child. Treat the integration child like any other child below (one staged worktree or one PR per repo), and skip its member children: their own worktrees and branches are only working copies. If the integration child is `failed` or `blocked`, the repo gets no PR; list its members' outcomes, worktrees and branches in the summary.
+
+**Local files never get committed.** Files in a child's `copiedFiles` are hidden from git, so `git add -A` skips them. Still, after every `git add -A` below, run `git -C <worktree> diff --cached --name-only` and, if any copied file is listed, unstage it with `git -C <worktree> reset -q -- <file>` before you commit. Never print their contents.
 
 ### Children that already have a PR
 
@@ -61,5 +68,5 @@ Log `run.completed` with the mode and per-child outcome. Patch `{"status":"done"
 - every assumption you made (child, question, decision),
 - every extension follow-up, per child,
 - failed and blocked children with their findings and worktree paths,
-- `npx openfleet clean <project>` removes the worktrees after merging (`--branches` also deletes the local branches),
+- `npx openfleet clean <project>` removes the child and integration worktrees after merging (`--branches` also deletes the local branches),
 - `npx openfleet resume <project>` continues with failed children or review feedback; or they can start a new project.

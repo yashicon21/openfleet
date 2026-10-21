@@ -21,8 +21,10 @@ const BEARER = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/g;
 // user:pass@host in URLs
 const URL_CREDS = /\b([a-z][a-z0-9+.-]*:\/\/)([^\s:/@]+):([^\s/@]+)@/gi;
 
-export function redactString(input: string): string {
+/** Redact known secret patterns, plus any exact `literals` (for example values from copied env files). */
+export function redactString(input: string, literals: readonly string[] = []): string {
   let out = input;
+  for (const lit of literals) if (lit) out = out.split(lit).join(REDACTED);
   for (const re of PATTERNS) out = out.replace(re, REDACTED);
   out = out.replace(ASSIGNMENT, (_m, key: string, sep: string) => `${key}${sep}${REDACTED}`);
   out = out.replace(BEARER, (_m, scheme: string) => `${scheme} ${REDACTED}`);
@@ -30,12 +32,12 @@ export function redactString(input: string): string {
   return out;
 }
 
-export function redact<T>(value: T): T {
-  if (typeof value === "string") return redactString(value) as T;
-  if (Array.isArray(value)) return (value as unknown[]).map((v) => redact(v)) as T;
+export function redact<T>(value: T, literals: readonly string[] = []): T {
+  if (typeof value === "string") return redactString(value, literals) as T;
+  if (Array.isArray(value)) return (value as unknown[]).map((v) => redact(v, literals)) as T;
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value)) out[k] = redact(v);
+    for (const [k, v] of Object.entries(value)) out[k] = redact(v, literals);
     return out as T;
   }
   return value;

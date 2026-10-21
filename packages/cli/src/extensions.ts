@@ -9,10 +9,12 @@ import { headSha, isGitRepo } from "./git.js";
 import { UserError, type Workspace } from "./workspace.js";
 
 export const MANIFEST = "openfleet.extension.json";
-export const SLOTS = ["pre-spec", "post-plan", "post-test", "post-run"] as const;
-/** Slots that run once per child. `pre-spec` and `post-run` run once per project. */
-export const CHILD_SLOTS: readonly Slot[] = ["post-plan", "post-test"];
-export const ROLES = ["coordinator", "planner", "implementer", "tester"] as const;
+export const SLOTS = ["pre-spec", "post-plan", "plans-ready", "pre-implement", "post-test", "post-run"] as const;
+/** Slots that run once per child. `pre-spec`, `plans-ready` and `post-run` run once per project. */
+export const CHILD_SLOTS: readonly Slot[] = ["post-plan", "pre-implement", "post-test"];
+/** Slots whose entries may be blocking: the per-child slots and the `plans-ready` gate. */
+export const BLOCKING_SLOTS: readonly Slot[] = [...CHILD_SLOTS, "plans-ready"];
+export const ROLES = ["coordinator", "repo-coordinator", "planner", "baseline", "implementer", "tester"] as const;
 export const PERMISSIONS = ["read", "write", "shell", "web"] as const;
 export const BUILTIN_COMMANDS = [
   "init",
@@ -29,6 +31,14 @@ export const BUILTIN_COMMANDS = [
   "state",
   "worktree",
   "ext",
+  "next",
+  "gate",
+  "baseline",
+  "claim",
+  "ack",
+  "scope",
+  "merge",
+  "escalate",
   "help",
   "version",
 ];
@@ -176,8 +186,8 @@ function validatePhase(dir: string, raw: unknown, i: number): PhaseEntry {
   if (!SLOTS.includes(raw.slot as Slot)) fail(dir, `"${at}.slot" must be one of ${SLOTS.join(", ")}`);
   relFile(dir, raw.instructions, `${at}.instructions`);
   if (raw.blocking !== undefined && typeof raw.blocking !== "boolean") fail(dir, `"${at}.blocking" must be a boolean`);
-  if (raw.blocking === true && !CHILD_SLOTS.includes(raw.slot as Slot)) {
-    fail(dir, `"${at}.blocking" is only supported in the per-child slots ${CHILD_SLOTS.join(", ")}`);
+  if (raw.blocking === true && !BLOCKING_SLOTS.includes(raw.slot as Slot)) {
+    fail(dir, `"${at}.blocking" is only supported in the slots ${BLOCKING_SLOTS.join(", ")}`);
   }
   if (raw.when !== undefined) {
     const files = isObject(raw.when) ? raw.when.files : undefined;
