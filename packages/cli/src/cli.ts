@@ -26,7 +26,7 @@ Projects
   new <name> ["<request>"] [--ask]
                                Create a project and launch the coordinator
   resume <name> [--fresh] [--ask]
-                               Continue a project (--fresh starts a new Copilot session)
+                               Continue a project in its Copilot session (--fresh starts a new one)
   status [name] [--json]       Show a project's children (grouped by repo), phases and open questions
   list                         List projects
   clean <name> [--branches] [--force]

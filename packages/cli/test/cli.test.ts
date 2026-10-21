@@ -108,10 +108,41 @@ describe("openfleet CLI", () => {
     expect(launch.args).not.toContain("--allow-all-paths");
     expect(cli(root, ["new", "dark-mode"], env).stderr).toMatch(/already exists/);
 
-    expect(cli(root, ["resume", "dark-mode", "--ask", "--", "--yolo"], env).code).toBe(0);
+    expect(launch.args[launch.args.indexOf("--name") + 1]).toBe("openfleet: dark-mode");
+
+    // The recorded session still exists: resume it by id, without --name (Copilot rejects the pair).
+    const copilotHome = path.join(tmp, "copilot-home");
+    fs.mkdirSync(path.join(copilotHome, "session-state", state.sessionId!), { recursive: true });
+    const resumeEnv = { ...env, COPILOT_HOME: copilotHome };
+    expect(cli(root, ["resume", "dark-mode", "--ask", "--", "--yolo"], resumeEnv).code).toBe(0);
     const resumed = readJson<Launch>(out);
     expect(resumed.args).not.toContain("--allow-all-tools");
     expect(resumed.args.at(-1)).toBe("--yolo");
+    expect(resumed.args[resumed.args.indexOf("--session-id") + 1]).toBe(state.sessionId);
+    expect(resumed.args).not.toContain("--name");
+
+    // --fresh starts (and names) a new session.
+    expect(cli(root, ["resume", "dark-mode", "--fresh"], resumeEnv).code).toBe(0);
+    const freshArgs = readJson<Launch>(out).args;
+    const freshId = freshArgs[freshArgs.indexOf("--session-id") + 1]!;
+    expect(freshId).not.toBe(state.sessionId);
+    expect(freshArgs).toContain("--name");
+
+    // The recorded session is gone: fall back to a new id, record and log it.
+    const gone = cli(root, ["resume", "dark-mode"], resumeEnv);
+    expect(gone.code).toBe(0);
+    expect(gone.stderr).toContain(`Copilot session ${freshId} no longer exists`);
+    const replacedArgs = readJson<Launch>(out).args;
+    const newId = readJson<ProjectState>(path.join(root, "openfleet/projects/dark-mode/state.json")).sessionId;
+    expect(newId).not.toBe(freshId);
+    expect(replacedArgs[replacedArgs.indexOf("--session-id") + 1]).toBe(newId);
+    expect(replacedArgs).toContain("--name");
+    expect(
+      readEvents({ events: path.join(root, "openfleet/projects/dark-mode/events.jsonl") } as never).at(-1),
+    ).toMatchObject({
+      type: "session.replaced",
+      payload: { previous: freshId, sessionId: newId, reason: "missing" },
+    });
 
     const wt = cli(root, ["worktree", "dark-mode", "web", "--repo", "web", "--branch", "openfleet/dark-mode"]);
     expect(wt.code).toBe(0);
@@ -167,6 +198,7 @@ describe("openfleet CLI", () => {
     const types = readEvents({ events: path.join(projectDir, "events.jsonl") } as never).map((e) => e.type);
     expect(types).toEqual([
       "project.created",
+      "session.replaced",
       "phase.changed",
       "worktree.created",
       "phase.changed",

@@ -11,6 +11,7 @@ export const EVENT_TYPES = [
   "project.created",
   "session.started",
   "session.ended",
+  "session.replaced",
   "agent.spawned",
   "agent.stopped",
   "message.sent",

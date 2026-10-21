@@ -71,5 +71,13 @@ export function runExtensionCommand(
     `Use the skill \`${cmd.skill}\` and follow its instructions exactly.`,
     args.length ? `Arguments: ${args.join(" ")}` : "No arguments were given.",
   ].join("\n");
-  return launch({ ws, agent: cmd.agent, prompt, name: `openfleet ${command}`, passthrough, ask: opts.ask });
+  return launch({
+    ws,
+    agent: cmd.agent,
+    prompt,
+    newSession: true,
+    name: `openfleet ${command}`,
+    passthrough,
+    ask: opts.ask,
+  });
 }

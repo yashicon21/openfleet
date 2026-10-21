@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import { qualifiedAgentName } from "./attribution.js";
 import fs from "node:fs";
@@ -14,12 +15,29 @@ export interface LaunchOptions {
   agent: string;
   prompt?: string;
   sessionId?: string;
+  /**
+   * `true` when `sessionId` is a brand-new UUID (or there is none). Only then is `--name` passed:
+   * Copilot rejects `--name` together with a `--session-id` that resolves to an existing session.
+   */
+  newSession?: boolean;
+  /** Name for a new session; ignored when resuming one. */
   name?: string;
   project?: string;
   /** Extra args forwarded verbatim to the host CLI (after `--`). */
   passthrough?: string[];
   /** Keep Copilot's per-tool permission prompts (`--ask`). Default: auto-approve tools. */
   ask?: boolean;
+}
+
+/**
+ * Whether Copilot still has a session: `$COPILOT_HOME/session-state/<id>` (default `~/.copilot`).
+ * `undefined` when the session store itself is missing, so the answer is unknown.
+ */
+export function copilotSessionExists(id: string, env: NodeJS.ProcessEnv = process.env): boolean | undefined {
+  const home = env.COPILOT_HOME || path.join(env.HOME || os.homedir(), ".copilot");
+  const store = path.join(home, "session-state");
+  if (!isDir(store)) return undefined;
+  return isDir(path.join(store, id));
 }
 
 /** Host CLI binary. Overridable for tests and for future hosts (e.g. `claude`). */
@@ -50,7 +68,7 @@ export function allowedDirs(ws: Workspace, project?: string): string[] {
 export function buildCopilotArgs(opts: LaunchOptions): string[] {
   const args = ["--plugin-dir", opts.ws.core, "--agent", qualifiedAgentName(opts.agent)];
   if (opts.sessionId) args.push("--session-id", opts.sessionId);
-  if (opts.name) args.push("--name", opts.name);
+  if (opts.name && (opts.newSession || !opts.sessionId)) args.push("--name", opts.name);
   // Tools run without prompts; paths stay limited to allowedDirs and URLs still prompt.
   if (!opts.ask) args.push("--allow-all-tools");
   for (const dir of allowedDirs(opts.ws, opts.project)) args.push("--add-dir", dir);

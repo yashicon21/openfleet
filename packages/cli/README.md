@@ -117,7 +117,7 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 | `npx openfleet config`                              | Show workspace settings (`openfleet/config.json`)                                        |
 | `npx openfleet config set maxParallel <n>`          | Cap working agents across all projects (default 6)                                       |
 | `npx openfleet new <name> ["<request>"] [--ask]`    | Create a project and launch the coordinator                                              |
-| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project (`--fresh` starts a new Copilot session)                              |
+| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project in its Copilot session (`--fresh`, or a missing session: a new one)   |
 | `npx openfleet status [name] [--json]`              | Children grouped by repo, phases, retries and open questions                             |
 | `npx openfleet list`                                | All projects                                                                             |
 | `npx openfleet clean <name> [--branches] [--force]` | Remove the project's child and integration worktrees (and branches)                      |

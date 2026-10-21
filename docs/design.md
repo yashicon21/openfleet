@@ -85,7 +85,7 @@ openfleet/
 
 ## State & resume
 
-- `state.json`: per child phase (`pending → planning → plan-review → planned → [baseline] → implementing → testing → post-test → done | failed | blocked`), worktree, branch, agent ids, `pendingSpawn`/`claimedAt`, port range, copied files, consistency/baseline flags, `paths`/`allowPaths`/`setup`/`sharedItems`, `integration`/`coordinator`/`merged`/`doneAt`/`conflict`, `blockedReason`/`escalation`, extension outputs and follow-ups, open questions; project `plansReady` and `preflight` (`ok`, `at`, `stale`). Written only through the locked `npx openfleet state` (and the other helpers); `resume` continues from it.
+- `state.json`: per child phase (`pending → planning → plan-review → planned → [baseline] → implementing → testing → post-test → done | failed | blocked`), worktree, branch, agent ids, `pendingSpawn`/`claimedAt`, port range, copied files, consistency/baseline flags, `paths`/`allowPaths`/`setup`/`sharedItems`, `integration`/`coordinator`/`merged`/`doneAt`/`conflict`, `blockedReason`/`escalation`, extension outputs and follow-ups, open questions; project `plansReady` and `preflight` (`ok`, `at`, `stale`). Written only through the locked `npx openfleet state` (and the other helpers); `resume` continues from it. `resume` reopens the recorded Copilot session with `--session-id` and never passes `--name` with it (Copilot rejects naming an existing session); only new sessions (`new`, `resume --fresh`, extension commands) are named. If `$COPILOT_HOME/session-state/<id>` is gone, `resume` starts a new session id, records it and logs `session.replaced`.
 
 ## Events / audit (core, always on)
 

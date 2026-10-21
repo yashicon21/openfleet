@@ -4,7 +4,7 @@ import { appendEvent, readEvents } from "../events.js";
 import { deleteBranch, removeWorktree, tryGit } from "../git.js";
 import { syncExtensions } from "../core.js";
 import { groupOf, membersOf } from "../groups.js";
-import { launch } from "../launcher.js";
+import { copilotSessionExists, launch } from "../launcher.js";
 import { newState, readState, updateState, type ProjectState } from "../state.js";
 import { writeJson } from "../fsutil.js";
 import {
@@ -81,6 +81,7 @@ export function cmdNew(args: string[], passthrough: string[], opts: { ask?: bool
     agent: "openfleet-coordinator",
     prompt,
     sessionId: state.sessionId,
+    newSession: true,
     name: `openfleet: ${name}`,
     project: name,
     passthrough,
@@ -98,7 +99,19 @@ export function cmdResume(
   const p = projectPaths(ws, name);
   let state = readState(p);
   syncExtensions(ws, warn);
-  const sessionId = opts.fresh || !state.sessionId ? crypto.randomUUID() : state.sessionId;
+  const previous = state.sessionId;
+  const missing = !opts.fresh && previous !== undefined && copilotSessionExists(previous) === false;
+  const newSession = opts.fresh || !previous || missing;
+  const sessionId = newSession ? crypto.randomUUID() : previous;
+  if (missing) {
+    warn(`Copilot session ${previous} no longer exists; starting a new session ${sessionId}.`);
+    appendEvent(p, {
+      actor: "cli",
+      type: "session.replaced",
+      target: null,
+      payload: { previous, sessionId, reason: "missing" },
+    });
+  }
   // Subagents (repo coordinators included) do not survive the session: drop their claims and running marks.
   state = updateState(
     p,
@@ -132,6 +145,7 @@ export function cmdResume(
       .filter(Boolean)
       .join("\n"),
     sessionId: state.sessionId,
+    newSession,
     name: `openfleet: ${name}`,
     project: name,
     passthrough,
