@@ -162,6 +162,12 @@
       .of-menu[open] summary {
         background: #2e2d35;
       }
+      .of-gh:hover {
+        background: #2e2d35 !important;
+      }
+      .of-menu a[aria-current="page"] {
+        background: #2e2d35 !important;
+      }
       .of-menu a:hover {
         background: #2e2d35;
         color: #f4f4f6;
@@ -1779,8 +1785,9 @@
               padding: 0 18px;
               box-sizing: border-box;
               border-radius: 999px;
-              background: #eef0f2;
-              color: #2b1e1b;
+              background: transparent;
+              border: 2px solid #45434c;
+              color: #f4f4f6;
               text-decoration: none;
               font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
               font-size: 14px;
@@ -1792,7 +1799,7 @@
               height="18"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#2B1E1B"
+              stroke="#F4F4F6"
               stroke-width="2.25"
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -1900,7 +1907,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>EVENTS.JSONL · REPLAY 4:28 IN 16S</span
             >
             <div class="controls">
-              <button class="btn" data-play type="button">▶ REPLAY</button
+              <button class="btn ghost" data-play type="button">▶ REPLAY</button
               ><input
                 type="range"
                 min="0"
@@ -1967,7 +1974,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>PHASE.CHANGED · 8 CHILDREN</span
             >
             <div class="controls">
-              <button class="btn" data-play type="button">▶ REPLAY</button
+              <button class="btn ghost" data-play type="button">▶ REPLAY</button
               ><input
                 type="range"
                 min="0"
@@ -2029,7 +2036,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>MESSAGE.SENT · AGENT.STOPPED</span
             >
             <div class="controls">
-              <button class="btn" data-play type="button">▶ REPLAY</button
+              <button class="btn ghost" data-play type="button">▶ REPLAY</button
               ><input
                 type="range"
                 min="0"
@@ -2079,7 +2086,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>FILE.EDITED · FILE.ADDED</span
             >
             <div class="controls">
-              <button class="btn" data-play type="button">▶ REPLAY</button
+              <button class="btn ghost" data-play type="button">▶ REPLAY</button
               ><input type="range" min="0" max="1000" value="1000" data-scrub aria-label="Scrub the edit replay" /><span
                 class="clock"
                 data-clock
@@ -2121,7 +2128,7 @@
             >
             <div class="controls">
               <div class="steps" id="fixsteps" role="group" aria-label="Decision steps"></div>
-              <button class="btn" type="button" id="fixplay">▶ PLAY</button>
+              <button class="btn ghost" type="button" id="fixplay">▶ PLAY</button>
             </div>
           </div>
           <p class="key">
@@ -2157,7 +2164,7 @@
               ><span class="dot3"><i></i><i></i><i></i></span>TEST.RUN · 8 CHILDREN</span
             >
             <div class="controls">
-              <button class="btn" type="button" id="runall">▶ RUN ALL TESTS</button
+              <button class="btn ghost" type="button" id="runall">▶ RUN ALL TESTS</button
               ><span class="clock" id="tests-total">188/188</span>
             </div>
           </div>
