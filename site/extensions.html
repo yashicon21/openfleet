@@ -82,6 +82,14 @@
           transform: translateX(-50%);
         }
       }
+      /* Same header on every page: don't inherit this page's larger body text. */
+      header nav {
+        font-size: 16px;
+        line-height: 22px;
+      }
+      header .of-logo {
+        min-height: 44px;
+      }
       .of-navlink:hover {
         background: #2e2d35;
         color: #f4f4f6;
