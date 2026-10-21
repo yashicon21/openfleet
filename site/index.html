@@ -2251,9 +2251,9 @@
             <div class="rp-introside">
               <p>
                 Every planner runs first, and no code is written until the plans agree. Then each child gets an
-                implementer and a tester, side by side, at most six at a time. Ordering holds: <code>mobile</code> waits
-                for <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a
-                fresh implementer. Every step lands in <code>events.jsonl</code>.
+                implementer and a tester, side by side. Ordering holds: <code>mobile</code> waits for
+                <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a fresh
+                implementer. Every step lands in <code>events.jsonl</code>.
               </p>
               <a class="of-ghost rp-link" href="how-it-works.html">WATCH THE WHOLE RUN, EVENT BY EVENT</a>
             </div>
@@ -2594,9 +2594,9 @@
                 Build, test, merge
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                In dependency order, at most six agents at a time: an optional baseline, then an implementer and a
-                tester. A failing test gets up to 3 retries, then one guided attempt. A repo split into parts merges
-                them into one branch and runs its full build and tests.
+                In dependency order: an optional baseline, then an implementer and a tester. A failing test gets up to 3
+                retries, then one guided attempt. A repo split into parts merges them into one branch and runs its full
+                build and tests.
               </p>
             </li>
             <li
@@ -3127,17 +3127,19 @@
                 class="of-tile"
                 style="
                   margin: 0;
-                  white-space: pre-wrap;
-                  overflow-wrap: anywhere;
+                  white-space: pre;
+                  overflow-x: auto;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 14px;
                   line-height: 21px;
                   color: #a8a6af;
                   transform-origin: left top;
                 "
-              >{"seq": 7,
- "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
- "type": <span style="color: #F4F4F6;">"file.edited"</span>}</pre>
+              >{
+  "seq": <span style="color: #F4F4F6;">7</span>,
+  "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
+  "type": <span style="color: #F4F4F6;">"file.edited"</span>
+}</pre>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
                   style="
@@ -3248,12 +3250,12 @@
             </article>
 
             <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">maxParallel: 6</code>
+              <code class="of-tile of-x-tile">.env.local</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Fits on one machine.</h3>
+                <h3 class="of-x-h">Apps run side by side.</h3>
                 <p class="of-x-p">
-                  At most six agents work at once, a setting you can change. Each child gets its own ports, and
-                  git-ignored files like <code>.env.local</code> are copied in, never committed.
+                  Each child gets its own port range, so apps and end-to-end tests run in parallel without clashing.
+                  Git-ignored files like <code>.env.local</code> are copied into every worktree, never committed.
                 </p>
               </div>
             </article>

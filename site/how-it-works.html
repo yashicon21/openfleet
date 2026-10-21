@@ -1891,7 +1891,7 @@
             the spec, you are done talking. Each unit of work is a <strong>child</strong>: a whole repo, a monorepo
             package or a path-scoped part of an app. Every child gets its own git worktree and short-lived sub-agents in
             turn: a <strong>planner</strong>, an optional <strong>baseline</strong> tester, an
-            <strong>implementer</strong> and a <strong>tester</strong>, with at most six working at once.
+            <strong>implementer</strong> and a <strong>tester</strong>.
           </p>
           <p>
             Here <code>web</code> is split into three children, <code>web/setup</code>, <code>web/app</code> and
@@ -1926,12 +1926,11 @@
           </p>
           <p class="sr-only" id="swim-sum">
             Finished run, 4:28 in total. The grill and spec took 39 seconds and your approval 8 seconds. From about
-            0:50, all eight children planned, at most six at a time. At 1:49 every plan agreed and the plans-ready gate
-            opened. sdk-python first ran a baseline tester; its first tester then broke a baseline test at 3:15, a new
-            implementer fixed it and the retry passed at 4:00. web’s repo coordinator merged setup, ui and app into one
-            integration branch; its full build and tests passed there at 4:00, and web was done at 4:05. mobile waited
-            for sdk-js, started implementing at 3:13 and was done at 4:16. All six repos finished, then the coordinator
-            finalized the run.
+            0:50, all eight children planned. At 1:49 every plan agreed and the plans-ready gate opened. sdk-python
+            first ran a baseline tester; its first tester then broke a baseline test at 3:15, a new implementer fixed it
+            and the retry passed at 4:00. web’s repo coordinator merged setup, ui and app into one integration branch;
+            its full build and tests passed there at 4:00, and web was done at 4:05. mobile waited for sdk-js, started
+            implementing at 3:13 and was done at 4:16. All six repos finished, then the coordinator finalized the run.
           </p>
           <div class="split">
             <div class="scroll-x" tabindex="0" role="region" aria-label="Run timeline, scrolls sideways">
@@ -3748,7 +3747,7 @@
             },
             {
               title: "Every plan agrees before any code",
-              text: "All eight planners ran at once, at most six at a time. web’s repo coordinator checked its three plans against each other; then the coordinator checked all eight against the shared approach. At 1:49 they agreed, and the plans-ready gate opened.",
+              text: "Every planner ran first. web’s repo coordinator checked its three plans against each other; then the coordinator checked all eight against the shared approach. At 1:49 they agreed, and the plans-ready gate opened.",
             },
             {
               title: "A question becomes a contract change",
