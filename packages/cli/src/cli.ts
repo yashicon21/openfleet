@@ -12,7 +12,7 @@ import { hintFor } from "./sandbox.js";
 import { UserError } from "./workspace.js";
 import { MIN_CLAUDE_VERSION } from "./launcher.js";
 
-export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI
+export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI (or Claude Code, experimental)
 
 Usage: npx openfleet <command> [options] [-- <host args>]
 

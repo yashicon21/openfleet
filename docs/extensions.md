@@ -54,13 +54,14 @@ my-extension/
 
 ### Phase entries
 
-| Field            | Default | Notes                                                                                                                |
-| ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| `slot`           | —       | `pre-spec`, `post-plan`, `plans-ready`, `pre-implement`, `post-test` or `post-run`.                                  |
-| `instructions`   | —       | Markdown file with the agent's instructions.                                                                         |
-| `blocking`       | `false` | Allowed in `post-plan`, `plans-ready`, `pre-implement` and `post-test`. See [Blocking phases](#blocking-phases).     |
-| `when.files`     | —       | Relative paths. The entry runs only if at least one exists. See [Conditional phases](#conditional-phases-whenfiles). |
-| `timeoutMinutes` | `30`    | The coordinator stops the agent after this long and treats the attempt as failed.                                    |
+| Field            | Default | Notes                                                                                                                                               |
+| ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slot`           | —       | `pre-spec`, `post-plan`, `plans-ready`, `pre-implement`, `post-test` or `post-run`.                                                                 |
+| `instructions`   | —       | Markdown file with the agent's instructions.                                                                                                        |
+| `blocking`       | `false` | Allowed in `post-plan`, `plans-ready`, `pre-implement` and `post-test`. See [Blocking phases](#blocking-phases).                                    |
+| `when.files`     | —       | Relative paths. The entry runs only if at least one exists. See [Conditional phases](#conditional-phases-whenfiles).                                |
+| `timeoutMinutes` | `30`    | The coordinator stops the agent after this long and treats the attempt as failed.                                                                   |
+| `hosts`          | all     | `["copilot"]`, `["claude"]` or both. On other hosts the agent is not generated and `ext plan` skips the entry with a warning (`extension.skipped`). |
 
 Each phase entry becomes the agent `openfleet:openfleet-ext-<name>-<slot>` (a second entry in the same slot gets `-2`, and so on). All phase agents of one extension share one tool allow-list, derived from `permissions`.
 
@@ -70,6 +71,7 @@ Each phase entry becomes the agent `openfleet:openfleet-ext-<name>-<slot>` (a se
 | -------------- | ------------------------------------------------------------------------------------ |
 | `role`         | `coordinator`, `repo-coordinator`, `planner`, `baseline`, `implementer` or `tester`. |
 | `instructions` | Markdown appended to that role's agent prompt.                                       |
+| `hosts`        | Optional. Hosts whose role agent gets these instructions (default: every host).      |
 
 `repo-coordinator` augments reach the agent that runs a repo with several children (path-scoped children or several monorepo packages): use them for rules about merging into the integration branch or deciding in-repo questions. Augments are appended under `## Extension: <name>` and use the role's own tools. Copilot limits an agent prompt to 30,000 characters, so keep augments short.
 
@@ -185,18 +187,18 @@ npx openfleet ext settings set <extension> <key> <value>
 
 ## Commands
 
-Each `commands` entry becomes a skill. `npx openfleet <command> [args]` launches Copilot with the extension's command agent (`openfleet:openfleet-ext-<name>`) and tells it to follow that skill, passing the arguments.
+Each `commands` entry becomes a skill. `npx openfleet <command> [args]` launches the workspace host (Copilot by default) with the extension's command agent (`openfleet:openfleet-ext-<name>`) and tells it to follow that skill, passing the arguments.
 
 ## Permissions
 
-Permissions are mapped to Copilot tool aliases in the generated agents' `tools` allow-list:
+Permissions are mapped to each host's tool names in the generated agents' `tools` allow-list:
 
-| Permission | Tools            |
-| ---------- | ---------------- |
-| `read`     | `read`, `search` |
-| `write`    | `edit`           |
-| `shell`    | `execute`        |
-| `web`      | `web`            |
+| Permission | Copilot tools    | Claude Code tools (experimental) |
+| ---------- | ---------------- | -------------------------------- |
+| `read`     | `read`, `search` | `Read`, `Grep`, `Glob`           |
+| `write`    | `edit`           | `Edit`, `Write`                  |
+| `shell`    | `execute`        | `Bash`                           |
+| `web`      | `web`            | `WebFetch`, `WebSearch`          |
 
 `npx openfleet add` prints the declared permissions, phases, augments and settings so you can review them.
 

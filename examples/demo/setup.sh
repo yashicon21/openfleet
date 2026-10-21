@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # Set up a throwaway OpenFleet demo: two toy repos (api + web) and a workspace
-# that uses this checkout's local build. Usage: examples/demo/setup.sh [dir]
+# that uses this checkout's local build.
+# Usage: examples/demo/setup.sh [--host copilot|claude] [dir]
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"
 TMP_BASE="${TMPDIR:-/tmp}"
+HOST="copilot"
+if [ "${1:-}" = "--host" ]; then
+  HOST="${2:?--host needs copilot or claude}"
+  shift 2
+fi
+case "$HOST" in copilot | claude) ;; *) echo "error: --host must be copilot or claude" >&2; exit 1 ;; esac
 DEMO_DIR="${1:-${TMP_BASE%/}/openfleet-demo}"
 DEMO_DIR="${DEMO_DIR%/}"
 MARKER=".openfleet-demo"
@@ -78,6 +85,12 @@ cat >"$WS/openfleet/repos.json" <<'JSON'
 JSON
 echo "  workspace: $WS"
 echo "  repos.json pre-seeded with api and web"
+if [ "$HOST" != "copilot" ]; then
+  (cd "$WS" && npx --no-install openfleet config set host "$HOST" >/dev/null)
+  echo "  host: $HOST (experimental)"
+fi
+HOST_LABEL="Copilot CLI"
+[ "$HOST" = "claude" ] && HOST_LABEL="Claude Code"
 
 PROJECT="greeting-lang"
 cat <<EOF
@@ -89,7 +102,7 @@ $(printf '\033[1m')Demo ready.$(printf '\033[0m')
     $DEMO_DIR/web     toy client repo (git, main)
     $DEMO_DIR/fleet   OpenFleet workspace
 
-  1. Start the run (opens Copilot CLI; answer the grill, then it runs hands-off):
+  1. Start the run (opens $HOST_LABEL; answer the grill, then it runs hands-off):
        cd "$WS" && npx openfleet new $PROJECT "Add a language field to the greeting API and show it in web"
 
   2. Watch it from another terminal:
