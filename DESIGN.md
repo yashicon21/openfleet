@@ -345,7 +345,7 @@ Card-paper tiles with a big counter-blue mono value and a small ink-muted displa
 - **Do** keep exactly one luck-cyan primary button with the 4px ink key shadow per view.
 - **Do** use the tri-colour together and in order: cyan, magenta, yellow.
 - **Do** set every duration, count, path, command and event name in Share Tech Mono.
-- **Do** show the product with real commands, file names and event types drawn as live diagrams, and label mocked runs as illustrative.
+- **Do** show the product with real commands, file names and event types drawn as live diagrams, and call mocked runs an "example run", with one short note that the events are mocked.
 - **Do** use a 2px cyan focus outline with a 3px offset on ground, and keep every target at least 44px.
 - **Do** give every animation a reduced-motion version that shows the end state.
 

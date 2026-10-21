@@ -6,7 +6,7 @@
     <title>How it works · OpenFleet</title>
     <meta
       name="description"
-      content="An illustrative OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
+      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
     />
     <meta name="theme-color" content="#0E0E10" />
     <link rel="canonical" href="https://openfleet.tools/how-it-works.html" />
@@ -18,7 +18,7 @@
     <meta property="og:title" content="How it works · OpenFleet" />
     <meta
       property="og:description"
-      content="An illustrative OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
+      content="An example OpenFleet run, event by event: one prompt renames a field across seven repos. A test fails, the repo is retried with the findings, and the one call the spec didn't cover is logged for you to confirm."
     />
     <meta property="og:url" content="https://openfleet.tools/how-it-works.html" />
     <meta name="twitter:card" content="summary" />
@@ -1797,8 +1797,8 @@
       <div class="marquee" aria-hidden="true">
         <div class="band c">
           <span
-            >ACCOUNT-ID · ILLUSTRATIVE RUN · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS · ACCOUNT-ID · ILLUSTRATIVE RUN · 7
-            REPOS · 23 SUB-AGENTS · 203 EVENTS ·</span
+            >ACCOUNT-ID · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS · ACCOUNT-ID · 7 REPOS · 23 SUB-AGENTS · 203 EVENTS
+            ·</span
           >
         </div>
         <div class="band m">
@@ -1827,20 +1827,20 @@
 
     <section class="wrap intro" aria-labelledby="page-title">
       <div class="wide hero">
-        <p class="kicker">HOW IT WORKS · AN ILLUSTRATIVE RUN</p>
-        <h1 id="page-title">A test failed. Here’s how the run handled it.</h1>
+        <p class="kicker">HOW IT WORKS</p>
+        <h1 id="page-title">One prompt. Seven repos. Every step on the record.</h1>
         <p class="dek">
-          One prompt: rename <code>user_id</code> to <code>account_id</code> across seven repos. Along the way a test
+          The prompt: rename <code>user_id</code> to <code>account_id</code> across seven repos. Along the way a test
           failed, the repo went back with the findings, and the coordinator made one call the spec didn’t cover, then
           logged it for you to confirm. Here is every step, straight from the event log.
         </p>
         <p class="note-mock">
-          This run is illustrative: its timings and events are mocked, but every event type is one OpenFleet really
-          logs. To replay a real run yourself, try <code>pnpm demo</code>.
+          This run is an example: its timings and events are mocked, but every event type is one OpenFleet really logs.
+          To replay a real run yourself, try <code>pnpm demo</code>.
         </p>
-        <p class="byline">illustrative run · project account-id · 0:00 → 4:40</p>
+        <p class="byline">project account-id · 0:00 → 4:40</p>
       </div>
-      <div class="wide stats" role="group" aria-label="The illustrative run at a glance">
+      <div class="wide stats" role="group" aria-label="The run at a glance">
         <div class="stat"><b>4:40</b><span>START TO DONE</span></div>
         <div class="stat"><b>1 + 23</b><span>COORDINATOR + SUB-AGENTS</span></div>
         <div class="stat"><b>1</b><span>FAILED TEST, FIXED ON RETRY</span></div>
