@@ -67,10 +67,6 @@ What must be the same in every child (config shape, patterns, env var names, ver
 
 The DAG in plain words, or "All children run in parallel."
 
-## Parallelism
-
-`maxParallel: 6` (planners, baseline testers, implementers and testers running at once, workspace-wide).
-
 ## Integration branches
 
 Only for repos with more than one child, if not `openfleet/<project>`: `app: openfleet/<project>`.
@@ -97,7 +93,7 @@ Only for repos with more than one child, if not `openfleet/<project>`: `app: ope
 
 The spec review is part of the grill, not a separate gate. The project stays `specifying` until the user answers.
 
-1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"`, its `dependsOn`, and, for children with a baseline, `"baseline": true` and `"baselineCover": "<what to cover>"`. Path-scoped children also get `paths` and `allowPaths`, and setup children `"setup": true`. Set the project `completionMode` and `maxParallel` (see `openfleet-records`). For a repo with several children, register its integration branch on the integration child (`{"children":{"app":{"branch":"…"}}}`) after the children, if it differs from the default. Keep `status: "specifying"`.
+1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"`, its `dependsOn`, and, for children with a baseline, `"baseline": true` and `"baselineCover": "<what to cover>"`. Path-scoped children also get `paths` and `allowPaths`, and setup children `"setup": true`. Set the project `completionMode` (see `openfleet-records`). `maxParallel` is a workspace setting (`npx openfleet config`), not part of the spec. For a repo with several children, register its integration branch on the integration child (`{"children":{"app":{"branch":"…"}}}`) after the children, if it differs from the default. Keep `status: "specifying"`.
 2. Ask the final grill question. Show a short summary (children, contracts, ordering, completion mode, out of scope), give the path to the full spec, and ask: **"Anything to change before I start?"**
 3. The user's answer ends the grill:
    - If they asked for changes, apply them to `spec.md` and `contracts/` and log `spec.written` again. Do not ask them to confirm the result. Only if a requested change is too unclear to apply, ask one short follow-up, then apply it.

@@ -47,7 +47,7 @@ The coordinator then:
 
 1. **Grills you** about the change, suggests repos from `openfleet/repos.json`, discovers build and test commands, and confirms them with you.
 2. Writes `openfleet/projects/<name>/spec.md` (goal, repos, contracts, ordering, acceptance criteria, branches, completion mode). The grill ends with a spec summary and one question, "anything to change?". **Your answer starts the run; after that it is hands-off.**
-3. Plans every child at once (read-only planners), validates each plan against the spec, and checks that all plans agree with the spec's shared approach and with each other before anything is implemented (the `plans-ready` gate). Then, in dependency order and with at most `maxParallel` agents working at a time across the workspace (default 6), it optionally runs a baseline tester (tests for today's behaviour that must pass on the unchanged code, and that the implementer may only change where the spec allows), then an implementer and a tester. Each child gets its own port range so apps and e2e tests can run side by side. A failing test sends the findings to a new implementer, up to 3 retries. Then the coordinator reviews the findings and diff itself and makes one guided attempt; if that fails too, the child is marked `failed`, its dependents `blocked`, and the rest of the run continues.
+3. Plans every child at once (read-only planners), validates each plan against the spec, and checks that all plans agree with the spec's shared approach and with each other before anything is implemented (the `plans-ready` gate). Then, in dependency order and with at most `maxParallel` agents working at a time across the workspace (a workspace setting, default 6), it optionally runs a baseline tester (tests for today's behaviour that must pass on the unchanged code, and that the implementer may only change where the spec allows), then an implementer and a tester. Each child gets its own port range so apps and e2e tests can run side by side. A failing test sends the findings to a new implementer, up to 3 retries. Then the coordinator reviews the findings and diff itself and makes one guided attempt; if that fails too, the child is marked `failed`, its dependents `blocked`, and the rest of the run continues.
 4. Finishes in the completion mode you chose: changes **staged** in each worktree for your review (default), or **draft PRs** that link to each other.
 
 Child questions go to the coordinator. It answers from the spec, or decides itself and logs an `assumption`. The run summary lists every assumption and every failed child (with findings and worktree paths); `npx openfleet resume <name>` lets you deal with failures later.
@@ -72,7 +72,7 @@ A repo with more than one child is run by its own **repo coordinator** (`openfle
 
 When a merge conflicts, it rebases the child onto the integration branch and has that child's implementer resolve the conflict. A question that changes a cross-repo contract or the shared approach is escalated to the top coordinator, and only those children wait. The repo gets one PR, from its integration branch. Single-child repos run directly under the top coordinator.
 
-Every spawn first takes a slot with `npx openfleet claim`. It allows at most `maxParallel` working agents across the workspace and keeps attribution exact when several coordinators spawn agents at once.
+Every spawn first takes a slot with `npx openfleet claim`. It allows at most `maxParallel` working agents across the workspace (`npx openfleet config set maxParallel <n>`; the grill shows the current value and offers to change it) and keeps attribution exact when several coordinators spawn agents at once.
 
 ## Workspace
 
@@ -82,6 +82,7 @@ openfleet/
   extensions/            # instruction-only extensions (commit this)
   extensions.lock.json   # source + pinned SHA per extension (commit this)
   extensions.config.json # optional per-workspace extension settings (commit this)
+  config.json            # workspace settings, e.g. { "maxParallel": 6 } (commit this)
   repos.json             # known repos/packages, build and test commands (commit this)
   projects/<name>/
     spec.md  state.json  events.jsonl  contracts/  plans/
@@ -120,6 +121,8 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `npx openfleet init`                                | Create `openfleet/` in the current directory and install core                            |
 | `npx openfleet update`                              | Replace `openfleet/core` with the installed CLI version; disable incompatible extensions |
+| `npx openfleet config`                              | Show workspace settings (`openfleet/config.json`)                                        |
+| `npx openfleet config set maxParallel <n>`          | Cap working agents across all projects (default 6)                                       |
 | `npx openfleet new <name> ["<request>"] [--ask]`    | Create a project and launch the coordinator                                              |
 | `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project (`--fresh` starts a new Copilot session)                              |
 | `npx openfleet status [name] [--json]`              | Children grouped by repo, phases, retries and open questions                             |

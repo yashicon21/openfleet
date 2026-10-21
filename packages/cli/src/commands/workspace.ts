@@ -2,9 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { installCore, installedCoreVersion, packageVersion } from "../core.js";
 import { disableIncompatible, emptyLock } from "../extensions.js";
+import { configFile, DEFAULT_CONFIG, readConfig, setConfig } from "../config.js";
 import { realish, writeJson } from "../fsutil.js";
 import { emptyRepos } from "../repos.js";
-import { findWorkspace, requireWorkspace, workspaceAt, type Workspace } from "../workspace.js";
+import { findWorkspace, requireWorkspace, UserError, workspaceAt, type Workspace } from "../workspace.js";
 import { out, warn } from "./output.js";
 
 export const WORKSPACE_GITIGNORE = `# Managed by OpenFleet
@@ -43,6 +44,8 @@ export function initWorkspace(root: string): InitResult {
   }
   ensureFile(ws.reposFile, () => writeJson(ws.reposFile, emptyRepos()));
   ensureFile(ws.lockFile, () => writeJson(ws.lockFile, emptyLock()));
+  const config = configFile(ws);
+  ensureFile(config, () => writeJson(config, DEFAULT_CONFIG));
   const gi = path.join(ws.dir, ".gitignore");
   ensureFile(gi, () => fs.writeFileSync(gi, WORKSPACE_GITIGNORE));
   installCore(ws, warn);
@@ -70,5 +73,20 @@ export function cmdUpdate(): number {
   }
   installCore(ws, warn);
   out(`Updated OpenFleet core ${before ?? "(none)"} → ${version}.`);
+  return 0;
+}
+
+const CONFIG_USAGE = "Usage: npx openfleet config | npx openfleet config set <key> <value>";
+
+/** `config` prints the effective workspace settings; `config set <key> <value>` validates and writes one. */
+export function cmdConfig(args: string[]): number {
+  const ws = requireWorkspace();
+  if (!args.length) {
+    out(JSON.stringify(readConfig(ws), null, 2));
+    return 0;
+  }
+  const [sub, key, value, ...extra] = args;
+  if (sub !== "set" || !key || value === undefined || extra.length) throw new UserError(CONFIG_USAGE);
+  out(JSON.stringify(setConfig(ws, key, value), null, 2));
   return 0;
 }

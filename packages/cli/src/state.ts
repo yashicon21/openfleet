@@ -36,9 +36,6 @@ export type ChildPhase = (typeof CHILD_PHASES)[number];
 export type WorkRole = "planner" | "baseline" | "implementer" | "tester";
 export type Role = WorkRole | "repo-coordinator";
 
-/** Default workspace-wide limit on children with a running planner, baseline, implementer or tester. */
-export const DEFAULT_MAX_PARALLEL = 6;
-
 /** Each child gets `PORT_STEP` ports starting at `PORT_BASE + PORT_STEP × slot`. */
 export const PORT_BASE = 4100;
 export const PORT_STEP = 10;
@@ -142,8 +139,6 @@ export interface ProjectState {
   sessionId?: string;
   completionMode?: CompletionMode;
   specApproved?: boolean;
-  /** Workspace-wide limit on children with a running planner, baseline, implementer or tester (spec; default 6). */
-  maxParallel?: number;
   /** Keyed by child id: `<repo>`, `<repo>:<package>` or `<repo>[:<package>]/<unit>`. */
   children: Record<string, ChildState>;
   questions: Question[];
@@ -313,5 +308,10 @@ export function updateState(
 
 export function patchState(p: ProjectPaths, patch: unknown, actor?: string): ProjectState {
   if (!isPlainObject(patch)) throw new UserError("State patch must be a JSON object.");
+  if ("maxParallel" in patch) {
+    throw new UserError(
+      "maxParallel is a workspace setting, not project state. Use: npx openfleet config set maxParallel <n>",
+    );
+  }
   return updateState(p, (s) => mergePatch(s, patch), actor);
 }

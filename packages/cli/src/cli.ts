@@ -7,7 +7,7 @@ import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
 import { cmdBaseline, cmdGate, cmdNext } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
-import { cmdInit, cmdUpdate } from "./commands/workspace.js";
+import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
 import { UserError } from "./workspace.js";
 
 export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI
@@ -17,6 +17,9 @@ Usage: npx openfleet <command> [options] [-- <copilot args>]
 Workspace
   init                         Create openfleet/ in the current directory and install core
   update                       Replace openfleet/core with this CLI version and re-sync extensions
+  config                       Show workspace settings (openfleet/config.json) as JSON
+  config set <key> <value>     Change a workspace setting: maxParallel (default 6) caps planners,
+                               baseline testers, implementers and testers running at once, across all projects
 
 Projects
   new <name> ["<request>"] [--ask]
@@ -52,7 +55,7 @@ Agent helpers (used by OpenFleet agents)
   baseline <project> <child> --report <json> | --check
                                Record a passed baseline, or check the diff for unlisted baseline edits
   claim <project> <child> <role>
-                               Reserve a spawn (maxParallel, one claim per role); prints claimed or wait
+                               Reserve a spawn (workspace maxParallel, one claim per role); prints claimed or wait
   ack <project> <child> <role> Re-print a child's assignment (optional; fallback id binding)
   scope <project> <child> --check
                                List changed files outside a path-scoped child's paths
@@ -95,6 +98,8 @@ export function run(argv: string[]): number {
       return cmdInit();
     case "update":
       return cmdUpdate();
+    case "config":
+      return cmdConfig(parse(rest, {}).positionals);
     case "new": {
       const { values, positionals } = parse(rest, { ask: { type: "boolean" } });
       return cmdNew(positionals, passthrough, { ask: values.ask });

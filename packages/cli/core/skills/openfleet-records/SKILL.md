@@ -24,7 +24,7 @@ npx openfleet state p --patch '{"status":"running","specApproved":true,"completi
 npx openfleet state p --patch '{"children":{"api":{"repo":"api","phase":"pending","dependsOn":[],"retries":0,"agentIds":{}}}}'
 
 # register path-scoped children (a setup child plus one per unit); "web" (the integration child) is created for you
-npx openfleet state p --patch '{"maxParallel":6,"children":{"web/setup":{"repo":"web","setup":true,"paths":["components/ui/**","lib/**","package.json"]},"web/settings":{"repo":"web","paths":["app/settings/**"],"dependsOn":["web/setup"]}}}'
+npx openfleet state p --patch '{"children":{"web/setup":{"repo":"web","setup":true,"paths":["components/ui/**","lib/**","package.json"]},"web/settings":{"repo":"web","paths":["app/settings/**"],"dependsOn":["web/setup"]}}}'
 
 # open / answer questions
 npx openfleet state p --patch '{"questions":[ … full array … ]}'
@@ -41,6 +41,7 @@ Fields that core sets (do not patch them): `portBase` (the child's port range, a
 ```sh
 npx openfleet next <project> [--repo <repo>]                   # next actions (top, or one repo coordinator's)
 npx openfleet claim <project> <child> <role>                   # before every spawn: "claimed" (spawn now) or "wait"
+npx openfleet config [set maxParallel <n>]                     # workspace settings (maxParallel caps busy children across all projects)
 npx openfleet ack <project> <child> <role>                     # optional: re-prints a subagent's assignment (binds its id if the hook could not)
 npx openfleet gate <project> consistent [--child <id>,<id>]    # plans passed the consistency check; logs plans.consistent
 npx openfleet gate <project> consistent --repo <repo>          # a repo coordinator's sibling check (repoConsistent)

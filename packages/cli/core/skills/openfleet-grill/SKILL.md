@@ -71,7 +71,7 @@ For each child, decide whether it needs a **baseline**: tests (usually e2e) that
 ## 6. Branches, completion mode, scope
 
 - **Branch names:** propose `openfleet/<project>` for each repo (for a repo with several children, this is its integration branch and the PR branch; each child's own branch defaults to `openfleet/<project>--<child slug>`). Ask the user to confirm or override.
-- **Parallel agents:** propose `maxParallel` (default 6): how many planners, baseline testers, implementers and testers may run at once across the workspace. Suggest fewer on a small machine or when apps start heavy dev servers.
+- **Parallel agents:** run `npx openfleet config` and show the current `maxParallel`: how many planners, baseline testers, implementers and testers may run at once. Say it is a workspace setting shared by every project (not part of this spec), and offer to keep it or change it. Suggest fewer on a small machine or when apps start heavy dev servers. To change it, run `npx openfleet config set maxParallel <n>`; never edit `openfleet/config.json` by hand.
 - **Completion mode:** `staged` (default: changes are left staged in each worktree for review) or `draft-pr` (commit, push, and open draft PRs that link to each other and include a run summary).
 - **Out of scope:** list explicitly what this project must NOT change.
 

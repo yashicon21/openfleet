@@ -1,21 +1,14 @@
 // `npx openfleet claim`: the spawn lock. Before spawning any planner, baseline,
 // implementer, tester or repo coordinator, a coordinator claims the child for that
-// role. The claim enforces the workspace-wide `maxParallel` limit and keeps at most
+// role. The claim enforces the workspace-wide `maxParallel` (openfleet/config.json) and keeps at most
 // one fresh claim per role, so the subagentStart hook attributes the spawn exactly.
 import path from "node:path";
+import { readConfig } from "./config.js";
 import { appendEvent } from "./events.js";
 import { headSha, tryGit } from "./git.js";
 import { groupOf } from "./groups.js";
 import { withLock } from "./lock.js";
-import {
-  DEFAULT_MAX_PARALLEL,
-  isFinal,
-  readState,
-  updateState,
-  type ChildPhase,
-  type ProjectState,
-  type Role,
-} from "./state.js";
+import { isFinal, readState, updateState, type ChildPhase, type ProjectState, type Role } from "./state.js";
 import { listProjectNames, projectPaths, UserError, type Workspace } from "./workspace.js";
 
 export const ROLES: readonly Role[] = ["planner", "baseline", "implementer", "tester", "repo-coordinator"];
@@ -124,7 +117,7 @@ export function claim(ws: Workspace, project: string, childId: string, roleArg: 
         }
       }
     }
-    const maxParallel = state.maxParallel ?? DEFAULT_MAX_PARALLEL;
+    const { maxParallel } = readConfig(ws);
     const busy = busyChildren(ws, now, [project, childId]);
     if (role !== "repo-coordinator" && busy.length >= maxParallel) {
       return wait(`${busy.length} of ${maxParallel} agents are running: ${busy.join(", ")}`);

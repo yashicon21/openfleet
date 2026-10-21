@@ -4,13 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { claim, CLAIM_TTL_MS } from "../src/claim.js";
+import { readConfig, setConfig } from "../src/config.js";
 import { createProject } from "../src/commands/project.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import { defaultBranch, globToRegExp, outOfScope, parseChildId, requireChildId } from "../src/groups.js";
 import { runHook } from "../src/hooks/handlers.js";
 import { schedule, scheduleFor, TOP } from "../src/schedule.js";
-import { newState, patchState, readState, type ChildPhase, type ChildState, type ProjectState } from "../src/state.js";
+import { patchState, readState, type ChildPhase, type ChildState, type ProjectState } from "../src/state.js";
 import { findWorkspace, projectPaths, type Workspace } from "../src/workspace.js";
 import { gitRepo, sh, tmpDir, workspace } from "./helpers.js";
 
@@ -257,11 +258,8 @@ describe("claim", () => {
   function setup(maxParallel?: number) {
     const ws = workspace();
     const ids = ["a", "b", "c", "d"];
-    const { p, state } = stateWith(
-      ws,
-      Object.fromEntries(ids.map((id) => [id, child(id)])),
-      maxParallel ? { maxParallel } : {},
-    );
+    if (maxParallel) setConfig(ws, "maxParallel", String(maxParallel));
+    const { p, state } = stateWith(ws, Object.fromEntries(ids.map((id) => [id, child(id)])));
     return { ws, p, state };
   }
 
@@ -300,7 +298,7 @@ describe("claim", () => {
     expect(claim(ws, "p", "a", "implementer")).toMatchObject({ result: "claimed" });
   });
 
-  it("enforces maxParallel across projects; repo coordinators do not count", () => {
+  it("enforces the workspace maxParallel across projects; repo coordinators do not count", () => {
     const { ws, state } = setup(2);
     expect(claim(ws, "p", "a", "planner").result).toBe("claimed");
     expect(claim(ws, "p", "b", "tester").result).toBe("claimed");
@@ -310,7 +308,7 @@ describe("claim", () => {
 
     createProject(ws, "q");
     const q = projectPaths(ws, "q");
-    patchState(q, { status: "running", maxParallel: 2, children: { x: child("x") } });
+    patchState(q, { status: "running", children: { x: child("x") } });
     expect(claim(ws, "q", "x", "baseline").result).toBe("wait");
     patchState(projectPaths(ws, "p"), { children: { a: { phase: "planned", pendingSpawn: null } } });
     expect(claim(ws, "q", "x", "baseline")).toMatchObject({ result: "claimed", busy: 2, maxParallel: 2 });
@@ -318,7 +316,8 @@ describe("claim", () => {
 
   it("allows repo coordinators only on integration children and rejects bad roles", () => {
     const ws = workspace();
-    stateWith(ws, { "web/a": child("web"), "web/b": child("web") }, { maxParallel: 1 });
+    setConfig(ws, "maxParallel", "1");
+    stateWith(ws, { "web/a": child("web"), "web/b": child("web") });
     expect(() => claim(ws, "p", "web/a", "repo-coordinator")).toThrow(/integration child/);
     expect(() => claim(ws, "p", "web", "planner")).toThrow(/no planner/);
     expect(() => claim(ws, "p", "web/a", "boss")).toThrow(/Unknown role/);
@@ -514,12 +513,29 @@ describe("repo coordinator flow (CLI)", () => {
   });
 });
 
+describe("workspace config", () => {
+  it("defaults maxParallel to 6, and config set validates and writes it", () => {
+    const ws = workspace();
+    const file = path.join(ws.dir, "config.json");
+    expect(readJson(file)).toEqual({ maxParallel: 6 });
+    fs.rmSync(file);
+    expect(readConfig(ws)).toEqual({ maxParallel: 6 });
+    expect(json(cli(ws.root, ["config"]))).toEqual({ maxParallel: 6 });
+    expect(json(cli(ws.root, ["config", "set", "maxParallel", "3"]))).toEqual({ maxParallel: 3 });
+    expect(readJson(file)).toEqual({ maxParallel: 3 });
+    expect(cli(ws.root, ["config", "set", "maxParallel", "0"]).stderr).toMatch(/positive integer/);
+    expect(cli(ws.root, ["config", "set", "maxParalel", "2"]).stderr).toMatch(/Unknown config key/);
+    expect(cli(ws.root, ["config", "get"]).stderr).toMatch(/Usage/);
+    fs.writeFileSync(file, JSON.stringify({ maxParallel: 2, other: 1 }));
+    expect(() => readConfig(ws)).toThrow(/unknown key/);
+  });
+});
+
 describe("state helpers", () => {
   it("keeps escalated children active and records doneAt", () => {
-    const s = newState("p");
-    expect(s.maxParallel).toBeUndefined();
     const ws = workspace();
     const { p, state } = stateWith(ws, { api: child("api", "testing") });
+    expect(() => patchState(p, { maxParallel: 2 })).toThrow(/config set maxParallel/);
     patchState(p, { children: { api: { phase: "done" } } });
     expect(state().children.api!.doneAt).toBeTruthy();
   });
