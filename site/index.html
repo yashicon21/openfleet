@@ -347,6 +347,9 @@
       .of-menu[open] summary {
         background: #2e2d35;
       }
+      .of-gh:hover {
+        background: #2e2d35 !important;
+      }
       .of-menu a:hover {
         background: #2e2d35;
         color: #f4f4f6;
@@ -363,6 +366,11 @@
         justify-content: space-between;
         gap: 20px;
         box-sizing: border-box;
+      }
+      @media (min-width: 960px) {
+        .of-b-x {
+          grid-column: span 2;
+        }
       }
       .of-x-tile {
         align-self: flex-start;
@@ -763,6 +771,7 @@
         }
       }
       .rp-cap {
+        max-width: 680px;
         margin: 0;
         font-size: 14px;
         line-height: 22px;
@@ -971,6 +980,7 @@
                   right: 0;
                   top: 52px;
                   min-width: 220px;
+                  box-sizing: border-box;
                   padding: 8px;
                   display: flex;
                   flex-direction: column;
@@ -1028,8 +1038,9 @@
                 padding: 0 18px;
                 box-sizing: border-box;
                 border-radius: 999px;
-                background: #eef0f2;
-                color: #2b1e1b;
+                background: transparent;
+                border: 2px solid #45434c;
+                color: #f4f4f6;
                 text-decoration: none;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                 font-size: 14px;
@@ -1041,7 +1052,7 @@
                 height="18"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#2B1E1B"
+                stroke="#F4F4F6"
                 stroke-width="2.25"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -1354,9 +1365,9 @@
                     color: #5f5754;
                   "
                 >
-                  <span class="of-lg"><i style="background: #48a6ee"></i>Plan</span
-                  ><span class="of-lg"><i style="background: #ee5ad6"></i>Implement</span
-                  ><span class="of-lg"><i style="background: #edeb3c"></i>Test</span>
+                  <span class="of-lg"><i style="background: #48a6ee"></i>planner</span
+                  ><span class="of-lg"><i style="background: #ee5ad6"></i>implementer</span
+                  ><span class="of-lg"><i style="background: #edeb3c"></i>tester</span>
                 </div>
                 <ul
                   id="of-rows"
@@ -2004,11 +2015,11 @@
             <h2 id="run-h" class="rp-h2">Six repos. One coordinator. All at once.</h2>
             <div class="rp-introside">
               <p>
-                Every planner runs first, and no code is written until the plans agree. Then each child gets an
-                implementer and a tester, side by side. Ordering holds: <code>mobile</code> waits for
-                <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a fresh
-                implementer, and any call the spec didn’t cover is logged for you to confirm. Every step lands in
-                <code>events.jsonl</code>.
+                Every planner runs first, and no code is written until the plans agree. Then each child (a repo, package
+                or part of an app) gets an implementer and a tester, side by side. Ordering holds:
+                <code>mobile</code> waits for <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch.
+                A broken test gets a fresh implementer, and any call the spec didn’t cover is logged for you to confirm.
+                Every step lands in <code>events.jsonl</code>.
               </p>
               <a class="of-ghost rp-link" href="how-it-works.html">WATCH THE WHOLE RUN, EVENT BY EVENT</a>
             </div>
@@ -2052,9 +2063,9 @@
               </div>
             </div>
             <div class="rp-legend" aria-hidden="true">
-              <span><i style="background: #48a6ee"></i>Plan</span
-              ><span><i style="background: #ee5ad6"></i>Implement</span
-              ><span><i style="background: #edeb3c"></i>Test</span
+              <span><i style="background: #48a6ee"></i>planner</span
+              ><span><i style="background: #ee5ad6"></i>implementer</span
+              ><span><i style="background: #edeb3c"></i>tester</span
               ><span><i style="background: none; box-shadow: inset 0 0 0 2px #edeb3c"></i>Baseline</span
               ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
               ><span><i style="background: none; box-shadow: inset 0 0 0 2px #f4f4f6"></i>Merge, build, test</span
@@ -2063,7 +2074,8 @@
             </div>
             <p class="rp-cap">
               Mocked run: the timings are made up, but every event type is one OpenFleet really logs. Replay a real run
-              with <code>pnpm demo</code>, or <a href="how-it-works.html">see this run event by event</a>.
+              with <code>pnpm demo</code> from a repo checkout, or
+              <a href="how-it-works.html">see this run event by event</a>.
             </p>
           </figure>
         </section>
@@ -2818,7 +2830,7 @@
               class="of-cell of-b-b of-rise"
               style="
                 grid-column: span 2;
-                background: #48a6ee;
+                background: #eef0f2;
                 color: #2b1e1b;
                 border-radius: 28px;
                 padding: 32px;
@@ -2855,7 +2867,7 @@
                   padding: 10px 16px;
                   border-radius: 16px;
                   background: #2b1e1b;
-                  color: #edeb3c;
+                  color: #f4f4f6;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 24px;
                 "
@@ -2920,8 +2932,9 @@
             <article
               class="of-cell of-b-d of-rise"
               style="
-                background: #edeb3c;
-                color: #2b1e1b;
+                background: #1c1b21;
+                color: #f4f4f6;
+                border: 2px solid #45434c;
                 border-radius: 28px;
                 padding: 28px;
                 overflow: hidden;
@@ -2938,7 +2951,7 @@
                 height="44"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#2B1E1B"
+                stroke="#F4F4F6"
                 stroke-width="2.25"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -2960,10 +2973,12 @@
                 >
                   Pick up where it stopped.
                 </h3>
-                <p style="margin: 0; font-size: 14px; line-height: 22px; font-weight: 600">
+                <p style="margin: 0; font-size: 14px; line-height: 22px; color: #a8a6af">
                   A failed child doesn’t stop the run. State lives in
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">state.json</code>, so
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+                    >state.json</code
+                  >, so
+                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                     >openfleet resume</code
                   >
                   continues later.
@@ -2978,28 +2993,6 @@
                 <p class="of-x-p">
                   Every planner runs first. Their plans are checked against the spec’s shared approach and against each
                   other, per repo and then across repos, before the <code>plans-ready</code> gate opens.
-                </p>
-              </div>
-            </article>
-
-            <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">baseline.passed</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Baselines protect today.</h3>
-                <p class="of-x-p">
-                  Optional per child: tests for today’s behaviour, written first and passing on the unchanged code. The
-                  implementer may only change them where the spec allows.
-                </p>
-              </div>
-            </article>
-
-            <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">web/settings</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Big apps, split into parts.</h3>
-                <p class="of-x-p">
-                  Give each page or module of an app its own child, with a shared <code>setup</code> child first. A repo
-                  coordinator merges them into one branch, runs the full build and tests, and opens one PR.
                 </p>
               </div>
             </article>
@@ -3064,7 +3057,7 @@
                 color: #f4f4f6;
                 text-decoration: none;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 15px;
+                font-size: 14px;
                 letter-spacing: 0.02em;
               "
               >READ THE QUICK START</a
@@ -3358,7 +3351,7 @@
                 >+2</span
               ></span
             ><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"
-              >every repo</span
+              >&#32;every repo</span
             >
           </h2>
           <p style="margin: 0; max-width: 46ch; font-size: 20px; line-height: 30px; color: #a8a6af">
@@ -3367,7 +3360,7 @@
           <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center">
             <a
               class="of-btn"
-              href="#quickstart"
+              href="quickstart.html"
               style="
                 display: inline-flex;
                 align-items: center;
@@ -3444,6 +3437,18 @@
               href="how-it-works.html"
               style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
               >How it works</a
+            >
+            <a
+              class="of-navlink"
+              href="quickstart.html"
+              style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >Quick start</a
+            >
+            <a
+              class="of-navlink"
+              href="extensions.html"
+              style="padding: 11px 14px; border-radius: 8px; text-decoration: none; color: #a8a6af; font-weight: 600"
+              >Extensions</a
             >
             <a
               class="of-navlink"
