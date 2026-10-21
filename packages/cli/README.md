@@ -117,7 +117,7 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 | `npx openfleet config`                              | Show workspace settings (`openfleet/config.json`)                                        |
 | `npx openfleet config set maxParallel <n>`          | Cap working agents across all projects (default 6)                                       |
 | `npx openfleet new <name> ["<request>"] [--ask]`    | Create a project and launch the coordinator                                              |
-| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project (`--fresh` starts a new Copilot session)                              |
+| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project in its Copilot session (`--fresh`, or a missing session: a new one)   |
 | `npx openfleet status [name] [--json]`              | Children grouped by repo, phases, retries and open questions                             |
 | `npx openfleet list`                                | All projects                                                                             |
 | `npx openfleet clean <name> [--branches] [--force]` | Remove the project's child and integration worktrees (and branches)                      |
@@ -142,7 +142,24 @@ Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal 
 
 `new`, `resume` and `status` warn when another active project touches the same repo.
 
-The agents also use the helper commands `state`, `event`, `worktree`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate` and `ext plan|result|fail`. See `npx openfleet help`.
+The agents also use the helper commands `state`, `event`, `worktree`, `preflight`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate` and `ext plan|result|fail`. See `npx openfleet help`.
+
+## Troubleshooting
+
+### Sandbox
+
+OpenFleet creates a git worktree per child, so git must be able to write inside each repo's `.git` directory (ref locks, `.git/worktrees/`). A sandbox can block these writes with `EPERM` ("Operation not permitted"), for example `fatal: cannot lock ref … Operation not permitted`. Copilot's `--add-dir` only affects path verification; it does not lift a sandbox.
+
+- **Before launching**, `new`, `resume` and extension commands probe these writes from the OpenFleet process itself. If they are denied there, the sandbox is inherited from the shell that started OpenFleet and nothing inside Copilot can fix it, so OpenFleet stops before starting the session. If Copilot's command sandbox looks enabled (`--sandbox`, or `sandbox.enabled` in `~/.copilot/settings.json` or `.github/copilot/settings*.json`), it prints a warning; managed policies cannot be detected, so the in-session check below covers them.
+- **In the session**, `npx openfleet preflight <project>` runs the same checks before the spec is approved, at the start of the run and first after `resume`. While it fails, the spec cannot be approved and nothing is spawned.
+
+Likely causes of `EPERM`, in order:
+
+1. **OpenFleet or Copilot was started from a sandboxed shell**, such as an IDE or app-embedded terminal or an agent's shell. The whole process tree is sandboxed. Start `npx openfleet` from a normal terminal.
+2. **Copilot's command sandbox is on.** Run `/sandbox disable`, start without `--sandbox` (or pass `-- --no-sandbox`), or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`. The sandbox may still protect `.git`.
+3. **A managed OS policy** on the device. Ask your administrator.
+
+macOS Full Disk Access does not fix this. `EACCES` ("Permission denied") is a plain file-permissions problem: check the owner and mode of the path.
 
 ## Events
 

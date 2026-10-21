@@ -146,6 +146,8 @@ export interface ProjectState {
   followUps?: Record<string, string[]>;
   /** The `plans-ready` gate is open: every plan was validated and checked for consistency, and the slot ran. */
   plansReady?: boolean;
+  /** Last `npx openfleet preflight` result. `stale` is set by `resume`, until preflight runs again. */
+  preflight?: { ok: boolean; at: string; stale?: boolean };
 }
 
 export function isEscalated(c: ChildState): boolean {
@@ -312,6 +314,15 @@ export function patchState(p: ProjectPaths, patch: unknown, actor?: string): Pro
     throw new UserError(
       "maxParallel is a workspace setting, not project state. Use: npx openfleet config set maxParallel <n>",
     );
+  }
+  if (patch.specApproved === true) {
+    const pf = readState(p).preflight;
+    if (pf && !pf.ok) {
+      throw new UserError(
+        `Preflight failed for project ${p.name}, so the spec cannot be approved yet. ` +
+          `Fix the cause, then run: npx openfleet preflight ${p.name}`,
+      );
+    }
   }
   return updateState(p, (s) => mergePatch(s, patch), actor);
 }

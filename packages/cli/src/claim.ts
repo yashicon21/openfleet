@@ -99,6 +99,13 @@ export function claim(ws: Workspace, project: string, childId: string, roleArg: 
         `Only a repo's integration child (the repo key) gets a repo coordinator; "${childId}" is not one.`,
       );
     }
+    const pf = state.preflight;
+    if (pf && (!pf.ok || pf.stale)) {
+      throw new UserError(
+        `Preflight ${pf.stale ? "has not run since resume" : "failed"} for project ${project}. ` +
+          `Run \`npx openfleet preflight ${project}\` and fix any failure before spawning agents.`,
+      );
+    }
     if ((role === "planner" || role === "baseline") && c.integration) {
       throw new UserError(`Integration child ${childId} has no ${role}.`);
     }

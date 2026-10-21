@@ -11,6 +11,7 @@ export const EVENT_TYPES = [
   "project.created",
   "session.started",
   "session.ended",
+  "session.replaced",
   "agent.spawned",
   "agent.stopped",
   "message.sent",
@@ -43,6 +44,8 @@ export const EVENT_TYPES = [
   "child.merged",
   "merge.conflict",
   "worktree.synced",
+  "preflight.passed",
+  "preflight.failed",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];

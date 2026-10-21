@@ -2,15 +2,38 @@ import { execFileSync, type ExecFileSyncOptions } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { hintFor } from "./sandbox.js";
+import { UserError } from "./workspace.js";
+
+/** A failed git command: the message is git's stderr (plus a hint), never a Node stack trace. */
+export class GitError extends UserError {
+  constructor(
+    readonly args: readonly string[],
+    readonly stderr: string,
+    readonly stdout: string,
+    readonly status: number | null,
+  ) {
+    const detail = stderr.trim() || `exit code ${status ?? "unknown"}`;
+    const hint = hintFor(stderr);
+    super(`git ${args.join(" ")} failed:\n${detail}${hint ? `\n\n${hint}` : ""}`);
+    this.name = "GitError";
+  }
+}
 
 export function git(cwd: string, args: string[], opts: ExecFileSyncOptions = {}): string {
-  return execFileSync("git", args, {
-    cwd,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-    maxBuffer: 256 * 1024 * 1024,
-    ...opts,
-  }) as string;
+  try {
+    return execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 256 * 1024 * 1024,
+      ...opts,
+    }) as string;
+  } catch (err) {
+    const e = err as { stderr?: string | Buffer; stdout?: string | Buffer; status?: number | null; code?: string };
+    if (e.code === "ENOENT") throw new UserError("Could not run `git`. Install git and make sure it is on PATH.");
+    throw new GitError(args, String(e.stderr ?? (err as Error).message), String(e.stdout ?? ""), e.status ?? null);
+  }
 }
 
 export function tryGit(cwd: string, args: string[]): string | undefined {

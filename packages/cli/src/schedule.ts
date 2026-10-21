@@ -21,6 +21,7 @@ export type Action = { owner: Owner } & (
   | { action: "integrate"; child: string }
   | { action: "block"; child: string; dependency: string }
   | { action: "finalize" }
+  | { action: "preflight"; reason: "failed" | "stale" }
 );
 
 export interface Waiting {
@@ -52,6 +53,12 @@ export function nextMerge(state: ProjectState, repo: string): string | undefined
 
 /** What the coordinators should do next. Only meaningful while the project is `running`. */
 export function schedule(state: ProjectState): Schedule {
+  const pf = state.preflight;
+  if (pf && (!pf.ok || pf.stale)) {
+    // Nothing may spawn until git can write in every repo (see `npx openfleet preflight`).
+    const gate: GateState = state.plansReady ? "open" : "planning";
+    return { gate, actions: [{ owner: TOP, action: "preflight", reason: pf.stale ? "stale" : "failed" }], waiting: [] };
+  }
   const actions: Action[] = [];
   const waiting: Waiting[] = [];
   const needsCheck: string[] = [];

@@ -500,6 +500,10 @@ describe("repo coordinator flow (CLI)", () => {
     expect(state().children.web!.coordinator).toBe("stopped");
     expect(state().children["web/a"]!.pendingSpawn).toBeUndefined();
     expect(fs.readFileSync(path.join(root, "launch.json"), "utf8")).toContain("Start the repo coordinators again");
+    expect(json<{ actions: unknown[] }>(cli(root, ["next", "p"])).actions).toEqual([
+      { owner: "top", action: "preflight", reason: "stale" },
+    ]);
+    expect(cli(root, ["preflight", "p"]).code).toBe(0);
     expect(json<{ actions: unknown[] }>(cli(root, ["next", "p"])).actions).toContainEqual({
       owner: "top",
       action: "repo-coordinator",

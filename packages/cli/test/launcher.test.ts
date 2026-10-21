@@ -20,6 +20,17 @@ describe("buildCopilotArgs", () => {
     expect(args[args.indexOf("-i") + 1]).toBe("hi");
   });
 
+  it("names only new sessions, never one resumed with --session-id", () => {
+    const ws = workspace();
+    const base = { ws, agent: "openfleet-coordinator", sessionId: "s-1", name: "openfleet: p" };
+    const fresh = buildCopilotArgs({ ...base, newSession: true });
+    expect(fresh).toEqual(expect.arrayContaining(["--session-id", "s-1", "--name", "openfleet: p"]));
+    const resumed = buildCopilotArgs(base);
+    expect(resumed).toEqual(expect.arrayContaining(["--session-id", "s-1"]));
+    expect(resumed).not.toContain("--name");
+    expect(buildCopilotArgs({ ws, agent: "x", name: "openfleet report" })).toContain("--name");
+  });
+
   it("--ask keeps per-tool prompts", () => {
     const ws = workspace();
     expect(buildCopilotArgs({ ws, agent: "openfleet-coordinator", ask: true })).not.toContain("--allow-all-tools");
