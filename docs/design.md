@@ -19,7 +19,7 @@
 - npm name `openfleet` is taken → scoped `@openfleet-tools/create` (init, `npm create @openfleet-tools`) + `@openfleet-tools/cli`; npm org `@openfleet-tools` (matches https://openfleet.tools). After init, `npx openfleet …` resolves to the local install.
 - Commands: `init`, `update`, `config` / `config set <key> <value>` (workspace settings), `new <name>`, `resume <name>`, `status [name]` (children grouped by repo), `list`, `clean <name>` (child and integration worktrees, optional branches), `add <git-url|path>`, `remove <ext>`, `extensions`, `ext settings [--unset]` / `ext settings set <ext> <key> <value>`, plus extension-declared commands.
 - Agent helpers (deterministic, used by the agents instead of hand-editing files): `state`, `event`, `worktree`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate`, `ext plan|result|fail`.
-- CLI launches Copilot itself (`copilot --agent openfleet-coordinator` + plugin dir = `openfleet/core`). No global install. Same wrapper later launches `claude`.
+- CLI launches the host itself (`copilot --agent openfleet-coordinator` + plugin dir = `openfleet/core`). No global install. The same launcher starts `claude` for the experimental Claude Code host (see Hosts).
 - Launch permissions: interactive (not `--autopilot`), `--allow-all-tools`; path verification stays on with `--add-dir` for the workspace root, the project's `worktrees/`, `openfleet/repos/` and the local repos in `repos.json`; URLs still prompt (no `--allow-all-urls`). `--ask` on `new`/`resume`/extension commands keeps per-tool prompts; args after `--` (e.g. `--yolo`) pass through.
 
 ## Workspace layout (`npm create @openfleet-tools` in any cwd)
@@ -43,6 +43,15 @@ openfleet/
 
 - Repos may live anywhere (path or git URL to clone); init cwd = default search root for the grill.
 - `repos.json` entries may add `e2e` (command), `env` (required env var / credential **names**, never values) and `copyFiles` (git-ignored local files, e.g. `.env.local`, copied from the repo's main checkout into each worktree).
+
+## Hosts (Claude Code experimental)
+
+- Host = the agent CLI a project runs in: `copilot` (default) or `claude` (experimental). Workspace setting `host` in `openfleet/config.json` (`npx openfleet config set host`), `--host` on `new`/`resume` for one run. `state.host` is recorded at `new`; `resume` refuses to switch hosts mid-project. `OPENFLEET_HOST` tells in-session helpers which host they run in (sandbox hints name it).
+- One `core/` source; the build of the installed core generates a plugin per host. Copilot output (`plugin.json`, `hooks.json`, `agents/*.agent.md`, `skills/`) is unchanged. Claude output lives in `openfleet/core/claude/`: `.claude-plugin/plugin.json`, `hooks/hooks.json`, `agents/*.md` and `skills/`, sharing `openfleet/core/lib` via `${CLAUDE_PLUGIN_ROOT}/../lib` (works with `--plugin-dir`). Agents register as `openfleet:<agent>` on both hosts.
+- Host differences in skills and agent templates are inline build-time blocks: `<!--host:copilot-->…<!--host:claude-->…<!--/host-->` (`task`/`read_agent`/`write_agent`/`ask_user` vs `Agent`/completion notifications/`SendMessage`/`AskUserQuestion`). Agent tools map read → `Read`; search → `Grep, Glob`; edit → `Edit, Write`; execute → `Bash`; web → `WebFetch, WebSearch`; agent → `Agent, SendMessage`. Extension agents are generated for every host their entry allows (`hosts`).
+- Hooks: one handler, a per-host adapter (`main.js <host> <event>`; plain `main.js <event>` means Copilot) normalises payloads (Claude's snake_case `session_id`, `agent_id`, `agent_type`, `tool_input`, `last_assistant_message`) into the internal shape and formats output (Claude: `hookSpecificOutput.additionalContext`). Claim consumption and attribution by agent id are identical. Claude matchers are anchored (`^(openfleet:)?openfleet-`).
+- Claude launch: `claude "<prompt>" --plugin-dir openfleet/core/claude --agent openfleet:openfleet-coordinator`, `--session-id <uuid> --name` for new sessions and `--resume <id>` otherwise, `--permission-mode acceptEdits --allowedTools Bash` unless `--ask`, the same `--add-dir` list. Never `bypassPermissions`/`--dangerously-skip-permissions`. Minimum Claude Code 2.1.219 (`agent_id` in hooks, `SendMessage`, nested subagents on by default), checked with `claude --version`.
+- Claude orchestration: spawn with `Agent` in the background, end the turn, act on completion notifications, then `npx openfleet next`; `SendMessage` for replies, send-backs and contract broadcasts; never block on one child. OpenFleet keeps managing worktrees (no `isolation: worktree`/`-w`).
 
 ## Core contents
 

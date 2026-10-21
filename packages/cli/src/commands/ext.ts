@@ -4,7 +4,9 @@ import path from "node:path";
 import { readCoreIndex, type SlotEntry } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { syncExtensions } from "../core.js";
+import { DEFAULT_HOST } from "../hosts.js";
 import {
+  forHost,
   loadExtensions,
   readExtensionsConfig,
   resolveSettings,
@@ -79,14 +81,19 @@ function cmdPlan(ws: Workspace, args: string[], flags: ExtFlags): number {
   const child = childOf(state, flags.child);
   const entries = readCoreIndex(ws)?.slots[slot] ?? [];
   const dirs = whenDirs(ws, state, child);
+  const host = state.host ?? DEFAULT_HOST;
   const run: SlotEntry[] = [];
   const skipped: (SlotEntry & { reason: string })[] = [];
   for (const entry of entries) {
-    if (whenMatches(entry, dirs)) {
+    const hostOk = forHost(entry, host);
+    if (hostOk && whenMatches(entry, dirs)) {
       run.push(entry);
       continue;
     }
-    const reason = `none of ${entry.when!.files.join(", ")} exist`;
+    const reason = hostOk
+      ? `none of ${entry.when!.files.join(", ")} exist`
+      : `not available on host ${host} (hosts: ${entry.hosts!.join(", ")})`;
+    if (!hostOk) warn(`Skipping ${entry.agent} in ${slot}: ${reason}.`);
     skipped.push({ ...entry, reason });
     appendEvent(p, {
       actor: "coordinator",

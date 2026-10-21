@@ -4,6 +4,7 @@ import { addExtension, describePermissions, phaseAgentNames, readLock, removeExt
 import { launch } from "../launcher.js";
 import { requireWorkspace, UserError } from "../workspace.js";
 import { out, warn } from "./output.js";
+import { readConfig } from "../config.js";
 
 export function cmdAdd(args: string[]): number {
   const ws = requireWorkspace();
@@ -79,5 +80,6 @@ export function runExtensionCommand(
     name: `openfleet ${command}`,
     passthrough,
     ask: opts.ask,
+    host: readConfig(ws).host,
   });
 }

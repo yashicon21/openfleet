@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { actorFor, bareAgentName, candidateProjects, locatePath, roleFromAgentName, roleOf } from "../attribution.js";
+import type { Host } from "../hosts.js";
 import { findSlotEntry, readCoreIndex } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { filePatch, snapshotWorktree, type FileKind } from "../git.js";
@@ -18,6 +19,8 @@ import {
 import { findWorkspace, projectPaths, type ProjectPaths, type Workspace } from "../workspace.js";
 
 export interface HookPayload {
+  /** Host that fired the hook, set by the adapter. */
+  host?: Host;
   sessionId?: string;
   timestamp?: number | string;
   cwd?: string;
@@ -83,7 +86,11 @@ export function onSessionStart(ctx: HookContext, payload: HookPayload): HookOutp
       ts: ts(payload),
       actor: "coordinator",
       type: "session.started",
-      payload: { sessionId: payload.sessionId ?? null, source: payload.source ?? null },
+      payload: {
+        sessionId: payload.sessionId ?? null,
+        source: payload.source ?? null,
+        host: payload.host ?? "copilot",
+      },
     });
   }
   const index = readCoreIndex(ctx.ws);
@@ -93,7 +100,9 @@ export function onSessionStart(ctx: HookContext, payload: HookPayload): HookOutp
     p ? `Active OpenFleet project: ${p.name} (${p.dir})` : "No OpenFleet project is active in this session.",
   ];
   if (index) {
+    const host = payload.host ?? "copilot";
     const slots = Object.entries(index.slots)
+      .map(([slot, list]) => [slot, list.filter((e) => !e.hosts || e.hosts.includes(host))] as const)
       .filter(([, list]) => list.length)
       .map(([slot, list]) => `${slot}: ${list.map((e) => e.agent).join(", ")}`);
     lines.push(`Phase extensions — ${slots.length ? slots.join("; ") : "none"}.`);

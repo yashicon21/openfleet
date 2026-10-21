@@ -4,6 +4,7 @@ A repeatable toy example for watching OpenFleet run end to end.
 
 ```sh
 pnpm demo                      # or: examples/demo/setup.sh [dir]
+pnpm demo --host claude        # experimental: run the demo in Claude Code
 ```
 
 The script:
@@ -14,7 +15,8 @@ The script:
    - `api`: an HTTP service with `GET /greeting` → `{ "message": "Hello" }`.
    - `web`: a client that fetches `/greeting` and renders the message (its tests mock the API).
 4. Scaffolds an OpenFleet workspace in `fleet/` with the local build (`@openfleet-tools/create --cli file:…/packages/cli`) and pre-seeds `openfleet/repos.json` with both repos and their test commands.
-5. Prints the next commands.
+5. With `--host claude`, runs `npx openfleet config set host claude` in the workspace.
+6. Prints the next commands.
 
 ## Run it
 
@@ -41,4 +43,4 @@ git -C openfleet/projects/greeting-lang/worktrees/web diff --cached
 
 The spec, plans and contracts are in `openfleet/projects/greeting-lang/`, and full patches are in its `patches/`.
 
-Requirements: Node.js 20+, git, pnpm and a signed-in [Copilot CLI](https://github.com/github/copilot-cli). Running the project uses Copilot requests.
+Requirements: Node.js 20+, git, pnpm and a signed-in [Copilot CLI](https://github.com/github/copilot-cli). Running the project uses Copilot requests. With `--host claude`, you need a signed-in [Claude Code](https://code.claude.com) 2.1.219 or later instead (experimental; see [Hosts](../../README.md#hosts)).

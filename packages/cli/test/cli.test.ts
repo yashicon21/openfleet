@@ -27,6 +27,21 @@ fs.writeFileSync(process.env.FAKE_OUT, JSON.stringify({ args: process.argv.slice
   return file;
 }
 
+/** Fake `claude`: answers `--version` and records launches like fakeCopilot. */
+function fakeClaude(dir: string, version = "2.1.280"): string {
+  const file = path.join(dir, "fake-claude.mjs");
+  fs.writeFileSync(
+    file,
+    `#!/usr/bin/env node
+import fs from "node:fs";
+if (process.argv[2] === "--version") { console.log("${version} (Claude Code)"); process.exit(0); }
+fs.writeFileSync(process.env.FAKE_OUT, JSON.stringify({ args: process.argv.slice(2), host: process.env.OPENFLEET_HOST, project: process.env.OPENFLEET_PROJECT ?? null }));
+`,
+  );
+  fs.chmodSync(file, 0o755);
+  return file;
+}
+
 function cli(cwd: string, args: string[], env: Record<string, string> = {}) {
   const r = spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
   return { code: r.status, stdout: r.stdout, stderr: r.stderr };
@@ -631,4 +646,74 @@ describe("@openfleet-tools/create", () => {
     expect(r.status).toBe(0);
     expect(fs.existsSync(path.join(dir, "openfleet/core/plugin.json"))).toBe(true);
   }, 120_000);
+});
+
+describe("hosts", () => {
+  function setup() {
+    const tmp = tmpDir();
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    cli(root, ["init"]);
+    const out = path.join(tmp, "launch.json");
+    const env = {
+      OPENFLEET_COPILOT_BIN: fakeCopilot(tmp),
+      OPENFLEET_CLAUDE_BIN: fakeClaude(tmp),
+      FAKE_OUT: out,
+      CLAUDE_CONFIG_DIR: path.join(tmp, "claude-home"),
+    };
+    const launch = () => readJson<Launch & { host?: string }>(out);
+    const state = (name: string) => readJson<ProjectState>(path.join(root, `openfleet/projects/${name}/state.json`));
+    return { tmp, root, env, launch, state };
+  }
+
+  it("new --host claude records the host and launches Claude Code with its plugin", () => {
+    const { root, env, launch, state } = setup();
+    const r = cli(root, ["new", "p", "Do", "it", "--host", "claude"], env);
+    expect(r.code).toBe(0);
+    expect(r.stderr).toMatch(/experimental/);
+    expect(state("p").host).toBe("claude");
+    const args = launch().args;
+    expect(args[0]).toContain("Do it");
+    expect(args[args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "openfleet/core/claude"));
+    expect(args).toEqual(expect.arrayContaining(["--session-id", state("p").sessionId, "--name", "openfleet: p"]));
+    expect(launch().host).toBe("claude");
+    const events = fs.readFileSync(path.join(root, "openfleet/projects/p/events.jsonl"), "utf8");
+    expect(events).toContain('"host":"claude"');
+  });
+
+  it("uses config host by default and resume keeps the recorded host", () => {
+    const { root, env, launch, state } = setup();
+    cli(root, ["config", "set", "host", "claude"]);
+    expect(cli(root, ["new", "p"], env).code).toBe(0);
+    expect(state("p").host).toBe("claude");
+    const sessionId = state("p").sessionId!;
+    fs.mkdirSync(path.join(env.CLAUDE_CONFIG_DIR, "projects", "-ws"), { recursive: true });
+    fs.writeFileSync(path.join(env.CLAUDE_CONFIG_DIR, "projects", "-ws", `${sessionId}.jsonl`), "");
+
+    cli(root, ["config", "set", "host", "copilot"]);
+    const r = cli(root, ["resume", "p"], env);
+    expect(r.code).toBe(0);
+    expect(r.stderr).toMatch(/Workspace host is copilot, but project "p" runs in claude/);
+    expect(launch().args).toEqual(expect.arrayContaining(["--resume", sessionId]));
+    expect(launch().args).not.toContain("--name");
+    expect(launch().host).toBe("claude");
+  });
+
+  it("refuses to switch a project's host on resume", () => {
+    const { root, env, state } = setup();
+    expect(cli(root, ["new", "p"], env).code).toBe(0);
+    expect(state("p").host).toBe("copilot");
+    const r = cli(root, ["resume", "p", "--host", "claude"], env);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/runs in Copilot CLI \(host copilot\); it cannot switch to claude mid-project/);
+    expect(cli(root, ["resume", "p", "--host", "copilot"], env).code).toBe(0);
+    expect(cli(root, ["new", "q", "--host", "other"], env).stderr).toMatch(/host must be one of/);
+  });
+
+  it("refuses Claude Code below the minimum version", () => {
+    const { tmp, root, env } = setup();
+    const r = cli(root, ["new", "p", "--host", "claude"], { ...env, OPENFLEET_CLAUDE_BIN: fakeClaude(tmp, "2.1.100") });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/Claude Code 2\.1\.100 is too old/);
+  });
 });

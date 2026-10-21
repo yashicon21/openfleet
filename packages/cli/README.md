@@ -110,25 +110,26 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 
 ## Commands
 
-| Command                                             | What it does                                                                             |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `npx openfleet init`                                | Create `openfleet/` in the current directory and install core                            |
-| `npx openfleet update`                              | Replace `openfleet/core` with the installed CLI version; disable incompatible extensions |
-| `npx openfleet config`                              | Show workspace settings (`openfleet/config.json`)                                        |
-| `npx openfleet config set maxParallel <n>`          | Cap working agents across all projects (default 6)                                       |
-| `npx openfleet new <name> ["<request>"] [--ask]`    | Create a project and launch the coordinator                                              |
-| `npx openfleet resume <name> [--fresh] [--ask]`     | Continue a project in its Copilot session (`--fresh`, or a missing session: a new one)   |
-| `npx openfleet status [name] [--json]`              | Children grouped by repo, phases, retries and open questions                             |
-| `npx openfleet list`                                | All projects                                                                             |
-| `npx openfleet clean <name> [--branches] [--force]` | Remove the project's child and integration worktrees (and branches)                      |
-| `npx openfleet add <git-url[#ref]\|path>`           | Install or update an extension and print its permissions                                 |
-| `npx openfleet remove <name>`                       | Uninstall an extension                                                                   |
-| `npx openfleet extensions`                          | List installed extensions                                                                |
-| `npx openfleet ext settings [--unset]`              | List extension settings (`--unset`: only those without a workspace value)                |
-| `npx openfleet ext settings set <ext> <key> <val>`  | Set a workspace-level extension setting in `openfleet/extensions.config.json`            |
-| `npx openfleet <ext-command> [--ask]`               | Run a command declared by an extension                                                   |
+| Command                                                       | What it does                                                                             |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npx openfleet init`                                          | Create `openfleet/` in the current directory and install core                            |
+| `npx openfleet update`                                        | Replace `openfleet/core` with the installed CLI version; disable incompatible extensions |
+| `npx openfleet config`                                        | Show workspace settings (`openfleet/config.json`)                                        |
+| `npx openfleet config set maxParallel <n>`                    | Cap working agents across all projects (default 6)                                       |
+| `npx openfleet config set host <copilot\|claude>`             | Agent host for new projects (default `copilot`; `claude` is experimental)                |
+| `npx openfleet new <name> ["<request>"] [--ask] [--host <h>]` | Create a project and launch the coordinator (`--host` overrides the workspace host)      |
+| `npx openfleet resume <name> [--fresh] [--ask]`               | Continue a project in its host session (`--fresh`, or a missing session: a new one)      |
+| `npx openfleet status [name] [--json]`                        | Children grouped by repo, phases, retries and open questions                             |
+| `npx openfleet list`                                          | All projects                                                                             |
+| `npx openfleet clean <name> [--branches] [--force]`           | Remove the project's child and integration worktrees (and branches)                      |
+| `npx openfleet add <git-url[#ref]\|path>`                     | Install or update an extension and print its permissions                                 |
+| `npx openfleet remove <name>`                                 | Uninstall an extension                                                                   |
+| `npx openfleet extensions`                                    | List installed extensions                                                                |
+| `npx openfleet ext settings [--unset]`                        | List extension settings (`--unset`: only those without a workspace value)                |
+| `npx openfleet ext settings set <ext> <key> <val>`            | Set a workspace-level extension setting in `openfleet/extensions.config.json`            |
+| `npx openfleet <ext-command> [--ask]`                         | Run a command declared by an extension                                                   |
 
-Arguments after `--` go to `copilot` unchanged, for example `npx openfleet new x -- --model claude-sonnet-5.5`.
+Arguments after `--` go to the host CLI (`copilot` or `claude`) unchanged, for example `npx openfleet new x -- --model claude-sonnet-5.5`.
 
 ### Permissions
 
@@ -138,11 +139,22 @@ OpenFleet launches Copilot in interactive mode so you can answer the grill quest
 - **File access stays limited.** Path verification stays on. OpenFleet adds `--add-dir` for the workspace, the project's `worktrees/`, cloned repos in `openfleet/repos/` and every local repo in `repos.json`. Access to any other path still prompts.
 - **URL access still prompts** (OpenFleet does not pass `--allow-all-urls`).
 
-Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal per-tool prompts. To allow everything, pass Copilot's own flag: `npx openfleet resume x -- --yolo`.
+Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal per-tool prompts. These defaults are for Copilot; see [Hosts](#hosts) for Claude Code. To allow everything, pass Copilot's own flag: `npx openfleet resume x -- --yolo`.
 
 `new`, `resume` and `status` warn when another active project touches the same repo.
 
 The agents also use the helper commands `state`, `event`, `worktree`, `preflight`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate` and `ext plan|result|fail`. See `npx openfleet help`.
+
+## Hosts
+
+OpenFleet runs on [GitHub Copilot CLI](https://github.com/github/copilot-cli) by default. **[Claude Code](https://code.claude.com) is an experimental second host.** Copilot behaviour does not change when you don't use it.
+
+- `npx openfleet config set host claude` makes new projects launch in Claude Code, and `npx openfleet new <name> --host claude` does it for one project. A project keeps the host it was created with: `resume --host` with another host is refused.
+- Requires Claude Code 2.1.219 or later. OpenFleet runs `claude --version` and refuses older versions. `OPENFLEET_CLAUDE_BIN` overrides the binary, like `OPENFLEET_COPILOT_BIN`.
+- The same core generates a plugin per host: the Copilot plugin in `openfleet/core/` and the Claude Code plugin in `openfleet/core/claude/` (agents, skills and hooks, sharing `openfleet/core/lib`). Workspaces created before host support need `npx openfleet update` first.
+- Permissions: `--permission-mode acceptEdits --allowedTools Bash` and the same `--add-dir` list as Copilot. `--ask` keeps the default permission mode. OpenFleet never passes `bypassPermissions` or `--dangerously-skip-permissions`.
+- Agents, skills, events, worktrees and extensions work the same way. OpenFleet still manages worktrees (Claude Code's own worktree isolation is not used). Subagents run in the background and report back through completion notifications, and coordinators reply with `SendMessage`.
+- Extensions can limit phases and augments to some hosts with [`hosts`](https://github.com/yashicon21/openfleet/blob/main/docs/extensions.md#phase-entries).
 
 ## Troubleshooting
 
@@ -156,7 +168,7 @@ OpenFleet creates a git worktree per child, so git must be able to write inside 
 Likely causes of `EPERM`, in order:
 
 1. **OpenFleet or Copilot was started from a sandboxed shell**, such as an IDE or app-embedded terminal or an agent's shell. The whole process tree is sandboxed. Start `npx openfleet` from a normal terminal.
-2. **Copilot's command sandbox is on.** Run `/sandbox disable`, start without `--sandbox` (or pass `-- --no-sandbox`), or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`. The sandbox may still protect `.git`.
+2. **The host's own sandbox is on.** Copilot: run `/sandbox disable`, start without `--sandbox` (or pass `-- --no-sandbox`), or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`. Claude Code: turn off `sandbox.enabled` (`/sandbox`) or allow writes to the repo paths in its sandbox settings. The sandbox may still protect `.git`.
 3. **A managed OS policy** on the device. Ask your administrator.
 
 macOS Full Disk Access does not fix this. `EACCES` ("Permission denied") is a plain file-permissions problem: check the owner and mode of the path.

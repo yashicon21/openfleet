@@ -4,7 +4,9 @@ import { appendEvent, readEvents } from "../events.js";
 import { deleteBranch, removeWorktree, tryGit } from "../git.js";
 import { syncExtensions } from "../core.js";
 import { groupOf, membersOf } from "../groups.js";
-import { copilotSessionExists, launch } from "../launcher.js";
+import { parseHost, readConfig } from "../config.js";
+import { DEFAULT_HOST, HOST_LABEL, type Host } from "../hosts.js";
+import { launch, sessionExists } from "../launcher.js";
 import { newState, readState, updateState, type ProjectState } from "../state.js";
 import { writeJson } from "../fsutil.js";
 import {
@@ -49,26 +51,32 @@ function warnOverlaps(ws: Workspace, name: string): void {
   }
 }
 
-export function createProject(ws: Workspace, name: string): ProjectState {
+export function createProject(ws: Workspace, name: string, host: Host = DEFAULT_HOST): ProjectState {
   const p = projectPaths(ws, name);
   if (fs.existsSync(p.state)) {
     throw new UserError(`Project "${name}" already exists. Use \`npx openfleet resume ${name}\`.`);
   }
   fs.mkdirSync(p.contracts, { recursive: true });
   fs.mkdirSync(p.plans, { recursive: true });
-  const state = newState(name, crypto.randomUUID());
+  const state = newState(name, crypto.randomUUID(), host);
   writeJson(p.state, state);
-  appendEvent(p, { actor: "cli", type: "project.created", target: null, payload: { sessionId: state.sessionId } });
+  appendEvent(p, {
+    actor: "cli",
+    type: "project.created",
+    target: null,
+    payload: { sessionId: state.sessionId, host },
+  });
   return state;
 }
 
-export function cmdNew(args: string[], passthrough: string[], opts: { ask?: boolean } = {}): number {
+export function cmdNew(args: string[], passthrough: string[], opts: { ask?: boolean; host?: string } = {}): number {
   const ws = requireWorkspace();
   const [rawName, ...promptParts] = args;
   const name = validateProjectName(rawName);
   // Re-sync so edits to openfleet/extensions.config.json reach the generated agents.
+  const host = opts.host !== undefined ? parseHost(opts.host) : readConfig(ws).host;
   syncExtensions(ws, warn);
-  const state = createProject(ws, name);
+  const state = createProject(ws, name, host);
   const request = promptParts.join(" ").trim();
   out(`Created project ${name} at ${projectPaths(ws, name).dir}. Launching the coordinator…`);
   const prompt = [
@@ -86,25 +94,45 @@ export function cmdNew(args: string[], passthrough: string[], opts: { ask?: bool
     project: name,
     passthrough,
     ask: opts.ask,
+    host,
   });
+}
+
+/** The project's recorded host. `--host` may only repeat it: a project never switches hosts. */
+export function resumeHost(ws: Workspace, state: ProjectState, flag?: string): Host {
+  const recorded = state.host ?? DEFAULT_HOST;
+  if (flag !== undefined && parseHost(flag) !== recorded) {
+    throw new UserError(
+      `Project "${state.name}" runs in ${HOST_LABEL[recorded]} (host ${recorded}); it cannot switch to ` +
+        `${flag} mid-project. Resume it without --host, or start a new project with --host ${flag}.`,
+    );
+  }
+  const configured = readConfig(ws).host;
+  if (configured !== recorded) {
+    warn(`Workspace host is ${configured}, but project "${state.name}" runs in ${recorded}; resuming in ${recorded}.`);
+  }
+  return recorded;
 }
 
 export function cmdResume(
   args: string[],
   passthrough: string[],
-  opts: { fresh?: boolean; ask?: boolean } = {},
+  opts: { fresh?: boolean; ask?: boolean; host?: string } = {},
 ): number {
   const ws = requireWorkspace();
   const name = validateProjectName(args[0]);
   const p = projectPaths(ws, name);
   let state = readState(p);
+  const host = resumeHost(ws, state, opts.host);
   syncExtensions(ws, warn);
   const previous = state.sessionId;
-  const missing = !opts.fresh && previous !== undefined && copilotSessionExists(previous) === false;
+  const missing = !opts.fresh && previous !== undefined && sessionExists(host, previous) === false;
   const newSession = opts.fresh || !previous || missing;
   const sessionId = newSession ? crypto.randomUUID() : previous;
   if (missing) {
-    warn(`Copilot session ${previous} no longer exists; starting a new session ${sessionId}.`);
+    warn(
+      `${host === "copilot" ? "Copilot" : HOST_LABEL[host]} session ${previous} no longer exists; starting a new session ${sessionId}.`,
+    );
     appendEvent(p, {
       actor: "cli",
       type: "session.replaced",
@@ -150,6 +178,7 @@ export function cmdResume(
     project: name,
     passthrough,
     ask: opts.ask,
+    host,
   });
 }
 

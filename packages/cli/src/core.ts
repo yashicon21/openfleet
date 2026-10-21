@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { qualifiedAgentName } from "./attribution.js";
 import {
+  forHost,
   DEFAULT_TIMEOUT_MINUTES,
   loadExtensions,
   permissionsOf,
@@ -19,6 +20,15 @@ import {
 } from "./extensions.js";
 import type { CoreIndex } from "./coreindex.js";
 import { copyDir, readJson, writeFileAtomic, writeJson } from "./fsutil.js";
+import {
+  claudeHooks,
+  claudePluginManifest,
+  HOSTS,
+  pluginDir,
+  renderForHost,
+  toClaudeAgent,
+  type Host,
+} from "./hosts.js";
 import type { Workspace } from "./workspace.js";
 
 /** Root of the installed @openfleet-tools/cli package (contains package.json, core/, dist/). */
@@ -60,11 +70,31 @@ export function installCore(ws: Workspace, warn: (msg: string) => void = () => {
       "Customize OpenFleet with extensions in `openfleet/extensions/` instead.\n",
   );
   const pluginFile = path.join(tmp, "plugin.json");
-  const plugin = readJson<Record<string, unknown>>(pluginFile);
-  writeJson(pluginFile, { ...plugin, version });
+  const plugin = { ...readJson<Record<string, unknown>>(pluginFile), version };
+  writeJson(pluginFile, plugin);
+  const claude = path.join(tmp, "claude");
+  writeJson(path.join(claude, ".claude-plugin", "plugin.json"), claudePluginManifest(plugin));
+  writeJson(path.join(claude, "hooks", "hooks.json"), claudeHooks());
+  // Skills hold host blocks: render Claude's copy first, then Copilot's in place.
+  renderSkills(path.join(tmp, "skills"), path.join(claude, "skills"), "claude");
+  renderSkills(path.join(tmp, "skills"), path.join(tmp, "skills"), "copilot");
   fs.rmSync(ws.core, { recursive: true, force: true });
   fs.renameSync(tmp, ws.core);
   return syncExtensions(ws, warn);
+}
+
+function renderSkills(src: string, dest: string, host: Host): void {
+  for (const rel of fs.readdirSync(src, { recursive: true, encoding: "utf8" })) {
+    const from = path.join(src, rel);
+    if (!fs.statSync(from).isFile()) continue;
+    const text = fs.readFileSync(from, "utf8");
+    writeFileAtomic(path.join(dest, rel), rel.endsWith(".md") ? renderForHost(text, host) : text);
+  }
+}
+
+/** File name and content of an agent for a host, from its Copilot-format source. */
+function hostAgent(host: Host, name: string, copilotAgent: string): [string, string] {
+  return host === "claude" ? [`${name}.md`, toClaudeAgent(copilotAgent)] : [`${name}.agent.md`, copilotAgent];
 }
 
 function frontmatter(fields: Record<string, unknown>): string {
@@ -155,15 +185,29 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
   const sections = new Map(
     exts.map((e) => [e.manifest.name, settingsSection(e.manifest, resolved.get(e.manifest.name)!)]),
   );
-  const agentsDir = path.join(ws.core, "agents");
-  const skillsDir = path.join(ws.core, "skills");
   const templates = path.join(ws.core, "templates", "agents");
-  fs.rmSync(agentsDir, { recursive: true, force: true });
-  fs.mkdirSync(agentsDir, { recursive: true });
-  for (const entry of fs.existsSync(skillsDir) ? fs.readdirSync(skillsDir) : []) {
-    if (entry.startsWith(`${AGENT_PREFIX}ext-`))
-      fs.rmSync(path.join(skillsDir, entry), { recursive: true, force: true });
+  const dirs = HOSTS.map((host) => {
+    const root = pluginDir(ws, host);
+    return { host, agents: path.join(root, "agents"), skills: path.join(root, "skills") };
+  });
+  for (const d of dirs) {
+    fs.rmSync(d.agents, { recursive: true, force: true });
+    fs.mkdirSync(d.agents, { recursive: true });
+    for (const entry of fs.existsSync(d.skills) ? fs.readdirSync(d.skills) : []) {
+      if (entry.startsWith(`${AGENT_PREFIX}ext-`))
+        fs.rmSync(path.join(d.skills, entry), { recursive: true, force: true });
+    }
   }
+  /** Write one agent (Copilot format) for every host it applies to. */
+  const writeAgent = (name: string, copilotAgent: (host: Host) => string, hosts?: readonly Host[]) => {
+    for (const d of dirs.filter((x) => !hosts || hosts.includes(x.host))) {
+      const [file, content] = hostAgent(d.host, name, copilotAgent(d.host));
+      writeFileAtomic(path.join(d.agents, file), content);
+    }
+  };
+  const writeSkill = (name: string, content: string) => {
+    for (const d of dirs) writeFileAtomic(path.join(d.skills, name, "SKILL.md"), content);
+  };
 
   const index: CoreIndex = {
     v: 2,
@@ -179,22 +223,30 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
   };
 
   for (const role of ROLES) {
-    const file = `${AGENT_PREFIX}${role}.agent.md`;
-    let body = fs.readFileSync(path.join(templates, file), "utf8").trimEnd() + "\n";
+    const name = `${AGENT_PREFIX}${role}`;
+    const template = fs.readFileSync(path.join(templates, `${name}.agent.md`), "utf8");
+    const augmentText = (host: Host) => {
+      let text = "";
+      for (const ext of exts) {
+        const augments = (ext.manifest.augments ?? []).filter((a) => a.role === role && forHost(a, host));
+        if (!augments.length) continue;
+        const parts = augments.map((a) => readMd(ext, a.instructions));
+        const settings = sections.get(ext.manifest.name)!.replace(/^## Settings/, "### Settings");
+        text += `\n## Extension: ${ext.manifest.name}\n\n${parts.join("\n\n")}\n${settings ? `\n${settings}\n` : ""}`;
+      }
+      return text;
+    };
     for (const ext of exts) {
-      const augments = (ext.manifest.augments ?? []).filter((a) => a.role === role);
-      if (!augments.length) continue;
-      const parts = augments.map((a) => readMd(ext, a.instructions));
-      const settings = sections.get(ext.manifest.name)!.replace(/^## Settings/, "### Settings");
-      body += `\n## Extension: ${ext.manifest.name}\n\n${parts.join("\n\n")}\n${settings ? `\n${settings}\n` : ""}`;
-      index.augments[role].push(ext.manifest.name);
+      if ((ext.manifest.augments ?? []).some((a) => a.role === role)) index.augments[role].push(ext.manifest.name);
     }
-    if (body.length > MAX_AGENT_PROMPT) {
+    const body = (host: Host) => renderForHost(template, host).trimEnd() + "\n" + augmentText(host);
+    const copilot = body("copilot");
+    if (copilot.length > MAX_AGENT_PROMPT) {
       warn(
-        `Agent ${file} is ${body.length} chars (Copilot limit ${MAX_AGENT_PROMPT}); augment extensions may be truncated.`,
+        `Agent ${name}.agent.md is ${copilot.length} chars (Copilot limit ${MAX_AGENT_PROMPT}); augment extensions may be truncated.`,
       );
     }
-    writeFileAtomic(path.join(agentsDir, file), body);
+    writeAgent(name, body);
   }
 
   for (const ext of exts) {
@@ -209,35 +261,33 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
         description: `${m.description ?? `OpenFleet extension ${m.name}`} (${entry.slot} phase)`,
         tools,
       });
-      writeFileAtomic(
-        path.join(agentsDir, `${agent}.agent.md`),
-        header + phaseAgentBody(ext, entry, settings).trimEnd() + "\n",
-      );
+      const content = header + phaseAgentBody(ext, entry, settings).trimEnd() + "\n";
+      writeAgent(agent, () => content, entry.hosts);
       index.slots[entry.slot].push({
         extension: m.name,
         agent: qualifiedAgentName(agent),
         blocking: entry.blocking ?? false,
         ...(entry.when ? { when: { files: [...entry.when.files] } } : {}),
         timeoutMinutes: entry.timeoutMinutes ?? DEFAULT_TIMEOUT_MINUTES,
+        ...(entry.hosts ? { hosts: [...entry.hosts] } : {}),
       });
     });
     const commands = Object.entries(m.commands ?? {});
     if (!commands.length) continue;
     const agent = commandAgentName(m.name);
-    writeFileAtomic(
-      path.join(agentsDir, `${agent}.agent.md`),
+    const content =
       frontmatter({ name: agent, description: m.description ?? `OpenFleet extension ${m.name}`, tools }) +
-        commandAgentBody(m, settings).trimEnd() +
-        "\n",
-    );
+      commandAgentBody(m, settings).trimEnd() +
+      "\n";
+    writeAgent(agent, () => content);
     for (const [cmd, rel] of commands) {
       if (index.commands[cmd]) {
         warn(`Command "${cmd}" from extension "${m.name}" shadows "${index.commands[cmd].extension}"; ignoring.`);
         continue;
       }
       const skill = `${AGENT_PREFIX}ext-${m.name}-${cmd}`;
-      writeFileAtomic(
-        path.join(skillsDir, skill, "SKILL.md"),
+      writeSkill(
+        skill,
         frontmatter({ name: skill, description: `OpenFleet extension ${m.name}: \`openfleet ${cmd}\` command.` }) +
           "\n" +
           readMd(ext, rel) +

@@ -10,23 +10,26 @@ import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/proj
 import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
 import { hintFor } from "./sandbox.js";
 import { UserError } from "./workspace.js";
+import { MIN_CLAUDE_VERSION } from "./launcher.js";
 
-export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI
+export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI (or Claude Code, experimental)
 
-Usage: npx openfleet <command> [options] [-- <copilot args>]
+Usage: npx openfleet <command> [options] [-- <host args>]
 
 Workspace
   init                         Create openfleet/ in the current directory and install core
   update                       Replace openfleet/core with this CLI version and re-sync extensions
   config                       Show workspace settings (openfleet/config.json) as JSON
   config set <key> <value>     Change a workspace setting: maxParallel (default 6) caps planners,
-                               baseline testers, implementers and testers running at once, across all projects
+                               baseline testers, implementers and testers running at once, across all projects;
+                               host (copilot | claude, default copilot) picks the agent host for new projects
 
 Projects
-  new <name> ["<request>"] [--ask]
-                               Create a project and launch the coordinator
-  resume <name> [--fresh] [--ask]
-                               Continue a project in its Copilot session (--fresh starts a new one)
+  new <name> ["<request>"] [--ask] [--host copilot|claude]
+                               Create a project and launch the coordinator (--host overrides config host)
+  resume <name> [--fresh] [--ask] [--host <host>]
+                               Continue a project in its host session (--fresh starts a new one).
+                               A project keeps the host it was created with
   status [name] [--json]       Show a project's children (grouped by repo), phases and open questions
   list                         List projects
   clean <name> [--branches] [--force]
@@ -66,10 +69,12 @@ Agent helpers (used by OpenFleet agents)
                                Block a child on a cross-repo question, or resolve it
 
   help, version
-Sessions auto-approve tool use (\`--allow-all-tools\`). File access stays limited to the workspace,
-its worktrees and known repos, and URL access still prompts. Pass \`--ask\` to \`new\`, \`resume\` or an
-extension command to be prompted for every tool instead.
-Arguments after \`--\` are passed to copilot unchanged (e.g. \`-- --yolo\`).
+Sessions auto-approve tool use (Copilot: \`--allow-all-tools\`; Claude Code: \`--permission-mode
+acceptEdits --allowedTools Bash\`). File access stays limited to the workspace, its worktrees and
+known repos, and URL access still prompts. Pass \`--ask\` to \`new\`, \`resume\` or an extension command
+to be prompted for every tool instead.
+Arguments after \`--\` are passed to the host CLI unchanged (e.g. \`-- --yolo\` for copilot).
+Claude Code (\`--host claude\`) is experimental and needs ${MIN_CLAUDE_VERSION} or later.
 `;
 
 function splitPassthrough(argv: string[]): [string[], string[]] {
@@ -103,12 +108,16 @@ export function run(argv: string[]): number {
     case "config":
       return cmdConfig(parse(rest, {}).positionals);
     case "new": {
-      const { values, positionals } = parse(rest, { ask: { type: "boolean" } });
-      return cmdNew(positionals, passthrough, { ask: values.ask });
+      const { values, positionals } = parse(rest, { ask: { type: "boolean" }, host: { type: "string" } });
+      return cmdNew(positionals, passthrough, { ask: values.ask, host: values.host });
     }
     case "resume": {
-      const { values, positionals } = parse(rest, { fresh: { type: "boolean" }, ask: { type: "boolean" } });
-      return cmdResume(positionals, passthrough, { fresh: values.fresh, ask: values.ask });
+      const { values, positionals } = parse(rest, {
+        fresh: { type: "boolean" },
+        ask: { type: "boolean" },
+        host: { type: "string" },
+      });
+      return cmdResume(positionals, passthrough, { fresh: values.fresh, ask: values.ask, host: values.host });
     }
     case "status": {
       const { values, positionals } = parse(rest, { json: { type: "boolean" } });

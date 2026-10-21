@@ -3,6 +3,7 @@ import path from "node:path";
 import type { ExtRole, Slot } from "./extensions.js";
 import { isFile, readJson } from "./fsutil.js";
 import type { Workspace } from "./workspace.js";
+import type { Host } from "./hosts.js";
 
 export interface SlotEntry {
   extension: string;
@@ -11,6 +12,8 @@ export interface SlotEntry {
   blocking: boolean;
   when?: { files: string[] };
   timeoutMinutes: number;
+  /** Hosts the phase runs in; missing means every host. */
+  hosts?: Host[];
 }
 
 export interface CoreIndex {

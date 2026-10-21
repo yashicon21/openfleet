@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Entry point invoked by core/hooks.json: `node lib/hooks/main.js <event>`.
-// Never fails the Copilot session: errors are logged and the hook exits 0.
+// Entry point invoked by the generated hooks.json: `node lib/hooks/main.js [host] <event>`.
+// Without a host the payload is treated as Copilot's. Never fails the host session: errors are logged and the hook exits 0.
 import fs from "node:fs";
 import path from "node:path";
+import { formatOutput, normalizePayload, parseHookArgs } from "./adapters.js";
 import { resolveContext, runHook, type HookPayload } from "./handlers.js";
 
 function readStdin(): string {
@@ -14,13 +15,13 @@ function readStdin(): string {
 }
 
 function main(): void {
-  const event = process.argv[2] ?? "";
+  const { host, event } = parseHookArgs(process.argv.slice(2));
   let payload: HookPayload = {};
   try {
     const raw = readStdin();
-    payload = raw.trim() ? (JSON.parse(raw) as HookPayload) : {};
-    const out = runHook(event, payload);
-    if (out.additionalContext) process.stdout.write(JSON.stringify(out));
+    payload = normalizePayload(host, raw.trim() ? (JSON.parse(raw) as Record<string, unknown>) : {});
+    const text = formatOutput(host, event, runHook(event, payload));
+    if (text) process.stdout.write(text);
   } catch (err) {
     try {
       const ctx = resolveContext(payload);

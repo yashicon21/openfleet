@@ -5,24 +5,52 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { DEFAULT_HOST, HOST_LABEL, isHost, type Host } from "./hosts.js";
 
-export const SANDBOX_HINT = [
-  'Writes were denied with EPERM ("Operation not permitted"): a sandbox is blocking them. Likely causes, in order:',
-  "  1. OpenFleet or Copilot was started from a sandboxed shell (an IDE or app-embedded terminal, or an",
-  "     agent's shell), so the whole process tree is sandboxed. Start it from a normal terminal.",
-  "  2. Copilot CLI's command sandbox is on. Run `/sandbox disable`, start without `--sandbox`, or add the",
-  "     repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in ~/.copilot/settings.json (the",
-  "     sandbox may still protect .git, which git needs for ref locks and worktrees).",
-  "  3. A managed OS policy on this device. Ask your administrator.",
-  "Full Disk Access does not fix this.",
-].join("\n");
+/** Host of the current session: set by the launcher in `OPENFLEET_HOST`, default Copilot. */
+export function currentHost(env: NodeJS.ProcessEnv = process.env): Host {
+  const v = env.OPENFLEET_HOST;
+  return v && isHost(v) ? v : DEFAULT_HOST;
+}
 
-export const INHERITED_SANDBOX_MESSAGE = [
-  "OpenFleet cannot write where git needs to, even before Copilot starts, so the sandbox is inherited",
-  "from the shell that launched it and nothing inside Copilot can fix it. Start `npx openfleet` from a",
-  "normal terminal (not an IDE, app-embedded or agent shell). If it still fails there, a managed OS",
-  "policy is blocking the writes. Full Disk Access does not fix this.",
-].join("\n");
+const HOST_SANDBOX_CAUSE: Record<Host, string[]> = {
+  copilot: [
+    "  2. Copilot CLI's command sandbox is on. Run `/sandbox disable`, start without `--sandbox`, or add the",
+    "     repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in ~/.copilot/settings.json (the",
+    "     sandbox may still protect .git, which git needs for ref locks and worktrees).",
+  ],
+  claude: [
+    "  2. Claude Code's sandbox is on (`sandbox.enabled` in its settings). Turn it off with `/sandbox`, or",
+    "     allow writes to the repo paths in its sandbox settings (the sandbox may still protect .git, which",
+    "     git needs for ref locks and worktrees).",
+  ],
+};
+
+export function sandboxHint(host: Host = currentHost()): string {
+  const label = HOST_LABEL[host];
+  return [
+    'Writes were denied with EPERM ("Operation not permitted"): a sandbox is blocking them. Likely causes, in order:',
+    `  1. OpenFleet or ${label} was started from a sandboxed shell (an IDE or app-embedded terminal, or an`,
+    "     agent's shell), so the whole process tree is sandboxed. Start it from a normal terminal.",
+    ...HOST_SANDBOX_CAUSE[host],
+    "  3. A managed OS policy on this device. Ask your administrator.",
+    "Full Disk Access does not fix this.",
+  ].join("\n");
+}
+
+export function inheritedSandboxMessage(host: Host = currentHost()): string {
+  const label = HOST_LABEL[host];
+  return [
+    `OpenFleet cannot write where git needs to, even before ${label} starts, so the sandbox is inherited`,
+    `from the shell that launched it and nothing inside ${label} can fix it. Start \`npx openfleet\` from a`,
+    "normal terminal (not an IDE, app-embedded or agent shell). If it still fails there, a managed OS",
+    "policy is blocking the writes. Full Disk Access does not fix this.",
+  ].join("\n");
+}
+
+/** Copilot wording, kept for callers that predate host support. */
+export const SANDBOX_HINT = sandboxHint("copilot");
+export const INHERITED_SANDBOX_MESSAGE = inheritedSandboxMessage("copilot");
 
 export const PERMISSIONS_HINT =
   "File permissions deny this access. Check the owner and mode of the path (`ls -ld <path>`) and fix them.";
@@ -32,8 +60,8 @@ export function isSandboxDenial(text: string): boolean {
   return /Operation not permitted|\bEPERM\b/.test(text);
 }
 
-export function hintFor(codeOrText: string): string | undefined {
-  if (isSandboxDenial(codeOrText)) return SANDBOX_HINT;
+export function hintFor(codeOrText: string, host: Host = currentHost()): string | undefined {
+  if (isSandboxDenial(codeOrText)) return sandboxHint(host);
   if (/\bEACCES\b|Permission denied/.test(codeOrText)) return PERMISSIONS_HINT;
   return undefined;
 }
