@@ -1445,7 +1445,7 @@
                     letter-spacing: 0.06em;
                     color: #edeb3c;
                   "
-                  >ILLUSTRATIVE RUN</span
+                  >EXAMPLE RUN</span
                 >
                 <span style="display: flex; align-items: center; gap: 10px">
                   <span
@@ -2256,8 +2256,7 @@
             >
             <div class="rp-head">
               <span class="rp-title"
-                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>ILLUSTRATIVE RUN ·
-                ACCOUNT-ID</span
+                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · ACCOUNT-ID</span
               >
               <div class="rp-controls">
                 <button class="rp-btn" type="button" id="rp-play">↺ REPLAY</button
@@ -3111,7 +3110,7 @@
 
         <section class="of-fail" aria-labelledby="fail-h">
           <div class="of-fail-copy">
-            <p class="of-fail-kick">ILLUSTRATIVE RUN · 2:49 → 3:42</p>
+            <p class="of-fail-kick">EXAMPLE RUN · 2:49 → 3:42</p>
             <h2 id="fail-h">When a test fails, the run carries on.</h2>
             <p>
               sdk-python’s first tester found callers still reading <code>.user_id</code>. The coordinator sent the repo
@@ -3120,7 +3119,7 @@
             </p>
             <a class="of-fail-link" href="how-it-works.html">See how the run handled it</a>
           </div>
-          <ol class="of-fail-log" aria-label="Events from the illustrative run">
+          <ol class="of-fail-log" aria-label="Events from the example run">
             <li class="of-fl">
               <span class="of-fl-t">2:49</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
               ><span class="of-fl-d">pytest 22/23</span><span class="of-fl-tag of-fl-bad">1 FAILING</span>
@@ -4204,7 +4203,7 @@
           if (last) playing = false;
           replay.hidden = !last && !playing;
           replayLabel.textContent = last ? "REPLAY" : "SKIP";
-          replay.setAttribute("aria-label", last ? "Replay the illustrative run" : "Skip to the end of the run");
+          replay.setAttribute("aria-label", last ? "Replay the example run" : "Skip to the end of the run");
         }
 
         var playing = false;
@@ -4333,7 +4332,7 @@
         var narrowMq = window.matchMedia ? window.matchMedia("(max-width: 639px)") : { matches: false };
         var NS = "http://www.w3.org/2000/svg";
 
-        // Illustrative timings, in seconds. p = plan, i = implement, t = test, f = failed test, w = waiting.
+        // Example timings, in seconds. p = plan, i = implement, t = test, f = failed test, w = waiting.
         var LANES = [
           {
             name: "api",

@@ -55,8 +55,8 @@ OpenFleet is an open-source (MIT) framework that turns one prompt into a coordin
 ## Evidence on Hand
 
 - The code, the docs (`docs/design.md`, `docs/events.md`, `docs/extensions.md`, `docs/flow.mmd`) and the toy example in `examples/demo` (`pnpm demo`).
-- The website's account-id example run is mocked and is labelled illustrative on the page.
-- **No users, GitHub stars, testimonials, logos, benchmarks or case studies exist yet.** Do not invent or imply any. Any example run that is not a real recorded run must say it is illustrative.
+- The website's account-id example run is mocked. It is called an "example run", and one short note on each page says its events are mocked.
+- **No users, GitHub stars, testimonials, logos, benchmarks or case studies exist yet.** Do not invent or imply any. Any example run that is not a real recorded run must say it is an example, with a short note that its events are mocked.
 
 ## Product Principles
 
