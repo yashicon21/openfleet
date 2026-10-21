@@ -138,154 +138,6 @@
         outline: 2px solid #1632e6;
         outline-offset: 2px;
       }
-      .of-fail {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: clamp(112px, 13vw, 176px) 24px 0;
-        box-sizing: border-box;
-        display: grid;
-        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-        gap: 48px;
-        align-items: center;
-      }
-      .of-fail-copy {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        align-items: flex-start;
-      }
-      .of-fail-kick {
-        margin: 0;
-        font-family: "Russo One", "Arial Black", sans-serif;
-        font-size: 13px;
-        letter-spacing: 0.1em;
-        color: #a8a6af;
-      }
-      .of-fail h2 {
-        margin: 0;
-        font-family: "Russo One", "Arial Black", sans-serif;
-        font-weight: 400;
-        font-size: clamp(32px, 4.6vw, 56px);
-        line-height: 1.02;
-        color: #f4f4f6;
-        text-wrap: balance;
-      }
-      .of-fail-copy > p:not(.of-fail-kick) {
-        margin: 0;
-        font-size: 20px;
-        line-height: 30px;
-        color: #a8a6af;
-        max-width: 46ch;
-      }
-      .of-fail-copy code {
-        font-family: "Share Tech Mono", ui-monospace, monospace;
-        color: #f4f4f6;
-      }
-      .of-fail-link {
-        font-family: "Russo One", "Arial Black", sans-serif;
-        font-size: 16px;
-        letter-spacing: 0.02em;
-        color: #f4f4f6;
-        text-decoration: underline 2px #ee5ad6;
-        text-underline-offset: 6px;
-        padding: 11px 0;
-      }
-      .of-fail-link::after {
-        content: " →";
-      }
-      .of-fail-link:hover {
-        color: #48a6ee;
-      }
-      .of-fail-log {
-        margin: 0;
-        padding: 20px 22px;
-        list-style: none;
-        background: #1c1b21;
-        border: 1px solid #45434c;
-        border-radius: 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 14px;
-        line-height: 22px;
-      }
-      .of-fl {
-        display: grid;
-        grid-template-columns: 44px minmax(0, 1fr) auto;
-        grid-template-areas: "t e tag" "t d tag";
-        gap: 0 12px;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #45434c;
-      }
-      .of-fl:last-child {
-        border-bottom: 0;
-      }
-      .of-fl-t {
-        grid-area: t;
-        color: #a8a6af;
-        align-self: start;
-      }
-      .of-fl-e {
-        grid-area: e;
-        color: #a8a6af;
-        overflow-wrap: anywhere;
-      }
-      .of-fl-e b {
-        font-weight: 400;
-        color: #f4f4f6;
-      }
-      .of-fl-d {
-        grid-area: d;
-        color: #a8a6af;
-        overflow-wrap: anywhere;
-      }
-      .of-fl-tag {
-        grid-area: tag;
-        font-family: "Russo One", "Arial Black", sans-serif;
-        font-size: 12px;
-        letter-spacing: 0.04em;
-        padding: 4px 9px;
-        border-radius: 8px;
-        background: #2e2d35;
-        color: #f4f4f6;
-        white-space: nowrap;
-      }
-      .of-fl-bad {
-        background: #fff1cc;
-        color: #8a5300;
-      }
-      .of-fl-ok {
-        background: #eef0f2;
-        color: #17703a;
-      }
-      .of-fl-you {
-        background: none;
-        border: 2px dashed #f4f4f6;
-        padding: 2px 7px;
-      }
-      @media (max-width: 900px) {
-        .of-fail {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 32px;
-        }
-      }
-      @media (max-width: 479px) {
-        .of-fail-log {
-          padding: 14px 16px;
-          border-radius: 16px;
-          font-size: 14px;
-        }
-        .of-fl {
-          grid-template-columns: 40px minmax(0, 1fr);
-          grid-template-areas: "t e" "t d" "t tag";
-        }
-        .of-fl-tag {
-          justify-self: start;
-          margin-top: 6px;
-        }
-      }
       .of-legend {
         display: flex;
         gap: 4px 14px;
@@ -608,39 +460,6 @@
         .of-b-d {
           grid-column: auto !important;
           grid-row: auto !important;
-        }
-      }
-      @media (max-width: 639px) {
-        .of-compare thead {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          overflow: hidden;
-          clip: rect(0 0 0 0);
-        }
-        .of-compare,
-        .of-compare tbody,
-        .of-compare tr,
-        .of-compare th,
-        .of-compare td {
-          display: block;
-          width: auto;
-        }
-        .of-compare tr {
-          padding: 16px 0;
-        }
-        .of-compare th[scope="row"],
-        .of-compare td {
-          padding: 2px 0 !important;
-        }
-        .of-compare td::before {
-          content: attr(data-label);
-          display: block;
-          font-family: "Russo One", "Arial Black", sans-serif;
-          font-size: 12px;
-          letter-spacing: 0.06em;
-          color: #5f5754;
-          margin-top: 8px;
         }
       }
       @media (max-width: 479px) {
@@ -2251,9 +2070,10 @@
             <div class="rp-introside">
               <p>
                 Every planner runs first, and no code is written until the plans agree. Then each child gets an
-                implementer and a tester, side by side, at most six at a time. Ordering holds: <code>mobile</code> waits
-                for <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a
-                fresh implementer. Every step lands in <code>events.jsonl</code>.
+                implementer and a tester, side by side. Ordering holds: <code>mobile</code> waits for
+                <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a fresh
+                implementer, and any call the spec didn’t cover is logged for you to confirm. Every step lands in
+                <code>events.jsonl</code>.
               </p>
               <a class="of-ghost rp-link" href="how-it-works.html">WATCH THE WHOLE RUN, EVENT BY EVENT</a>
             </div>
@@ -2594,9 +2414,9 @@
                 Build, test, merge
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                In dependency order, at most six agents at a time: an optional baseline, then an implementer and a
-                tester. A failing test gets up to 3 retries, then one guided attempt. A repo split into parts merges
-                them into one branch and runs its full build and tests.
+                In dependency order: an optional baseline, then an implementer and a tester. A failing test gets up to 3
+                retries, then one guided attempt. A repo split into parts merges them into one branch and runs its full
+                build and tests.
               </p>
             </li>
             <li
@@ -3127,17 +2947,19 @@
                 class="of-tile"
                 style="
                   margin: 0;
-                  white-space: pre-wrap;
-                  overflow-wrap: anywhere;
+                  white-space: pre;
+                  overflow-x: auto;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 14px;
                   line-height: 21px;
                   color: #a8a6af;
                   transform-origin: left top;
                 "
-              >{"seq": 7,
- "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
- "type": <span style="color: #F4F4F6;">"file.edited"</span>}</pre>
+              >{
+  "seq": <span style="color: #F4F4F6;">7</span>,
+  "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
+  "type": <span style="color: #F4F4F6;">"file.edited"</span>
+}</pre>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
                   style="
@@ -3248,194 +3070,15 @@
             </article>
 
             <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">maxParallel: 6</code>
+              <code class="of-tile of-x-tile">.env.local</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Fits on one machine.</h3>
+                <h3 class="of-x-h">Apps run side by side.</h3>
                 <p class="of-x-p">
-                  At most six agents work at once, a setting you can change. Each child gets its own ports, and
-                  git-ignored files like <code>.env.local</code> are copied in, never committed.
+                  Each child gets its own port range, so apps and end-to-end tests run in parallel without clashing.
+                  Git-ignored files like <code>.env.local</code> are copied into every worktree, never committed.
                 </p>
               </div>
             </article>
-          </div>
-        </section>
-
-        <section class="of-fail" aria-labelledby="fail-h">
-          <div class="of-fail-copy">
-            <p class="of-fail-kick">EXAMPLE RUN · 2:15 → 4:00</p>
-            <h2 id="fail-h">When a test fails, the run carries on.</h2>
-            <p>
-              Before sdk-python changed anything, a baseline tester pinned today’s behaviour in three protected tests.
-              The first test run broke one: callers still read <code>.user_id</code>. The coordinator sent it back with
-              the findings, made the one call the spec didn’t cover, and logged it for you to confirm. The other repos
-              never stopped.
-            </p>
-            <a class="of-fail-link" href="how-it-works.html">See how the run handled it</a>
-          </div>
-          <ol class="of-fail-log" aria-label="Events from the example run">
-            <li class="of-fl">
-              <span class="of-fl-t">2:15</span><span class="of-fl-e"><b>baseline.passed</b> sdk-python/baseline</span
-              ><span class="of-fl-d">3 tests protected</span><span class="of-fl-tag of-fl-ok">PASS</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">3:12</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
-              ><span class="of-fl-d">pytest 25/26 · test_user_id_read</span
-              ><span class="of-fl-tag of-fl-bad">1 FAILING</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">3:16</span><span class="of-fl-e"><b>assumption</b> coordinator</span
-              ><span class="of-fl-d">keep user_id as a read-only alias</span
-              ><span class="of-fl-tag of-fl-you">FOR YOU</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">3:16</span><span class="of-fl-e"><b>phase.changed</b> sdk-python</span
-              ><span class="of-fl-d">testing → implementing</span><span class="of-fl-tag">RETRY 1/3</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">3:18</span><span class="of-fl-e"><b>agent.spawned</b> sdk-python/implementer</span
-              ><span class="of-fl-d">with the tester’s findings</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">3:57</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
-              ><span class="of-fl-d">pytest 27/27</span><span class="of-fl-tag of-fl-ok">PASS</span>
-            </li>
-          </ol>
-        </section>
-
-        <section
-          id="compare"
-          aria-labelledby="compare-h"
-          style="
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: clamp(112px, 13vw, 176px) 24px 0;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 48px;
-          "
-        >
-          <h2
-            id="compare-h"
-            style="
-              margin: 0;
-              max-width: 960px;
-              font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-              font-weight: 400;
-              font-size: clamp(32px, 4.6vw, 56px);
-              line-height: 1.02;
-              color: #f4f4f6;
-            "
-          >
-            One agent session works in one repo. OpenFleet works across all of them.
-          </h2>
-          <div class="of-rise" style="background: #eef0f2; color: #2b1e1b; border-radius: 28px; padding: 8px 28px 12px">
-            <table
-              class="of-compare"
-              style="width: 100%; border-collapse: collapse; font-size: 17px; line-height: 24px"
-            >
-              <caption style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
-                A single agent session compared with OpenFleet
-              </caption>
-              <thead>
-                <tr style="border-bottom: 2px solid #2b1e1b">
-                  <th scope="col" style="text-align: left; padding: 20px 16px 14px 0; width: 16%">
-                    <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"
-                      >Feature</span
-                    >
-                  </th>
-                  <th
-                    scope="col"
-                    style="
-                      text-align: left;
-                      padding: 20px 16px 14px 0;
-                      width: 38%;
-                      font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                      font-weight: 400;
-                      font-size: 14px;
-                      letter-spacing: 0.04em;
-                      color: #5f5754;
-                    "
-                  >
-                    ONE AGENT SESSION
-                  </th>
-                  <th
-                    scope="col"
-                    style="
-                      text-align: left;
-                      padding: 20px 0 14px 0;
-                      font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                      font-weight: 400;
-                      font-size: 14px;
-                      letter-spacing: 0.04em;
-                    "
-                  >
-                    <span style="padding: 4px 10px; border-radius: 8px; background: #2b1e1b; color: #edeb3c"
-                      >OPENFLEET</span
-                    >
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom: 2px solid #dfe2e6">
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Scope</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">
-                    Parallel subagents inside one session and repo
-                  </td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    One change across many repos and packages
-                  </td>
-                </tr>
-                <tr style="border-bottom: 2px solid #dfe2e6">
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Isolation</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">
-                    Shared working tree
-                  </td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    One git worktree and branch per child (repo, package or part of an app)
-                  </td>
-                </tr>
-                <tr style="border-bottom: 2px solid #dfe2e6">
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Process</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">Free-form</td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    Spec → plans checked against each other → implement → test, with retries
-                  </td>
-                </tr>
-                <tr style="border-bottom: 2px solid #dfe2e6">
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Contracts</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">None</td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    Shared fixtures in
-                    <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">contracts/</code>,
-                    contract tests per repo
-                  </td>
-                </tr>
-                <tr style="border-bottom: 2px solid #dfe2e6">
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Record</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">
-                    Session transcript
-                  </td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code>
-                    with attribution, patches and diff snapshots
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Resume</th>
-                  <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">
-                    Session resume
-                  </td>
-                  <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    Project state in
-                    <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">state.json</code>;
-                    <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
-                      >openfleet resume &lt;name&gt;</code
-                    >
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </section>
 
