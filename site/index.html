@@ -450,6 +450,47 @@
       .of-slot {
         transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
       }
+      .of-slots {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+      }
+      .of-slot-x {
+        min-width: 0;
+        min-height: 180px;
+        color: #2b1e1b;
+        border-radius: 28px;
+        padding: 28px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 24px;
+      }
+      .of-slot-c {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 28px;
+        line-height: 30px;
+      }
+      .of-slot-t {
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 18px;
+        line-height: 22px;
+      }
+      .of-slot-d {
+        font-size: 14px;
+        line-height: 21px;
+        font-weight: 600;
+        max-width: 36ch;
+      }
+      @media (max-width: 400px) {
+        .of-slots {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
       .of-slot:hover {
         transform: translateY(-4px);
       }
@@ -487,6 +528,47 @@
       }
       .of-menu a:hover {
         background: #2e2d35;
+        color: #f4f4f6;
+      }
+      .of-b-x {
+        background: #1c1b21;
+        color: #f4f4f6;
+        border: 2px solid #45434c;
+        border-radius: 28px;
+        padding: 28px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+        box-sizing: border-box;
+      }
+      .of-x-tile {
+        align-self: flex-start;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: #2e2d35;
+        color: #f4f4f6;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 14px;
+        line-height: 22px;
+        transform-origin: left top;
+      }
+      .of-x-h {
+        margin: 0;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-weight: 400;
+        font-size: 22px;
+        line-height: 26px;
+      }
+      .of-x-p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 22px;
+        color: #a8a6af;
+      }
+      .of-x-p code {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
         color: #f4f4f6;
       }
       @media (max-width: 959px) {
@@ -1273,8 +1355,9 @@
               "
             >
               <p style="margin: 0; font-size: 20px; line-height: 30px; color: #a8a6af">
-                Describe the change once. A coordinator agent turns it into a spec with you, then runs a planner →
-                implementer → tester pipeline for each repo or package, in parallel, each in its own git worktree.
+                Describe the change once. A coordinator agent turns it into a spec with you, checks every plan against
+                the others, then runs a planner → implementer → tester pipeline for each repo, package or part of an
+                app, in parallel, each in its own git worktree.
               </p>
               <div class="of-herobtns" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
                 <a
@@ -1457,7 +1540,7 @@
                       white-space: nowrap;
                     "
                     ><span class="of-slug">account-id · </span
-                    ><span style="color: #edeb3c"><span id="of-done">2</span>/7</span> done</span
+                    ><span style="color: #edeb3c"><span id="of-done">1</span>/6</span> done</span
                   >
                   <button
                     id="of-replay"
@@ -1657,13 +1740,13 @@
                         "
                       ></span
                       ><span
-                        class="of-sg"
+                        class="of-sg of-cur"
                         style="
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
                           background: #edeb3c;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                          box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1675,27 +1758,14 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        box-shadow: inset 0 0 0 2px #2b1e1b;
-                        background: #eef0f2;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      ><svg
-                        width="11"
-                        height="11"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#2B1E1B"
-                        stroke-width="3.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M5 12.5l4.5 4.5L19 7.5"></path></svg
-                      >DONE<span
+                      >TEST<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1704,7 +1774,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: plan, implement and test complete</span
+                        >: testing</span
                       ></span
                     >
                   </li>
@@ -1894,55 +1964,8 @@
                         font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                         font-size: 17px;
                       "
-                      >web/app</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      >web<span aria-hidden="true" style="color: #5f5754; font-size: 14px"> ×3</span
                       ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #48a6ee;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg of-cur"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #ee5ad6;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span></span
-                    ><span
-                      class="of-st"
-                      style="
-                        margin-left: auto;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 5px;
-                        padding: 4px 9px;
-                        border-radius: 8px;
-                        background: #dfe2e6;
-                        color: #2b1e1b;
-                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 12px;
-                        letter-spacing: 0.04em;
-                        white-space: nowrap;
-                      "
-                      >IMPLEMENT<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1951,28 +1974,9 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: implementing</span
+                      >
+                        (3 parts)</span
                       ></span
-                    >
-                  </li>
-                  <li
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 12px;
-                      padding: 9px 0;
-                      border-bottom: 2px solid #dfe2e6;
-                    "
-                  >
-                    <span
-                      class="of-rname"
-                      style="
-                        width: 92px;
-                        flex: none;
-                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
-                      "
-                      >web/ui</span
                     ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
                       ><span
                         class="of-sg"
@@ -2045,13 +2049,13 @@
                       >mobile</span
                     ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
                       ><span
-                        class="of-sg of-cur"
+                        class="of-sg"
                         style="
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
                           background: #48a6ee;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
                       ><span
@@ -2084,13 +2088,13 @@
                         padding: 4px 9px;
                         border-radius: 8px;
                         background: #dfe2e6;
-                        color: #2b1e1b;
+                        color: #5f5754;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                         font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >PLAN<span
+                      >AFTER SDK-JS<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -2099,7 +2103,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: planning</span
+                        >: plan agreed, waiting until sdk-js finishes</span
                       ></span
                     >
                   </li>
@@ -2124,13 +2128,17 @@
                 >
                   <div aria-hidden="true" style="color: #a8a6af">events.jsonl</div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
+                    <span style="color: #f4f4f6">plans.consistent</span
+                    ><span style="min-width: 0; overflow-wrap: anywhere">8 plans agree, gate open</span>
+                  </div>
+                  <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
                     <span style="color: #f4f4f6">contract.changed</span
-                    ><span style="min-width: 0; overflow-wrap: anywhere">contracts/account.json → 5 repos</span>
+                    ><span style="min-width: 0; overflow-wrap: anywhere">contracts/account.json → 4 repos</span>
                   </div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
                     <span style="color: #f4f4f6">assumption</span
                     ><span style="min-width: 0; overflow-wrap: anywhere"
-                      >sdk-python keeps user_id as a deprecated alias</span
+                      >sdk-python keeps user_id as a read-only alias</span
                     >
                   </div>
                 </div>
@@ -2153,25 +2161,27 @@
                 "
               >
                 <span
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>GATE<i class="of-sep"></i>IMPLEMENT<i
                     class="of-sep"
                   ></i
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>GATE<i
                     class="of-sep"
                   ></i
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i
                     class="of-sep"
-                  ></i></span
+                  ></i
+                  >GATE<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i></span
                 ><span
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>GATE<i class="of-sep"></i>IMPLEMENT<i
                     class="of-sep"
                   ></i
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>GATE<i
                     class="of-sep"
                   ></i
-                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                  >IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i>SPEC<i class="of-sep"></i>PLAN<i
                     class="of-sep"
                   ></i
+                  >GATE<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i class="of-sep"></i
                 ></span>
               </div>
             </div>
@@ -2209,17 +2219,17 @@
                 "
               >
                 <span
-                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>BASELINES<i class="of-sep"></i>EVENT
+                  LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i
                     class="of-sep"
                   ></i
-                  >DRAFT PRS<i class="of-sep"></i></span
+                  >BASELINES<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i></span
                 ><span
-                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>BASELINES<i class="of-sep"></i>EVENT
+                  LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i
                     class="of-sep"
                   ></i
-                  >DRAFT PRS<i class="of-sep"></i
+                  >BASELINES<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT PRS<i class="of-sep"></i
                 ></span>
               </div>
             </div>
@@ -2237,11 +2247,12 @@
 
         <section id="run" aria-labelledby="run-h" class="rp-sec">
           <div class="rp-intro">
-            <h2 id="run-h" class="rp-h2">Seven repos. One coordinator. All at once.</h2>
+            <h2 id="run-h" class="rp-h2">Six repos. One coordinator. All at once.</h2>
             <div class="rp-introside">
               <p>
-                For every repo, the coordinator spawns a planner, an implementer and a tester, then lets them work side
-                by side. Ordering still holds: <code>mobile</code> waits for <code>sdk-js</code>. A failed test gets a
+                Every planner runs first, and no code is written until the plans agree. Then each child gets an
+                implementer and a tester, side by side, at most six at a time. Ordering holds: <code>mobile</code> waits
+                for <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a
                 fresh implementer. Every step lands in <code>events.jsonl</code>.
               </p>
               <a class="of-ghost rp-link" href="how-it-works.html">WATCH THE WHOLE RUN, EVENT BY EVENT</a>
@@ -2263,11 +2274,11 @@
                 ><input
                   type="range"
                   min="0"
-                  max="280"
-                  value="280"
+                  max="268"
+                  value="268"
                   id="rp-scrub"
                   aria-label="Scrub the example run"
-                /><span class="rp-clock" id="rp-clock">4:40</span>
+                /><span class="rp-clock" id="rp-clock">4:28</span>
               </div>
             </div>
             <div class="rp-split">
@@ -2276,7 +2287,7 @@
                   id="rp-swim"
                   viewBox="0 0 1000 420"
                   role="img"
-                  aria-label="Swimlane of the example run: the project bar on top, then one lane per repo showing plan, implement and test. mobile waits for sdk-js; sdk-python fails a test once and retries."
+                  aria-label="Swimlane of the example run: the project bar on top, then one lane per child showing plan, implement and test. No code starts until the plans-ready gate. sdk-python writes baseline tests first, breaks one once and retries. web's three children merge into one branch. mobile waits for sdk-js."
                 ></svg>
               </div>
               <p class="rp-hint" aria-hidden="true">Swipe sideways to see the whole run →</p>
@@ -2289,8 +2300,10 @@
               <span><i style="background: #48a6ee"></i>Plan</span
               ><span><i style="background: #ee5ad6"></i>Implement</span
               ><span><i style="background: #edeb3c"></i>Test</span
+              ><span><i style="background: none; box-shadow: inset 0 0 0 2px #edeb3c"></i>Baseline</span
               ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
-              ><span><i class="rp-dash"></i>Waiting on another repo</span
+              ><span><i style="background: none; box-shadow: inset 0 0 0 2px #f4f4f6"></i>Merge, build, test</span
+              ><span><i class="rp-dash"></i>Waiting on another child</span
               ><span><i style="border: 2px dashed #f4f4f6; background: none"></i>You</span>
             </div>
             <p class="rp-cap">
@@ -2340,8 +2353,8 @@
               You answer questions once. Then it’s hands-off.
             </h2>
             <p style="margin: 0; max-width: 40ch; font-size: 18px; line-height: 28px; color: #a8a6af">
-              Questions from the per-repo agents go to the coordinator. It answers from the spec, or decides and logs an
-              assumption for you to review.
+              Questions from the agents go to the coordinator, or to a repo coordinator for a repo split into parts.
+              They answer from the spec, or decide and log an assumption for you to review.
             </p>
           </div>
           <ol
@@ -2411,7 +2424,7 @@
                 The coordinator interviews you about the change, suggests repos from
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #2b1e1b"
                   >repos.json</code
-                >, and discovers and confirms build and test commands.
+                >, splits a big app into parts if you want, and confirms build and test commands.
               </p>
             </li>
             <li
@@ -2469,8 +2482,8 @@
                 It writes
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #2b1e1b"
                   >spec.md</code
-                >: goal, repos, contracts, ordering, acceptance criteria and branches. One last question, “anything to
-                change?”, and your answer starts the run.
+                >: goal, repos and their parts, contracts, a shared approach, baselines, ordering, acceptance criteria
+                and branches. One last question, “anything to change?”, and your answer starts the run.
               </p>
             </li>
             <li
@@ -2522,11 +2535,11 @@
                   line-height: 40px;
                 "
               >
-                Plan, build, test
+                Plan, then agree
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                Per repo, in parallel: a read-only planner, then an implementer and a tester. A failing test gets up to
-                3 retries, then one guided attempt by the coordinator.
+                Every planner runs at once, read-only. Before any code is written, all plans are checked against the
+                spec’s shared approach and against each other. Then the plans-ready gate opens.
               </p>
             </li>
             <li
@@ -2558,6 +2571,63 @@
                   >4</span
                 ><span
                   style="
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                    background: #dfe2e6;
+                    color: #2b1e1b;
+                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                    font-size: 12px;
+                    letter-spacing: 0.06em;
+                  "
+                  >HANDS-OFF</span
+                >
+              </div>
+              <h3
+                style="
+                  margin: 0;
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-weight: 400;
+                  font-size: 34px;
+                  line-height: 40px;
+                "
+              >
+                Build, test, merge
+              </h3>
+              <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
+                In dependency order, at most six agents at a time: an optional baseline, then an implementer and a
+                tester. A failing test gets up to 3 retries, then one guided attempt. A repo split into parts merges
+                them into one branch and runs its full build and tests.
+              </p>
+            </li>
+            <li
+              class="of-stack"
+              style="
+                position: sticky;
+                top: 232px;
+                background: #eef0f2;
+                color: #2b1e1b;
+                border: 2px solid #2b1e1b;
+                box-shadow: 0 4px 0 0 #2b1e1b;
+                border-radius: 28px;
+                padding: 32px;
+                min-height: 260px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+              "
+            >
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <span
+                  style="
+                    font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                    font-size: 48px;
+                    line-height: 48px;
+                    color: #1632e6;
+                  "
+                  >5</span
+                ><span
+                  style="
                     padding: 2px 8px;
                     border-radius: 8px;
                     border: 2px dashed #2b1e1b;
@@ -2581,8 +2651,8 @@
                 Finish
               </h3>
               <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                Changes come back staged in each worktree for your review, or as draft PRs that link to each other. The
-                summary lists every assumption and failure.
+                Changes come back staged in each worktree for your review, or as draft PRs that link to each other, one
+                per repo. The summary lists every assumption, failure and follow-up.
               </p>
             </li>
           </ol>
@@ -2647,11 +2717,11 @@
                     line-height: 40px;
                   "
                 >
-                  A worktree and branch for every repo.
+                  A worktree and branch for every child.
                 </h3>
                 <p style="margin: 0; font-size: 17px; line-height: 26px; color: #5f5754">
-                  Each repo, or each package in a monorepo, gets its own git worktree and branch. Agents never share a
-                  working tree.
+                  Each repo, monorepo package or part of an app gets its own git worktree and branch. Agents never share
+                  a working tree. Parts of one repo merge into a single branch, and one PR.
                 </p>
               </div>
               <div
@@ -2671,7 +2741,7 @@
                   >main</span
                 >
                 <ul
-                  aria-label="Example branches for the account-id run"
+                  aria-label="Example branches for the account-id run. web's three parts merge into openfleet/account-id."
                   style="
                     margin: 0 0 0 20px;
                     padding: 0;
@@ -2858,6 +2928,44 @@
                           line-height: 22px;
                           color: #2b1e1b;
                         "
+                        >web/setup</span
+                      ><span
+                        style="
+                          font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                          font-size: 14px;
+                          line-height: 22px;
+                          color: #1632e6;
+                          overflow-wrap: anywhere;
+                        "
+                        >openfleet/account-id--setup</span
+                      ></span
+                    >
+                  </li>
+                  <li style="display: flex; align-items: stretch; gap: 10px">
+                    <span aria-hidden="true" style="position: relative; width: 22px; flex: none"
+                      ><span
+                        style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #2b1e1b"
+                      ></span
+                      ><span
+                        style="position: absolute; left: 0; top: 19px; width: 20px; height: 2px; background: #2b1e1b"
+                      ></span></span
+                    ><span
+                      style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-items: baseline;
+                        gap: 0 14px;
+                        padding: 8px 0;
+                        min-width: 0;
+                      "
+                      ><span
+                        style="
+                          width: 92px;
+                          font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                          font-size: 17px;
+                          line-height: 22px;
+                          color: #2b1e1b;
+                        "
                         >web/app</span
                       ><span
                         style="
@@ -2867,7 +2975,7 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id-app</span
+                        >openfleet/account-id--app</span
                       ></span
                     >
                   </li>
@@ -2905,7 +3013,7 @@
                           color: #1632e6;
                           overflow-wrap: anywhere;
                         "
-                        >openfleet/account-id-ui</span
+                        >openfleet/account-id--ui</span
                       ></span
                     >
                   </li>
@@ -3096,7 +3204,7 @@
                   Pick up where it stopped.
                 </h3>
                 <p style="margin: 0; font-size: 14px; line-height: 22px; font-weight: 600">
-                  A failed repo doesn’t stop the run. State lives in
+                  A failed child doesn’t stop the run. State lives in
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">state.json</code>, so
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
                     >openfleet resume</code
@@ -3105,41 +3213,91 @@
                 </p>
               </div>
             </article>
+
+            <article class="of-cell of-b-x of-rise">
+              <code class="of-tile of-x-tile">plans.consistent</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h3 class="of-x-h">Plans agree before code.</h3>
+                <p class="of-x-p">
+                  Every planner runs first. Their plans are checked against the spec’s shared approach and against each
+                  other, per repo and then across repos, before the <code>plans-ready</code> gate opens.
+                </p>
+              </div>
+            </article>
+
+            <article class="of-cell of-b-x of-rise">
+              <code class="of-tile of-x-tile">baseline.passed</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h3 class="of-x-h">Baselines protect today.</h3>
+                <p class="of-x-p">
+                  Optional per child: tests for today’s behaviour, written first and passing on the unchanged code. The
+                  implementer may only change them where the spec allows.
+                </p>
+              </div>
+            </article>
+
+            <article class="of-cell of-b-x of-rise">
+              <code class="of-tile of-x-tile">web/settings</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h3 class="of-x-h">Big apps, split into parts.</h3>
+                <p class="of-x-p">
+                  Give each page or module of an app its own child, with a shared <code>setup</code> child first. A repo
+                  coordinator merges them into one branch, runs the full build and tests, and opens one PR.
+                </p>
+              </div>
+            </article>
+
+            <article class="of-cell of-b-x of-rise">
+              <code class="of-tile of-x-tile">maxParallel: 6</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h3 class="of-x-h">Fits on one machine.</h3>
+                <p class="of-x-p">
+                  At most six agents work at once, a setting you can change. Each child gets its own ports, and
+                  git-ignored files like <code>.env.local</code> are copied in, never committed.
+                </p>
+              </div>
+            </article>
           </div>
         </section>
 
         <section class="of-fail" aria-labelledby="fail-h">
           <div class="of-fail-copy">
-            <p class="of-fail-kick">EXAMPLE RUN · 2:49 → 3:42</p>
+            <p class="of-fail-kick">EXAMPLE RUN · 2:15 → 4:00</p>
             <h2 id="fail-h">When a test fails, the run carries on.</h2>
             <p>
-              sdk-python’s first tester found callers still reading <code>.user_id</code>. The coordinator sent the repo
-              back with the findings, made the one call the spec didn’t cover, and logged it for you to confirm. The
-              other six repos never stopped.
+              Before sdk-python changed anything, a baseline tester pinned today’s behaviour in three protected tests.
+              The first test run broke one: callers still read <code>.user_id</code>. The coordinator sent it back with
+              the findings, made the one call the spec didn’t cover, and logged it for you to confirm. The other repos
+              never stopped.
             </p>
             <a class="of-fail-link" href="how-it-works.html">See how the run handled it</a>
           </div>
           <ol class="of-fail-log" aria-label="Events from the example run">
             <li class="of-fl">
-              <span class="of-fl-t">2:49</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
-              ><span class="of-fl-d">pytest 22/23</span><span class="of-fl-tag of-fl-bad">1 FAILING</span>
+              <span class="of-fl-t">2:15</span><span class="of-fl-e"><b>baseline.passed</b> sdk-python/baseline</span
+              ><span class="of-fl-d">3 tests protected</span><span class="of-fl-tag of-fl-ok">PASS</span>
             </li>
             <li class="of-fl">
-              <span class="of-fl-t">2:53</span><span class="of-fl-e"><b>phase.changed</b> sdk-python</span
-              ><span class="of-fl-d">testing → implementing</span><span class="of-fl-tag">RETRY 1/3</span>
+              <span class="of-fl-t">3:12</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
+              ><span class="of-fl-d">pytest 25/26 · test_user_id_read</span
+              ><span class="of-fl-tag of-fl-bad">1 FAILING</span>
             </li>
             <li class="of-fl">
-              <span class="of-fl-t">2:54</span><span class="of-fl-e"><b>agent.spawned</b> sdk-python/implementer</span
-              ><span class="of-fl-d">with the tester’s findings</span>
-            </li>
-            <li class="of-fl">
-              <span class="of-fl-t">2:56</span><span class="of-fl-e"><b>assumption</b> coordinator</span
-              ><span class="of-fl-d">keep user_id as a deprecated alias</span
+              <span class="of-fl-t">3:16</span><span class="of-fl-e"><b>assumption</b> coordinator</span
+              ><span class="of-fl-d">keep user_id as a read-only alias</span
               ><span class="of-fl-tag of-fl-you">FOR YOU</span>
             </li>
             <li class="of-fl">
-              <span class="of-fl-t">3:39</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
-              ><span class="of-fl-d">pytest 24/24</span><span class="of-fl-tag of-fl-ok">PASS</span>
+              <span class="of-fl-t">3:16</span><span class="of-fl-e"><b>phase.changed</b> sdk-python</span
+              ><span class="of-fl-d">testing → implementing</span><span class="of-fl-tag">RETRY 1/3</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">3:18</span><span class="of-fl-e"><b>agent.spawned</b> sdk-python/implementer</span
+              ><span class="of-fl-d">with the tester’s findings</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">3:57</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
+              ><span class="of-fl-d">pytest 27/27</span><span class="of-fl-tag of-fl-ok">PASS</span>
             </li>
           </ol>
         </section>
@@ -3234,14 +3392,14 @@
                     Shared working tree
                   </td>
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    One git worktree and branch per repo or package
+                    One git worktree and branch per child (repo, package or part of an app)
                   </td>
                 </tr>
                 <tr style="border-bottom: 2px solid #dfe2e6">
                   <th scope="row" style="text-align: left; padding: 16px 16px 16px 0; font-weight: 700">Process</th>
                   <td data-label="ONE AGENT SESSION" style="padding: 16px 16px 16px 0; color: #5f5754">Free-form</td>
                   <td data-label="OPENFLEET" style="padding: 16px 0; font-weight: 600">
-                    Spec → plan → implement → test, with retries
+                    Spec → plans checked against each other → implement → test, with retries
                   </td>
                 </tr>
                 <tr style="border-bottom: 2px solid #dfe2e6">
@@ -3514,7 +3672,7 @@
                   >
                 </dt>
                 <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Each repo’s phase, retries and open questions
+                  Each child’s phase, retries and open questions, grouped by repo
                 </dd>
               </div>
               <div
@@ -3547,8 +3705,17 @@
             >,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">init</code>,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">list</code>,
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">remove</code
+            >,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-              >remove</code
+              >config</code
+            >
+            (for example
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+              >config set maxParallel 4</code
+            >),
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
+              >ext settings</code
             >
             and
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
@@ -3611,8 +3778,11 @@
                 Install an extension with
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                   >openfleet add</code
-                >. It can run as its own agent at a phase slot, add to a role’s instructions, or add CLI commands. Write
-                and shell access must be declared, and the tool allow-list enforces it.
+                >. It can run as its own agent at one of six phase slots, add to a role’s instructions, or add CLI
+                commands. A phase can block the run until it passes, run only when certain files exist, and hand outputs
+                such as a published version or a PR link to the repos downstream. Settings live in the workspace, and
+                the grill asks for any that are missing. Write and shell access must be declared, and the tool
+                allow-list enforces it.
               </p>
               <a
                 class="of-ghost"
@@ -3635,163 +3805,55 @@
               >
             </div>
           </div>
-          <ul
-            aria-label="Phase slots"
-            style="
-              margin: 0;
-              padding: 0;
-              list-style: none;
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-              gap: 12px;
-            "
-          >
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #48a6ee;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >pre-spec</code
-              >
+          <ul aria-label="Phase slots" class="of-slots">
+            <li class="of-slot of-slot-x" style="background: #eef0f2">
+              <code class="of-slot-c">pre-spec</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
-                  style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
-                  "
-                  >Before the spec is written</span
-                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs as its own agent, ahead of the coordinator writing
+                <span class="of-slot-t">Before the spec</span
+                ><span class="of-slot-d"
+                  >Once, during the grill, ahead of the coordinator writing
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">spec.md</code>.</span
                 >
               </div>
             </li>
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #ee5ad6;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >post-plan</code
-              >
+            <li class="of-slot of-slot-x" style="background: #48a6ee">
+              <code class="of-slot-c">post-plan</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
-                  style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
-                  "
-                  >After each plan is approved</span
-                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs once the coordinator has validated a repo’s plan, before implementation.</span
+                <span class="of-slot-t">After each plan</span
+                ><span class="of-slot-d">Per child, once its plan is validated against the spec.</span>
+              </div>
+            </li>
+            <li class="of-slot of-slot-x" style="background: #48a6ee">
+              <code class="of-slot-c">plans-ready</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span class="of-slot-t">When every plan agrees</span
+                ><span class="of-slot-d">Once, after the consistency gate and before any code is written.</span>
+              </div>
+            </li>
+            <li class="of-slot of-slot-x" style="background: #ee5ad6">
+              <code class="of-slot-c">pre-implement</code>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span class="of-slot-t">Before each build</span
+                ><span class="of-slot-d"
+                  >Per child, after the gate and its baseline, right before the implementer.</span
                 >
               </div>
             </li>
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #edeb3c;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >post-test</code
-              >
+            <li class="of-slot of-slot-x" style="background: #edeb3c">
+              <code class="of-slot-c">post-test</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
-                  style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
-                  "
-                  >After tests pass</span
-                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >Runs for each repo whose build, tests and contract tests pass.</span
+                <span class="of-slot-t">After tests pass</span
+                ><span class="of-slot-d"
+                  >Per child. Dependents start only once it finishes, so it can publish a version they use.</span
                 >
               </div>
             </li>
-            <li
-              class="of-slot"
-              style="
-                min-width: 0;
-                min-height: 200px;
-                background: #eef0f2;
-                color: #2b1e1b;
-                border-radius: 28px;
-                padding: 28px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 28px;
-              "
-            >
-              <code
-                style="
-                  font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 28px;
-                  line-height: 30px;
-                "
-                >post-run</code
-              >
+            <li class="of-slot of-slot-x" style="background: #eef0f2">
+              <code class="of-slot-c">post-run</code>
               <div style="display: flex; flex-direction: column; gap: 8px">
-                <span
-                  style="
-                    font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                    font-size: 18px;
-                    line-height: 22px;
-                  "
-                  >When every repo is done</span
-                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
-                  >For example, an audit that summarises a finished run from
+                <span class="of-slot-t">When the run is done</span
+                ><span class="of-slot-d"
+                  >Once, during finalize. For example, an audit of
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code
                   >.</span
                 >
@@ -3903,7 +3965,7 @@
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >web/ui</span
+                >web</span
               ><span
                 class="of-chip"
                 aria-hidden="true"
@@ -3920,7 +3982,7 @@
                   font-size: 0.42em;
                   letter-spacing: 0;
                 "
-                >+3</span
+                >+2</span
               ></span
             ><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"
               >every repo</span
@@ -4046,23 +4108,26 @@
     </div>
     <script>
       (function () {
-        var NAMES = ["api", "sdk-js", "sdk-python", "billing", "web/app", "web/ui", "mobile"];
-        var SNAPSHOT = [4, 3, "r", 2, 2, 1, "w"];
+        var NAMES = ["api", "sdk-js", "sdk-python", "billing", "web", "mobile"];
+        // Per repo: 0–4 = not started → done; g = plan done, waiting at the plans-ready gate;
+        // b = writing baseline tests; w = waiting on sdk-js; r = retry; m = merging web's parts and testing them.
         var STEPS = [
-          [1, 1, 1, 1, 1, 1, "w"],
-          [2, 2, 2, 1, 1, 1, "w"],
-          [3, 2, 2, 2, 2, 1, "w"],
-          [4, 3, 3, 2, 2, 2, "w"],
-          [4, 4, "r", 3, 2, 2, 1],
-          [4, 4, 3, 4, 3, 3, 2],
-          [4, 4, 4, 4, 4, 4, 3],
-          [4, 4, 4, 4, 4, 4, 4],
+          [1, 1, 1, 1, 1, 1],
+          ["g", "g", "g", "g", 1, "g"],
+          [2, 2, "b", 2, 2, "w"],
+          [3, 2, 2, 3, 2, "w"],
+          [4, 3, "r", 3, 2, "w"],
+          [4, 4, 2, 4, 3, 2],
+          [4, 4, 3, 4, "m", 3],
+          [4, 4, 4, 4, 4, 4],
         ];
-        var EVENTS_AT_STEP = [0, 0, 1, 1, 2, 2, 2, 3];
+        var EVENTS_AT_STEP = [0, 1, 2, 2, 3, 3, 4, 5];
         var EVENTS = [
-          { color: "#F4F4F6", type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { color: "#F4F4F6", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
-          { color: "#F4F4F6", type: "run.completed", text: "7 draft PRs opened, cross-linked" },
+          { color: "#F4F4F6", type: "plans.consistent", text: "8 plans agree, gate open" },
+          { color: "#F4F4F6", type: "contract.changed", text: "contracts/account.json → 4 repos" },
+          { color: "#F4F4F6", type: "assumption", text: "sdk-python keeps user_id as a read-only alias" },
+          { color: "#F4F4F6", type: "child.merged", text: "web/app → openfleet/account-id" },
+          { color: "#F4F4F6", type: "run.completed", text: "6 draft PRs opened, cross-linked" },
         ];
         var SR =
           "position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;";
@@ -4074,11 +4139,14 @@
           '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8A5300" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3-6.2"></path><path d="M20 4v5h-5"></path></svg>';
 
         var ROLE_BG = ["#48A6EE", "#EE5AD6", "#EDEB3C"];
-        function segment(p, k) {
+        // still: the plan is done but nothing else has started, so only the plan segment fills.
+        function segment(p, k, still) {
           var bg = "#DFE2E6";
           var ring = "0px";
           var cls = "of-sg";
-          if (p === 4 || p > k + 1) {
+          if (still) {
+            if (k === 0) bg = ROLE_BG[0];
+          } else if (p === 4 || p > k + 1) {
             bg = ROLE_BG[k];
           } else if (p === k + 1) {
             bg = ROLE_BG[k];
@@ -4102,10 +4170,18 @@
             .map(function (ph, i) {
               var retry = ph === "r";
               var wait = ph === "w";
-              var p = retry ? 3 : wait ? 0 : ph;
+              var gate = ph === "g";
+              var base = ph === "b";
+              var merge = ph === "m";
+              var p = retry ? 3 : wait ? 2 : gate || base ? 2 : merge ? 4 : ph;
               var label, sr, bg, fg, icon;
               icon = "";
-              if (p === 4) {
+              if (merge) {
+                label = "MERGE + TEST";
+                sr = ": merging its 3 parts into one branch and running the full build and tests";
+                bg = "#DFE2E6";
+                fg = "#2B1E1B";
+              } else if (p === 4) {
                 done += 1;
                 label = "DONE";
                 sr = ": plan, implement and test complete";
@@ -4120,15 +4196,26 @@
                 icon = RETRY;
               } else if (wait) {
                 label = "AFTER SDK-JS";
-                sr = ": blocked until sdk-js finishes";
+                sr = ": plan agreed, waiting until sdk-js finishes";
                 bg = "#DFE2E6";
                 fg = "#5F5754";
+              } else if (gate) {
+                label = "AT THE GATE";
+                sr = ": plan done, waiting until every plan agrees";
+                bg = "#DFE2E6";
+                fg = "#5F5754";
+              } else if (base) {
+                label = "BASELINE";
+                sr = ": writing tests for today’s behaviour";
+                bg = "#DFE2E6";
+                fg = "#2B1E1B";
               } else {
                 label = ["", "PLAN", "IMPLEMENT", "TEST"][p];
                 sr = ["", ": planning", ": implementing", ": testing"][p];
                 bg = "#DFE2E6";
                 fg = "#2B1E1B";
               }
+              var still = wait || gate || base;
               var border = i === phases.length - 1 ? "0" : "2px solid #DFE2E6";
               var chipEdge = p === 4 ? "box-shadow: inset 0 0 0 2px #2B1E1B; " : "";
               return (
@@ -4138,10 +4225,15 @@
                 MONO +
                 ' font-size: 17px;">' +
                 NAMES[i] +
+                (NAMES[i] === "web"
+                  ? '<span aria-hidden="true" style="color: #5F5754; font-size: 14px;"> ×3</span><span style="' +
+                    SR +
+                    '"> (3 parts)</span>'
+                  : "") +
                 '</span><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none;">' +
-                segment(p, 0) +
-                segment(p, 1) +
-                segment(p, 2) +
+                segment(p, 0, still) +
+                segment(p, 1, still) +
+                segment(p, 2, still) +
                 '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; ' +
                 chipEdge +
                 "background: " +
@@ -4168,7 +4260,8 @@
           return (
             '<div aria-hidden="true" style="color: #A8A6AF;">events.jsonl</div>' +
             (count === 0 ? '<div style="color: #A8A6AF;">Waiting for the first coordinator event…</div>' : "") +
-            EVENTS.slice(0, count)
+            // The latest three, so the box never grows while the run plays.
+            EVENTS.slice(Math.max(0, count - 3), count)
               .map(function (ev) {
                 return (
                   '<div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap;"><span style="color: ' +
@@ -4332,94 +4425,126 @@
         var narrowMq = window.matchMedia ? window.matchMedia("(max-width: 639px)") : { matches: false };
         var NS = "http://www.w3.org/2000/svg";
 
-        // Example timings, in seconds. p = plan, i = implement, t = test, f = failed test, w = waiting.
+        // Example timings, in seconds. p = plan, b = baseline, i = implement, t = test, f = failed test,
+        // w = waiting on another child, k = merged into web's integration branch, m = web's full build and tests.
         var LANES = [
           {
             name: "api",
             segs: [
               ["p", 50, 80],
-              ["i", 82, 140],
-              ["t", 142, 165],
+              ["i", 112, 160],
+              ["t", 162, 180],
             ],
           },
           {
             name: "sdk-js",
             segs: [
-              ["p", 52, 85],
-              ["i", 87, 150],
-              ["t", 152, 180],
+              ["p", 50, 82],
+              ["i", 112, 165],
+              ["t", 167, 190],
             ],
           },
           {
             name: "sdk-python",
             segs: [
-              ["p", 54, 88],
-              ["i", 90, 150],
-              ["f", 152, 172],
-              ["i", 174, 200],
-              ["t", 202, 222],
+              ["p", 51, 84],
+              ["b", 112, 135],
+              ["i", 137, 175],
+              ["f", 177, 195],
+              ["i", 198, 220],
+              ["t", 222, 240],
             ],
           },
           {
             name: "billing",
             segs: [
-              ["p", 56, 95],
-              ["i", 97, 160],
-              ["t", 162, 190],
+              ["p", 51, 86],
+              ["i", 113, 170],
+              ["t", 172, 196],
+            ],
+          },
+          {
+            name: "web",
+            segs: [
+              ["k", 155, 155, "web/setup"],
+              ["k", 218, 218, "web/ui"],
+              ["k", 225, 225, "web/app"],
+              ["m", 226, 244],
+            ],
+          },
+          {
+            name: "web/setup",
+            segs: [
+              ["p", 52, 78],
+              ["i", 113, 140],
+              ["t", 142, 152],
             ],
           },
           {
             name: "web/app",
             segs: [
-              ["p", 58, 100],
-              ["i", 102, 175],
-              ["t", 177, 205],
+              ["p", 79, 104],
+              ["w", 109, 156, "after setup"],
+              ["i", 157, 200],
+              ["t", 202, 222],
             ],
           },
           {
             name: "web/ui",
             segs: [
-              ["p", 60, 110],
-              ["i", 112, 185],
-              ["t", 187, 212],
+              ["p", 81, 106],
+              ["w", 109, 156, "after setup"],
+              ["i", 157, 195],
+              ["t", 197, 215],
             ],
           },
           {
             name: "mobile",
             segs: [
-              ["w", 50, 180],
-              ["p", 182, 205],
-              ["i", 207, 250],
-              ["t", 252, 270],
+              ["p", 52, 80],
+              ["w", 109, 193, "after sdk-js"],
+              ["i", 194, 235],
+              ["t", 237, 255],
             ],
           },
         ];
         var PROJECT = [
-          ["GRILL + SPEC", 0, 40, "raised"],
-          ["YOU", 40, 48, "you"],
-          ["RUNNING", 48, 272, "raised"],
-          ["FINALIZE", 272, 280, "raised"],
+          ["GRILL + SPEC", 0, 39, "raised"],
+          ["YOU", 39, 47, "you"],
+          ["RUNNING", 47, 258, "raised"],
+          ["FINALIZE", 258, 268, "raised"],
         ];
         var MARKS = [
+          { t: 109, label: "plans-ready gate", color: "#F4F4F6" },
           { t: 120, label: "contract.changed", color: "#F4F4F6" },
-          { t: 176, label: "assumption", color: "#F4F4F6" },
+          { t: 196, label: "assumption", color: "#F4F4F6" },
         ];
-        var END = 280;
-        var COLORS = { p: "#48A6EE", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC" };
-        var ROLE = { p: "planner", i: "implementer", t: "tester", f: "tester" };
+        var END = 268;
+        var COLORS = { p: "#48A6EE", b: "none", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC", m: "none" };
+        var ROLE = { p: "planner", b: "baseline", i: "implementer", t: "tester", f: "tester" };
 
         var EVENTS = [
           { t: 0, type: "project.created", text: "account-id" },
-          { t: 40, type: "spec.written", text: "spec.md, 7 repos" },
-          { t: 48, type: "spec.approved", text: "you approved the spec" },
-          { t: 120, type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { t: 176, type: "assumption", text: "sdk-python keeps user_id as an alias" },
-          { t: 275, type: "run.completed", text: "7 draft PRs, cross-linked" },
+          { t: 38, type: "spec.written", text: "spec.md, 6 repos, 8 children" },
+          { t: 46, type: "spec.approved", text: "you approved the spec" },
+          { t: 109, type: "plans.consistent", text: "8 plans agree, gate open" },
+          { t: 120, type: "contract.changed", text: "contracts/account.json → 4 repos" },
+          { t: 135, type: "baseline.passed", text: "sdk-python · 3 tests protected" },
+          { t: 196, type: "assumption", text: "sdk-python keeps user_id as an alias" },
+          { t: 264, type: "run.completed", text: "6 draft PRs, cross-linked" },
         ];
         LANES.forEach(function (lane) {
           lane.segs.forEach(function (s) {
             if (s[0] === "w") {
-              EVENTS.push({ t: s[1], type: "ordering", text: lane.name + " waits on sdk-js" });
+              EVENTS.push({ t: s[1], type: "ordering", text: lane.name + " waits, " + s[3] });
+              return;
+            }
+            if (s[0] === "k") {
+              EVENTS.push({ t: s[1], type: "child.merged", text: s[3] + " → openfleet/account-id" });
+              return;
+            }
+            if (s[0] === "m") {
+              EVENTS.push({ t: s[2], type: "test.run", text: "web · full build + tests pass" });
               return;
             }
             EVENTS.push({ t: s[1], type: "agent.spawned", text: lane.name + "/" + ROLE[s[0]] });
@@ -4548,6 +4673,19 @@
               },
               lane.name,
             );
+            if (lane.name === "web" && !narrow)
+              el(
+                "text",
+                {
+                  x: 38,
+                  y: labY,
+                  "font-size": 12,
+                  "letter-spacing": 1,
+                  fill: "#A8A6AF",
+                  style: "font-family: 'Russo One', sans-serif",
+                },
+                "MERGE",
+              );
             lane.segs.forEach(function (s) {
               if (s[0] === "w") {
                 var line = el("line", {
@@ -4560,11 +4698,13 @@
                   "stroke-dasharray": "5 5",
                 });
                 bars.push({ kind: "w", node: line, a: s[1], b: s[2], x: x });
-                // The label sits on mobile's own dashed line, on a patch of panel colour.
+                // The label sits on the lane's own dashed line, on a patch of panel colour.
+                // Start the label clear of the gate and contract marks drawn at the same moment.
+                var lx = x(s[1] + 14);
                 var pad = el("rect", {
-                  x: x(s[1]) + 4,
+                  x: lx - 4,
                   y: barY + barH / 2 - 9,
-                  width: 120,
+                  width: s[3].length * 7 + 10,
                   height: 18,
                   fill: "#1C1B21",
                 });
@@ -4572,21 +4712,32 @@
                 var lab = el(
                   "text",
                   {
-                    x: x(s[1]) + 8,
+                    x: lx,
                     y: barY + barH / 2 + 4,
                     "font-size": 12,
                     fill: "#A8A6AF",
                     style: "font-family: 'Share Tech Mono', monospace",
                   },
-                  "waits on sdk-js",
+                  s[3],
                 );
                 bars.push({ kind: "label", node: lab, a: s[1] });
+                return;
+              }
+              if (s[0] === "k") {
+                var tk = el("rect", { x: x(s[1]) - 1, y: barY, width: 3, height: barH, fill: "#F4F4F6" });
+                bars.push({ kind: "label", node: tk, a: s[1] });
                 return;
               }
               var attrs = { x: x(s[1]), y: barY, height: barH, rx: 5, width: 0, fill: COLORS[s[0]] };
               if (s[0] === "f") {
                 attrs.stroke = "#8A5300";
                 attrs["stroke-width"] = 2;
+              }
+              if (s[0] === "b" || s[0] === "m") {
+                attrs.stroke = s[0] === "b" ? "#EDEB3C" : "#F4F4F6";
+                attrs["stroke-width"] = 2;
+                attrs.y = barY + 1;
+                attrs.height = barH - 2;
               }
               var r = el("rect", attrs);
               bars.push({ kind: "bar", node: r, a: s[1], b: s[2], x: x });
@@ -4622,7 +4773,7 @@
               "text",
               {
                 x: x(m.t) + 6,
-                y: bottom + 18 + (narrow ? mi * 15 : 0),
+                y: bottom + 18 + mi * 15,
                 "font-size": 12,
                 fill: m.color,
                 style: "font-family: 'Share Tech Mono', monospace",
@@ -4631,7 +4782,7 @@
             );
             markEls.push({ t: m.t, nodes: [ln, tx] });
           });
-          var axisY = bottom + (narrow ? 45 : 30);
+          var axisY = bottom + 18 + MARKS.length * 15;
           el("line", { x1: X0, x2: X1, y1: axisY, y2: axisY, stroke: "#45434C", "stroke-width": 2 });
           for (var s = 0; s <= END; s += 60) {
             el("line", { x1: x(s), x2: x(s), y1: axisY, y2: axisY + 6, stroke: "#45434C", "stroke-width": 2 });
