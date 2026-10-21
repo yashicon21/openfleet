@@ -1,5 +1,11 @@
 # @openfleet-tools/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- [#28](https://github.com/yashicon21/openfleet/pull/28) [`bf8d7f6`](https://github.com/yashicon21/openfleet/commit/bf8d7f694c87efa31214eaa519400dda77868541) Thanks [@yashicon21](https://github.com/yashicon21)! - Add Claude Code as an experimental second host (`npx openfleet config set host claude` or `--host claude`). Copilot CLI stays the default and is unchanged.
+
 ## 0.3.1
 
 ### Patch Changes
