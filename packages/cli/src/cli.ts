@@ -5,9 +5,10 @@ import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
-import { cmdBaseline, cmdGate, cmdNext } from "./commands/run.js";
+import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
+import { hintFor } from "./sandbox.js";
 import { UserError } from "./workspace.js";
 
 export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI
@@ -47,6 +48,7 @@ Agent helpers (used by OpenFleet agents)
                                List declared extension settings (JSON); --unset: only those not yet set
   ext settings set <ext> <key> <value>
                                Write a workspace-level setting to openfleet/extensions.config.json
+  preflight <project>          Check that git can write ref locks and worktrees in every repo (sandbox check)
   next <project> [--repo <repo>]
                                Print the next scheduling actions (plans first, then the gate)
   gate <project> consistent [--repo <repo>] [--child <id>[,<id>…]]
@@ -157,6 +159,8 @@ export function run(argv: string[]): number {
       });
       return cmdExt(positionals, values);
     }
+    case "preflight":
+      return cmdPreflight(parse(rest, {}).positionals);
     case "next": {
       const { values, positionals } = parse(rest, { repo: { type: "string" } });
       return cmdNext(positionals, values);
@@ -202,12 +206,22 @@ export function run(argv: string[]): number {
   }
 }
 
+/** User-facing text for an error: the message (plus a hint for permission errors); a stack only for bugs. */
+export function errorMessage(err: unknown): string {
+  const e = err as NodeJS.ErrnoException;
+  if (err instanceof UserError || e.code?.startsWith("ERR_PARSE_ARGS")) return e.message;
+  if (e.code === "EPERM" || e.code === "EACCES" || e.code === "EROFS") {
+    const hint = hintFor(e.code);
+    return `${e.message}${hint ? `\n\n${hint}` : ""}`;
+  }
+  return e.stack ?? String(err);
+}
+
 export function main(argv = process.argv.slice(2)): void {
   try {
     process.exitCode = run(argv);
   } catch (err) {
-    const isUser = err instanceof UserError || (err as { code?: string }).code?.startsWith("ERR_PARSE_ARGS");
-    process.stderr.write(`openfleet: ${isUser ? (err as Error).message : ((err as Error).stack ?? String(err))}\n`);
+    process.stderr.write(`openfleet: ${errorMessage(err)}\n`);
     process.exitCode = 1;
   }
 }

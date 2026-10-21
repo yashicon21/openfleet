@@ -44,8 +44,10 @@ For each repo or package, discover the commands from `package.json` scripts, `Ma
 For each repo or package that has a UI or a server that tests must start:
 
 - **E2E command:** discover it (for example a `test:e2e` or `playwright` script) and confirm it. Record it as `e2e` on the repo or package in `repos.json`.
-- **Env vars and credentials:** ask which env vars and credentials the app needs to run locally and in tests. Record **names only** in `env` (for example `["AUTH_CLIENT_ID", "AUTH_CLIENT_SECRET"]`). **Never ask for, record, print or repeat values.**
-- **Local files:** ask which git-ignored files from the user's main checkout the worktrees need (for example `.env.local`). Record them as `copyFiles` (paths relative to the repo root, no `..`). `npx openfleet worktree` copies them into every worktree and keeps them out of git and the logs. Do not open or read them.
+- **Env vars and credentials:** find which env vars and credentials the app needs to run locally and in tests. Take the names only from code (`process.env.X`, `import.meta.env.X`, config schemas), from committed example files such as `.env.example`, or from the user. Record **names only** in `env` (for example `["AUTH_CLIENT_ID", "AUTH_CLIENT_SECRET"]`). **Never ask for, record, print or repeat values.**
+- **Local files:** ask which git-ignored files from the user's main checkout the worktrees need (for example `.env.local`). Record them as `copyFiles` (paths relative to the repo root, no `..`). `npx openfleet worktree` copies them into every worktree and keeps them out of git and the logs.
+
+**Never open local secret files.** Do not open, read, `cat`, `grep`, `sed`, `head`, `tail`, `awk` or otherwise inspect any `copyFiles` entry or any `.env*` file (`.env`, `.env.local`, `.env.production`, …), not even to list the names in it. The only exceptions are committed example files (`.env.example`, `.env.sample`, `.env.template`). If you need names you cannot find in code, ask the user.
 
 ## 4. Cross-repo contracts and ordering
 
@@ -89,4 +91,12 @@ This validates the key the same way core does and regenerates the extension agen
 
 ## 7. Spec review (final question)
 
-When all of this is answered, write the spec with `openfleet-spec`. Then ask the final question from "Spec review" in `openfleet-spec`: show the summary and ask **"Anything to change before I start?"** The user's answer ends the grill. Apply any changes, log `spec.approved`, set `status: "running"`, and start the run immediately.
+When all of this is answered, write the spec with `openfleet-spec` and register the children in `state.json`. Then run the preflight check:
+
+```sh
+npx openfleet preflight <project>
+```
+
+It checks that git can write ref locks and worktree admin dirs in every repo, that the worktrees dir is writable and that `copyFiles` can be opened (it never reads them). **Do not ask for approval while it fails**: `state --patch '{"specApproved":true}'` is rejected until it passes. Show the user its message as it is. `EPERM` ("Operation not permitted") means a sandbox blocks the writes. The likely causes, in order: OpenFleet or Copilot was started from a sandboxed shell (an IDE or app-embedded terminal, or an agent's shell): start `npx openfleet` from a normal terminal; Copilot's command sandbox is on: `/sandbox disable`, or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`; a managed OS policy. It is **not** fixed by macOS Full Disk Access; never suggest that. `EACCES` is a plain file-permissions problem. After the user fixes it, run preflight again.
+
+When preflight passes, ask the final question from "Spec review" in `openfleet-spec`: show the summary and ask **"Anything to change before I start?"** The user's answer ends the grill. Apply any changes, log `spec.approved`, set `status: "running"`, and start the run immediately.

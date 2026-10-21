@@ -104,6 +104,8 @@ export function cmdResume(
     p,
     (s) => {
       s.sessionId = sessionId;
+      // Re-check git writes before anything spawns: the new session may run in a different sandbox.
+      s.preflight = { ...(s.preflight ?? { ok: false, at: new Date().toISOString() }), stale: true };
       for (const c of Object.values(s.children)) {
         delete c.pendingSpawn;
         delete c.claimedAt;
@@ -122,6 +124,7 @@ export function cmdResume(
     agent: "openfleet-coordinator",
     prompt: [
       `Resume OpenFleet project \`${name}\`. Read openfleet/projects/${name}/state.json and continue from where it left off.`,
+      `First run \`npx openfleet preflight ${name}\`; spawn nothing until it passes.`,
       repoCoordinators.length
         ? `Start the repo coordinators again (\`npx openfleet next ${name}\` lists them): ${repoCoordinators.join(", ")}.`
         : "",

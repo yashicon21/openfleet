@@ -5,10 +5,21 @@ import path from "node:path";
 import { checkCopyPath } from "../copyfiles.js";
 import { appendEvent } from "../events.js";
 import { groupOf } from "../groups.js";
+import { formatFailure, preflight } from "../preflight.js";
 import { scheduleFor, TOP } from "../schedule.js";
 import { activeChildren, readState, updateState, type ProjectState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName } from "../workspace.js";
 import { out } from "./output.js";
+
+/** `npx openfleet preflight <project>`: JSON report on stdout; on failure the hint on stderr and exit 1. */
+export function cmdPreflight(args: string[]): number {
+  const ws = requireWorkspace();
+  const report = preflight(ws, validateProjectName(args[0]));
+  out(JSON.stringify(report, null, 2));
+  if (report.ok) return 0;
+  process.stderr.write(formatFailure(report) + "\n");
+  return 1;
+}
 
 export const NEXT_USAGE = `Usage:
   openfleet next <project>               actions for the top coordinator (+ "delegated" repo actions)

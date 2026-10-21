@@ -9,6 +9,10 @@ Use this skill when the project `status` is `running`. Use `openfleet-records` f
 
 **This loop is hands-off.** The user is not watching. Never ask the user anything and never use `ask_user`. Do not end your turn while any child is still pending or in progress: keep waiting with `read_agent` and acting on reports until every child is `done`, `failed` or `blocked`, then go to completion.
 
+## 0. Preflight
+
+At the start of the run, and first thing after `resume`, run `npx openfleet preflight <project>`. It checks that git can write in every repo (ref locks, worktree admin dirs) and that the worktrees dir is writable. Until it passes, `next` returns only `{"action":"preflight"}` and `claim` refuses every spawn. If it fails, do not create worktrees or spawn anything: report its message to the user as it is and stop. `EPERM` means a sandbox blocks the writes (most likely OpenFleet was started from a sandboxed shell; see the README's "Sandbox" section). Never blame or suggest macOS Full Disk Access.
+
 ## 1. Worktrees
 
 Make sure every child from the spec is in `state.children` (with `repo`, `package`, `paths`, `allowPaths`, `setup`, `baseline`, `dependsOn`). A repo with two or more children automatically gets an **integration child** keyed by the repo (for example `web`), which depends on all of them; it stands for the repo's merged result, and its repo coordinator runs that repo (section 2a).
@@ -21,7 +25,7 @@ npx openfleet worktree <project> <child id> [--branch <branch from spec>] [--pac
 
 `--repo` defaults to the child id's repo and `--branch` to `openfleet/<project>`. Repo coordinators create the worktrees of their own children and their integration worktree.
 
-The command also copies the repo's `copyFiles` (local env and credential files from `repos.json`) from the main checkout into the worktree and hides them from git. It warns about files that are missing; mention those in the final summary, but do not stop. Never print, read aloud or commit these files.
+The command also copies the repo's `copyFiles` (local env and credential files from `repos.json`) from the main checkout into the worktree and hides them from git. It warns about files that are missing; mention those in the final summary, but do not stop. Never open, read, `cat`, `grep`, `sed`, print or commit these files, or any `.env*` file.
 
 ## 2. Scheduling
 
@@ -51,6 +55,7 @@ Every action has an `owner`: `top` (you) or a repo key. `next <project>` returns
 | `{"action":"implement","child":id}`            | Run the child's `pre-implement` slot, then spawn its implementer ("Implement" below).       |
 | `{"action":"block","child":id,"dependency":d}` | A dependency failed: patch the child `{"phase":"blocked","notes":"dependency <d> failed"}`. |
 | `{"action":"finalize"}`                        | Every child is finished: go to section 5.                                                   |
+| `{"action":"preflight","reason":…}`            | Run `npx openfleet preflight <project>` (section 0); stop and report if it fails.           |
 
 Repo coordinators also get `check-repo-consistency`, `merge`, `resolve-conflict` and `integrate` (section 2a).
 
@@ -192,7 +197,7 @@ When every child is `done`, `failed` or `blocked` (not counting children waiting
 
 ## Resuming
 
-On resume, read `state.json` and answer any `open` questions first. For each child:
+On resume, run `npx openfleet preflight <project>` first (section 0): `resume` marks the last result stale, and nothing can be claimed until it passes. Then read `state.json` and answer any `open` questions. For each child:
 
 - `planning`, `baseline`, `implementing` or `testing` with a recorded agent id: try `read_agent` on that id. If the agent is gone, re-spawn that role. Implementers and baseline testers continue from the worktree's current contents.
 - `plan-review`: re-validate the saved plan.

@@ -3,7 +3,10 @@ import path from "node:path";
 import { qualifiedAgentName } from "./attribution.js";
 import fs from "node:fs";
 import { isDir, realish } from "./fsutil.js";
+import { warn } from "./commands/output.js";
+import { deniedChecks, runChecks } from "./preflight.js";
 import { readRepos } from "./repos.js";
+import { appSandboxContainer, detectSandbox, INHERITED_SANDBOX_MESSAGE, sandboxWarning } from "./sandbox.js";
 import { projectPaths, UserError, type Workspace } from "./workspace.js";
 
 export interface LaunchOptions {
@@ -64,11 +67,33 @@ export function launchEnv(opts: LaunchOptions, env: NodeJS.ProcessEnv = process.
   };
 }
 
+/**
+ * Probe git writes from the OpenFleet process itself. If the OS denies them here, the sandbox is
+ * inherited from the launching shell and nothing inside Copilot can fix it, so fail before launching.
+ */
+export function inheritedSandboxCheck(ws: Workspace, project?: string, env: NodeJS.ProcessEnv = process.env): void {
+  const denied = deniedChecks(runChecks(ws, project));
+  if (!denied.length) return;
+  const container = appSandboxContainer(env);
+  throw new UserError(
+    [
+      INHERITED_SANDBOX_MESSAGE,
+      ...(container ? [`This process runs inside a macOS App Sandbox (container ${container}).`] : []),
+      "",
+      "Denied:",
+      ...denied.map((c) => `  - ${c.repo ?? "workspace"}: ${c.check} ${c.path} (${c.code})`),
+    ].join("\n"),
+  );
+}
+
 /** Launch Copilot CLI interactively in the workspace root. Returns its exit code. */
 export function launch(opts: LaunchOptions): number {
   const bin = hostBinary();
   // Create the worktrees dir up front so it can be passed to --add-dir before any worktree exists.
   if (opts.project) fs.mkdirSync(projectPaths(opts.ws, opts.project).worktrees, { recursive: true });
+  inheritedSandboxCheck(opts.ws, opts.project);
+  const sandbox = detectSandbox(opts.passthrough ?? [], opts.ws.root);
+  if (sandbox.enabled) warn(sandboxWarning(sandbox.source));
   const res = spawnSync(bin, buildCopilotArgs(opts), {
     cwd: opts.ws.root,
     stdio: "inherit",
