@@ -367,6 +367,11 @@
         gap: 20px;
         box-sizing: border-box;
       }
+      @media (min-width: 960px) {
+        .of-b-x {
+          grid-column: span 2;
+        }
+      }
       .of-x-tile {
         align-self: flex-start;
         padding: 4px 10px;
@@ -2988,28 +2993,6 @@
                 <p class="of-x-p">
                   Every planner runs first. Their plans are checked against the spec’s shared approach and against each
                   other, per repo and then across repos, before the <code>plans-ready</code> gate opens.
-                </p>
-              </div>
-            </article>
-
-            <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">baseline.passed</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Baselines protect today.</h3>
-                <p class="of-x-p">
-                  Optional per child: tests for today’s behaviour, written first and passing on the unchanged code. The
-                  implementer may only change them where the spec allows.
-                </p>
-              </div>
-            </article>
-
-            <article class="of-cell of-b-x of-rise">
-              <code class="of-tile of-x-tile">web/settings</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <h3 class="of-x-h">Big apps, split into parts.</h3>
-                <p class="of-x-p">
-                  Give each page or module of an app its own child, with a shared <code>setup</code> child first. A repo
-                  coordinator merges them into one branch, runs the full build and tests, and opens one PR.
                 </p>
               </div>
             </article>
