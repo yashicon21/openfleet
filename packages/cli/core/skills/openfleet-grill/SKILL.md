@@ -75,6 +75,18 @@ For each child, decide whether it needs a **baseline**: tests (usually e2e) that
 - **Completion mode:** `staged` (default: changes are left staged in each worktree for review) or `draft-pr` (commit, push, and open draft PRs that link to each other and include a run summary).
 - **Out of scope:** list explicitly what this project must NOT change.
 
+## 6b. Extension settings
+
+Run `npx openfleet ext settings --unset`. It prints, as JSON, every setting that an installed extension declares and that has no value yet in `openfleet/extensions.config.json`. If the list is empty, skip this step. Settings that are already set are never asked again.
+
+Otherwise ask about each unset setting (group them per extension, at most 4 per round). Show its extension, key, description and default, and say that the value applies to the **whole workspace** (every project), not just this one. Offer "Keep the default (`<default>`)" as the recommended choice; the user can also type a value. For every answer, including "keep the default", write it with:
+
+```sh
+npx openfleet ext settings set <extension> <key> '<value>'
+```
+
+This validates the key the same way core does and regenerates the extension agents. Never edit `extensions.config.json` by hand. Do not ask for secrets here; settings are stored in plain text.
+
 ## 7. Spec review (final question)
 
 When all of this is answered, write the spec with `openfleet-spec`. Then ask the final question from "Spec review" in `openfleet-spec`: show the summary and ask **"Anything to change before I start?"** The user's answer ends the grill. Apply any changes, log `spec.approved`, set `status: "running"`, and start the run immediately.

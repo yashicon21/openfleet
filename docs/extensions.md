@@ -169,7 +169,17 @@ A workspace overrides them in `openfleet/extensions.config.json`:
 { "publish": { "label": "nightly" } }
 ```
 
-Override keys must be declared by the extension, and values must be strings; anything else is an error. OpenFleet resolves the values and adds a **Settings** table (key, value, description) to every prompt of the extension: its phase agents, its augment sections and its command skills. `new`, `resume` and extension commands re-sync, so edits apply to the next session. There is no CLI command for settings yet.
+Override keys must be declared by the extension, and values must be strings; anything else is an error. OpenFleet resolves the values and adds a **Settings** table (key, value, description) to every prompt of the extension: its phase agents, its augment sections and its command skills. `new`, `resume` and extension commands re-sync, so edits apply to the next session.
+
+Settings are workspace-level: one value per workspace, shared by every project. Manage them with:
+
+```sh
+npx openfleet ext settings            # every declared setting: extension, key, default, description, value, set
+npx openfleet ext settings --unset    # only settings without a value in extensions.config.json
+npx openfleet ext settings set <extension> <key> <value>
+```
+
+`set` validates the key against the manifest (like core does), writes `extensions.config.json` under a lock and regenerates the extension's agents. During the grill, the coordinator runs `ext settings --unset` and asks the user about each unset setting (keep the default or give a value), then writes every answer with `ext settings set`. Once a key is set, later projects do not ask again; the grill skips the step when nothing is unset. Settings are stored in plain text, so do not use them for secrets.
 
 ## Commands
 

@@ -40,6 +40,10 @@ Agent helpers (used by OpenFleet agents)
   ext plan <project> <slot> [--child <id>]
   ext result <project> <extension> --slot <s> [--child <id>] --report <json>
   ext fail <project> <extension> --slot <s> [--child <id>] --reason <text>
+  ext settings [--unset]
+                               List declared extension settings (JSON); --unset: only those not yet set
+  ext settings set <ext> <key> <value>
+                               Write a workspace-level setting to openfleet/extensions.config.json
   next <project> [--repo <repo>]
                                Print the next scheduling actions (plans first, then the gate)
   gate <project> consistent [--repo <repo>] [--child <id>[,<id>…]]
@@ -141,6 +145,7 @@ export function run(argv: string[]): number {
         slot: { type: "string" },
         report: { type: "string" },
         reason: { type: "string" },
+        unset: { type: "boolean" },
       });
       return cmdExt(positionals, values);
     }

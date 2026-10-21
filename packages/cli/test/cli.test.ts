@@ -278,6 +278,12 @@ describe("openfleet CLI", () => {
     expect(cli(root, ["add", publishFixture(path.join(tmp, "publish"))]).stdout).toContain(
       "Phase: post-test (blocking, when .changeset/config.json) runs as agent openfleet:openfleet-ext-publish-post-test.",
     );
+    const unset = () =>
+      (JSON.parse(cli(root, ["ext", "settings", "--unset"]).stdout) as { key: string }[]).map((r) => r.key);
+    expect(unset()).toEqual(["label", "workflow"]);
+    expect(cli(root, ["ext", "settings", "set", "publish", "label", "nightly"]).code).toBe(0);
+    expect(cli(root, ["ext", "settings", "set", "publish", "nope", "x"]).stderr).toMatch(/does not declare setting/);
+    expect(unset()).toEqual(["workflow"]);
     const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
     expect(cli(root, ["new", "pin"], env).code).toBe(0);
     for (const [id, deps] of [
