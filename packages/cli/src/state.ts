@@ -4,6 +4,7 @@ import { parseChildId, syncIntegrationChildren } from "./groups.js";
 import { readJson, writeJson } from "./fsutil.js";
 import { withLock } from "./lock.js";
 import { UserError, type ProjectPaths } from "./workspace.js";
+import type { Host } from "./hosts.js";
 
 export const STATE_SCHEMA_VERSION = 1;
 
@@ -135,8 +136,10 @@ export interface ProjectState {
   status: ProjectStatus;
   createdAt: string;
   updatedAt: string;
-  /** Copilot CLI session id of the coordinator session, used by `resume`. */
+  /** Host session id of the coordinator session, used by `resume`. */
   sessionId?: string;
+  /** Agent host the project runs in, recorded at `new`. Missing means Copilot CLI. */
+  host?: Host;
   completionMode?: CompletionMode;
   specApproved?: boolean;
   /** Keyed by child id: `<repo>`, `<repo>:<package>` or `<repo>[:<package>]/<unit>`. */
@@ -203,7 +206,7 @@ export function dependenciesOf(state: ProjectState, id: string): string[] {
   return out;
 }
 
-export function newState(name: string, sessionId?: string): ProjectState {
+export function newState(name: string, sessionId?: string, host?: Host): ProjectState {
   const now = new Date().toISOString();
   return {
     v: STATE_SCHEMA_VERSION,
@@ -212,6 +215,7 @@ export function newState(name: string, sessionId?: string): ProjectState {
     createdAt: now,
     updatedAt: now,
     ...(sessionId ? { sessionId } : {}),
+    ...(host ? { host } : {}),
     children: {},
     questions: [],
   };

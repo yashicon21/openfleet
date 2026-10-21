@@ -521,17 +521,30 @@ describe("workspace config", () => {
   it("defaults maxParallel to 6, and config set validates and writes it", () => {
     const ws = workspace();
     const file = path.join(ws.dir, "config.json");
-    expect(readJson(file)).toEqual({ maxParallel: 6 });
+    expect(readJson(file)).toEqual({ maxParallel: 6, host: "copilot" });
     fs.rmSync(file);
-    expect(readConfig(ws)).toEqual({ maxParallel: 6 });
-    expect(json(cli(ws.root, ["config"]))).toEqual({ maxParallel: 6 });
-    expect(json(cli(ws.root, ["config", "set", "maxParallel", "3"]))).toEqual({ maxParallel: 3 });
+    expect(readConfig(ws)).toEqual({ maxParallel: 6, host: "copilot" });
+    expect(json(cli(ws.root, ["config"]))).toEqual({ maxParallel: 6, host: "copilot" });
+    expect(json(cli(ws.root, ["config", "set", "maxParallel", "3"]))).toEqual({ maxParallel: 3, host: "copilot" });
     expect(readJson(file)).toEqual({ maxParallel: 3 });
     expect(cli(ws.root, ["config", "set", "maxParallel", "0"]).stderr).toMatch(/positive integer/);
     expect(cli(ws.root, ["config", "set", "maxParalel", "2"]).stderr).toMatch(/Unknown config key/);
     expect(cli(ws.root, ["config", "get"]).stderr).toMatch(/Usage/);
     fs.writeFileSync(file, JSON.stringify({ maxParallel: 2, other: 1 }));
     expect(() => readConfig(ws)).toThrow(/unknown key/);
+  });
+
+  it("config set host accepts copilot or claude and rejects anything else", () => {
+    const ws = workspace();
+    const file = path.join(ws.dir, "config.json");
+    expect(readConfig(ws).host).toBe("copilot");
+    expect(json(cli(ws.root, ["config", "set", "host", "claude"]))).toEqual({ maxParallel: 6, host: "claude" });
+    expect(readJson(file)).toEqual({ maxParallel: 6, host: "claude" });
+    const bad = cli(ws.root, ["config", "set", "host", "other"]);
+    expect(bad.code).toBe(1);
+    expect(bad.stderr).toMatch(/host must be one of copilot, claude/);
+    fs.writeFileSync(file, JSON.stringify({ host: "nope" }));
+    expect(() => readConfig(ws)).toThrow(/host must be one of/);
   });
 });
 
