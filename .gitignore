@@ -3,3 +3,8 @@ dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
+
+# Private design context (kept locally, not published)
+PRODUCT.md
+DESIGN.md
+.impeccable/
