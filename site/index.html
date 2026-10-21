@@ -299,52 +299,21 @@
       .of-cell:hover .of-tile {
         transform: scale(1.04);
       }
-      .of-slot {
-        transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-      }
-      .of-slots {
+      .of-slotchips {
         margin: 0;
         padding: 0;
         list-style: none;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 12px;
-      }
-      .of-slot-x {
-        min-width: 0;
-        min-height: 180px;
-        color: #2b1e1b;
-        border-radius: 28px;
-        padding: 28px;
-        box-sizing: border-box;
         display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        gap: 24px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
-      .of-slot-c {
+      .of-slotchips li {
+        padding: 10px 18px;
+        border-radius: 999px;
+        color: #2b1e1b;
         font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 28px;
-        line-height: 30px;
-      }
-      .of-slot-t {
-        font-family: "Russo One", "Arial Black", sans-serif;
-        font-size: 18px;
-        line-height: 22px;
-      }
-      .of-slot-d {
-        font-size: 14px;
-        line-height: 21px;
-        font-weight: 600;
-        max-width: 36ch;
-      }
-      @media (max-width: 400px) {
-        .of-slots {
-          grid-template-columns: minmax(0, 1fr);
-        }
-      }
-      .of-slot:hover {
-        transform: translateY(-4px);
+        font-size: 20px;
+        line-height: 26px;
       }
       .of-skip {
         position: absolute;
@@ -543,7 +512,6 @@
         }
         .of-btn,
         .of-tile,
-        .of-slot,
         .of-sg,
         .of-st {
           transition: none;
@@ -943,19 +911,7 @@
               >
               <a
                 class="of-navlink"
-                href="#features"
-                style="
-                  padding: 11px 14px;
-                  border-radius: 999px;
-                  text-decoration: none;
-                  color: #a8a6af;
-                  font-weight: 600;
-                "
-                >Features</a
-              >
-              <a
-                class="of-navlink"
-                href="#quickstart"
+                href="quickstart.html"
                 style="
                   padding: 11px 14px;
                   border-radius: 999px;
@@ -967,7 +923,7 @@
               >
               <a
                 class="of-navlink"
-                href="#extensions"
+                href="extensions.html"
                 style="
                   padding: 11px 14px;
                   border-radius: 999px;
@@ -1036,18 +992,7 @@
                   >How it works</a
                 >
                 <a
-                  href="#features"
-                  style="
-                    padding: 12px 14px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    color: #a8a6af;
-                    font-weight: 600;
-                  "
-                  >Features</a
-                >
-                <a
-                  href="#quickstart"
+                  href="quickstart.html"
                   style="
                     padding: 12px 14px;
                     border-radius: 8px;
@@ -1058,18 +1003,7 @@
                   >Quick start</a
                 >
                 <a
-                  href="#commands"
-                  style="
-                    padding: 12px 14px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    color: #a8a6af;
-                    font-weight: 600;
-                  "
-                  >Commands</a
-                >
-                <a
-                  href="#extensions"
+                  href="extensions.html"
                   style="
                     padding: 12px 14px;
                     border-radius: 8px;
@@ -1243,6 +1177,7 @@
                   >
                   <code
                     class="of-cmdtext"
+                    tabindex="0"
                     style="
                       flex: 1 1 auto;
                       min-width: 0;
@@ -2102,7 +2037,7 @@
               </div>
             </div>
             <div class="rp-split">
-              <div class="rp-scroll">
+              <div class="rp-scroll" tabindex="0" role="region" aria-label="Run timeline, scrolls sideways">
                 <svg
                   id="rp-swim"
                   viewBox="0 0 1000 420"
@@ -3111,51 +3046,29 @@
               Three commands to your first fleet.
             </h2>
             <p style="margin: 0; font-size: 18px; line-height: 28px; color: #a8a6af">
-              You need Node.js 20+, git and a signed-in coding agent CLI (<a
-                href="https://github.com/yashicon21/openfleet#quick-start"
-                >see which ones work today</a
-              >). Add
-              <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">gh</code>
-              if you want draft PRs. To try it on a toy example first, run
-              <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-                >pnpm demo</code
-              >
-              from a checkout of the repo.
+              You need Node.js 20+, git and a signed-in coding agent CLI. The quick start covers your repos, what a run
+              does, what it can touch and every command.
             </p>
-            <div
+            <a
+              class="of-ghost"
+              href="quickstart.html"
               style="
-                display: flex;
-                gap: 14px;
-                align-items: flex-start;
-                padding-top: 20px;
-                border-top: 1px solid #45434c;
+                align-self: flex-start;
+                display: inline-flex;
+                align-items: center;
+                height: 52px;
+                padding: 0 22px;
+                box-sizing: border-box;
+                border-radius: 8px;
+                border: 2px solid #45434c;
+                color: #f4f4f6;
+                text-decoration: none;
+                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                font-size: 15px;
+                letter-spacing: 0.02em;
               "
+              >READ THE QUICK START</a
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#48A6EE"
-                stroke-width="2.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                style="flex: none; margin-top: 2px"
-              >
-                <rect x="5" y="10" width="14" height="10" rx="2"></rect>
-                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-              </svg>
-              <p style="margin: 0; font-size: 16px; line-height: 25px; color: #a8a6af">
-                <strong style="color: #f4f4f6; font-weight: 600">Know what it can touch.</strong> File access stays
-                limited to the workspace and the repos you list, and every URL still prompts. Inside those limits, tools
-                run without asking. Pass
-                <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-                  >--ask</code
-                >
-                to be asked before every tool.
-              </p>
-            </div>
           </div>
           <div
             class="of-rise"
@@ -3241,136 +3154,6 @@
         </section>
 
         <section
-          id="commands"
-          aria-labelledby="cmd-h"
-          style="
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: clamp(96px, 10vw, 136px) 24px 0;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-          "
-        >
-          <h2
-            id="cmd-h"
-            style="
-              margin: 0;
-              font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-              font-weight: 400;
-              font-size: clamp(32px, 4.6vw, 56px);
-              line-height: 1.04;
-              color: #f4f4f6;
-            "
-          >
-            Start it, check on it, pick it back up.
-          </h2>
-          <div style="background: #eef0f2; color: #2b1e1b; border-radius: 28px; padding: 8px 28px">
-            <dl style="margin: 0">
-              <div
-                class="of-cmd"
-                style="
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 4px 24px;
-                  align-items: baseline;
-                  padding: 18px 0;
-                  border-bottom: 2px solid #dfe2e6;
-                "
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
-                    ><span style="color: #5f5754">npx</span> openfleet new &lt;name&gt;
-                    <span style="white-space: nowrap">["&lt;request&gt;"]</span></code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">Create a project and launch the coordinator</dd>
-              </div>
-              <div
-                class="of-cmd"
-                style="
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 4px 24px;
-                  align-items: baseline;
-                  padding: 18px 0;
-                  border-bottom: 2px solid #dfe2e6;
-                "
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
-                    ><span style="color: #5f5754">npx</span> openfleet status [name]
-                    <span style="white-space: nowrap">[--json]</span></code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Each child’s phase, retries and open questions, grouped by repo
-                </dd>
-              </div>
-              <div
-                class="of-cmd"
-                style="display: flex; flex-wrap: wrap; gap: 4px 24px; align-items: baseline; padding: 18px 0"
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
-                    ><span style="color: #5f5754">npx</span> openfleet resume &lt;name&gt;
-                    <span style="white-space: nowrap">[--fresh]</span></code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Continue a project, optionally in a new agent session
-                </dd>
-              </div>
-            </dl>
-          </div>
-          <p style="margin: -16px 0 0; font-size: 16px; line-height: 25px; color: #a8a6af">
-            Also
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">clean</code
-            >,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">add</code>,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">update</code
-            >,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">init</code>,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">list</code>,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">remove</code
-            >,
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-              >config</code
-            >
-            (for example
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-              >config set maxParallel 4</code
-            >),
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-              >ext settings</code
-            >
-            and
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-              >extensions</code
-            >. Arguments after
-            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">--</code> go
-            straight to the agent CLI.
-            <a href="https://github.com/yashicon21/openfleet#commands">See the full reference</a>
-          </p>
-        </section>
-
-        <section
           id="extensions"
           aria-labelledby="ext-h"
           style="
@@ -3418,18 +3201,12 @@
               "
             >
               <p style="margin: 0; font-size: 17px; line-height: 27px; color: #a8a6af">
-                Install an extension with
-                <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
-                  >openfleet add</code
-                >. It can run as its own agent at one of six phase slots, add to a role’s instructions, or add CLI
-                commands. A phase can block the run until it passes, run only when certain files exist, and hand outputs
-                such as a published version or a PR link to the repos downstream. Settings live in the workspace, and
-                the grill asks for any that are missing. Write and shell access must be declared, and the tool
-                allow-list enforces it.
+                An extension is a folder of instructions. It can run its own agent at one of six points in the run, add
+                to what an agent is told, or add a command.
               </p>
               <a
                 class="of-ghost"
-                href="https://github.com/yashicon21/openfleet/blob/main/docs/extensions.md"
+                href="extensions.html"
                 style="
                   display: inline-flex;
                   align-items: center;
@@ -3444,65 +3221,18 @@
                   font-size: 14px;
                   letter-spacing: 0.02em;
                 "
-                >READ THE EXTENSION GUIDE</a
+                >SEE HOW EXTENSIONS WORK</a
               >
             </div>
           </div>
-          <ul aria-label="Phase slots" class="of-slots">
-            <li class="of-slot of-slot-x" style="background: #eef0f2">
-              <code class="of-slot-c">pre-spec</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">Before the spec</span
-                ><span class="of-slot-d"
-                  >Once, during the grill, ahead of the coordinator writing
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">spec.md</code>.</span
-                >
-              </div>
-            </li>
-            <li class="of-slot of-slot-x" style="background: #48a6ee">
-              <code class="of-slot-c">post-plan</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">After each plan</span
-                ><span class="of-slot-d">Per child, once its plan is validated against the spec.</span>
-              </div>
-            </li>
-            <li class="of-slot of-slot-x" style="background: #48a6ee">
-              <code class="of-slot-c">plans-ready</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">When every plan agrees</span
-                ><span class="of-slot-d">Once, after the consistency gate and before any code is written.</span>
-              </div>
-            </li>
-            <li class="of-slot of-slot-x" style="background: #ee5ad6">
-              <code class="of-slot-c">pre-implement</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">Before each build</span
-                ><span class="of-slot-d"
-                  >Per child, after the gate and its baseline, right before the implementer.</span
-                >
-              </div>
-            </li>
-            <li class="of-slot of-slot-x" style="background: #edeb3c">
-              <code class="of-slot-c">post-test</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">After tests pass</span
-                ><span class="of-slot-d"
-                  >Per child. Dependents start only once it finishes, so it can publish a version they use.</span
-                >
-              </div>
-            </li>
-            <li class="of-slot of-slot-x" style="background: #eef0f2">
-              <code class="of-slot-c">post-run</code>
-              <div style="display: flex; flex-direction: column; gap: 8px">
-                <span class="of-slot-t">When the run is done</span
-                ><span class="of-slot-d"
-                  >Once, during finalize. For example, an audit of
-                  <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code
-                  >.</span
-                >
-              </div>
-            </li>
-          </ul>
+          <ol aria-label="Phase slots, in run order" class="of-slotchips">
+            <li style="background: #eef0f2">pre-spec</li>
+            <li style="background: #48a6ee">post-plan</li>
+            <li style="background: #48a6ee">plans-ready</li>
+            <li style="background: #ee5ad6">pre-implement</li>
+            <li style="background: #edeb3c">post-test</li>
+            <li style="background: #eef0f2">post-run</li>
+          </ol>
         </section>
 
         <section
