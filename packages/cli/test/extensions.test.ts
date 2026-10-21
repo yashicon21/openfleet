@@ -1,6 +1,12 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { createProject } from "../src/commands/project.js";
+import { readEvents } from "../src/events.js";
+import { pluginDir } from "../src/hosts.js";
+import { projectPaths } from "../src/workspace.js";
 import { listSettings, setSetting } from "../src/commands/ext.js";
 import { installedCoreVersion, syncExtensions } from "../src/core.js";
 import { findSlotEntry, readCoreIndex } from "../src/coreindex.js";
@@ -300,5 +306,79 @@ describe("add / sync / remove", () => {
 
   it("errors when removing an unknown extension", () => {
     expect(() => removeExtension(workspace(), "nope")).toThrow(/not installed/);
+  });
+});
+
+describe("extension hosts", () => {
+  const BIN = fileURLToPath(new URL("../dist/bin.js", import.meta.url));
+  const cli = (cwd: string, args: string[]) => spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+
+  it("validates hosts on phases and augments", () => {
+    const ok = writeExtension(tmpDir(), {
+      ...base,
+      name: "h",
+      ...phase("post-test", { hosts: ["claude"] }),
+      augments: [{ role: "tester", instructions: "instructions.md", hosts: ["copilot", "claude"] }],
+    });
+    expect(validateManifest(ok).phases![0]!.hosts).toEqual(["claude"]);
+    for (const hosts of [[], ["other"], ["copilot", "copilot"], "claude"]) {
+      const dir = writeExtension(tmpDir(), { ...base, name: "h", ...phase("post-test", { hosts }) });
+      expect(() => validateManifest(dir)).toThrow(/"phases\[0\]\.hosts" must be a non-empty list of unique hosts/);
+    }
+    const aug = writeExtension(tmpDir(), {
+      ...base,
+      name: "h",
+      augments: [{ role: "tester", instructions: "instructions.md", hosts: ["x"] }],
+    });
+    expect(() => validateManifest(aug)).toThrow(/"augments\[0\]\.hosts"/);
+  });
+
+  it("generates phase agents and augments only for their hosts", () => {
+    const ws = workspace();
+    const dir = writeExtension(
+      tmpDir(),
+      {
+        ...base,
+        name: "only",
+        phases: [{ slot: "post-test", instructions: "instructions.md", hosts: ["copilot"] }],
+        augments: [{ role: "tester", instructions: "aug.md", hosts: ["claude"] }],
+      },
+      { "aug.md": "Claude-only tester note.\n" },
+    );
+    addExtension(ws, dir, installedCoreVersion(ws)!);
+    syncExtensions(ws);
+    const copilotAgents = path.join(ws.core, "agents");
+    const claudeAgents = path.join(pluginDir(ws, "claude"), "agents");
+    expect(fs.existsSync(path.join(copilotAgents, "openfleet-ext-only-post-test.agent.md"))).toBe(true);
+    expect(fs.existsSync(path.join(claudeAgents, "openfleet-ext-only-post-test.md"))).toBe(false);
+    expect(fs.readFileSync(path.join(copilotAgents, "openfleet-tester.agent.md"), "utf8")).not.toContain(
+      "Claude-only tester note.",
+    );
+    expect(fs.readFileSync(path.join(claudeAgents, "openfleet-tester.md"), "utf8")).toContain(
+      "Claude-only tester note.",
+    );
+    expect(readCoreIndex(ws)!.slots["post-test"][0]).toMatchObject({ hosts: ["copilot"] });
+  });
+
+  it("ext plan skips phases not listed for the project's host, with a warning and event", () => {
+    const ws = workspace();
+    const dir = writeExtension(tmpDir(), { ...base, name: "cop", ...phase("pre-spec", { hosts: ["copilot"] }) });
+    addExtension(ws, dir, installedCoreVersion(ws)!);
+    syncExtensions(ws);
+    createProject(ws, "c");
+    createProject(ws, "k", "claude");
+    const plan = (name: string) => {
+      const r = cli(ws.root, ["ext", "plan", name, "pre-spec"]);
+      return { ...(JSON.parse(r.stdout) as { run: unknown[]; skipped: { reason: string }[] }), stderr: r.stderr };
+    };
+    expect(plan("c").run).toHaveLength(1);
+    const k = plan("k");
+    expect(k.run).toHaveLength(0);
+    expect(k.skipped[0]!.reason).toBe("not available on host claude (hosts: copilot)");
+    expect(k.stderr).toMatch(/Skipping openfleet:openfleet-ext-cop-pre-spec in pre-spec/);
+    expect(readEvents(projectPaths(ws, "k")).at(-1)).toMatchObject({
+      type: "extension.skipped",
+      payload: { reason: "not available on host claude (hosts: copilot)" },
+    });
   });
 });

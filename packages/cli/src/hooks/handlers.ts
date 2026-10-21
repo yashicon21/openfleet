@@ -100,7 +100,9 @@ export function onSessionStart(ctx: HookContext, payload: HookPayload): HookOutp
     p ? `Active OpenFleet project: ${p.name} (${p.dir})` : "No OpenFleet project is active in this session.",
   ];
   if (index) {
+    const host = payload.host ?? "copilot";
     const slots = Object.entries(index.slots)
+      .map(([slot, list]) => [slot, list.filter((e) => !e.hosts || e.hosts.includes(host))] as const)
       .filter(([, list]) => list.length)
       .map(([slot, list]) => `${slot}: ${list.map((e) => e.agent).join(", ")}`);
     lines.push(`Phase extensions — ${slots.length ? slots.join("; ") : "none"}.`);

@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { qualifiedAgentName } from "./attribution.js";
 import {
+  forHost,
   DEFAULT_TIMEOUT_MINUTES,
   loadExtensions,
   permissionsOf,
@@ -197,9 +198,9 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
         fs.rmSync(path.join(d.skills, entry), { recursive: true, force: true });
     }
   }
-  /** Write one agent (Copilot format) for every host. */
-  const writeAgent = (name: string, copilotAgent: (host: Host) => string) => {
-    for (const d of dirs) {
+  /** Write one agent (Copilot format) for every host it applies to. */
+  const writeAgent = (name: string, copilotAgent: (host: Host) => string, hosts?: readonly Host[]) => {
+    for (const d of dirs.filter((x) => !hosts || hosts.includes(x.host))) {
       const [file, content] = hostAgent(d.host, name, copilotAgent(d.host));
       writeFileAtomic(path.join(d.agents, file), content);
     }
@@ -224,16 +225,21 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
   for (const role of ROLES) {
     const name = `${AGENT_PREFIX}${role}`;
     const template = fs.readFileSync(path.join(templates, `${name}.agent.md`), "utf8");
-    let augmentText = "";
+    const augmentText = (host: Host) => {
+      let text = "";
+      for (const ext of exts) {
+        const augments = (ext.manifest.augments ?? []).filter((a) => a.role === role && forHost(a, host));
+        if (!augments.length) continue;
+        const parts = augments.map((a) => readMd(ext, a.instructions));
+        const settings = sections.get(ext.manifest.name)!.replace(/^## Settings/, "### Settings");
+        text += `\n## Extension: ${ext.manifest.name}\n\n${parts.join("\n\n")}\n${settings ? `\n${settings}\n` : ""}`;
+      }
+      return text;
+    };
     for (const ext of exts) {
-      const augments = (ext.manifest.augments ?? []).filter((a) => a.role === role);
-      if (!augments.length) continue;
-      const parts = augments.map((a) => readMd(ext, a.instructions));
-      const settings = sections.get(ext.manifest.name)!.replace(/^## Settings/, "### Settings");
-      augmentText += `\n## Extension: ${ext.manifest.name}\n\n${parts.join("\n\n")}\n${settings ? `\n${settings}\n` : ""}`;
-      index.augments[role].push(ext.manifest.name);
+      if ((ext.manifest.augments ?? []).some((a) => a.role === role)) index.augments[role].push(ext.manifest.name);
     }
-    const body = (host: Host) => renderForHost(template, host).trimEnd() + "\n" + augmentText;
+    const body = (host: Host) => renderForHost(template, host).trimEnd() + "\n" + augmentText(host);
     const copilot = body("copilot");
     if (copilot.length > MAX_AGENT_PROMPT) {
       warn(
@@ -256,13 +262,14 @@ export function syncExtensions(ws: Workspace, warn: (msg: string) => void = () =
         tools,
       });
       const content = header + phaseAgentBody(ext, entry, settings).trimEnd() + "\n";
-      writeAgent(agent, () => content);
+      writeAgent(agent, () => content, entry.hosts);
       index.slots[entry.slot].push({
         extension: m.name,
         agent: qualifiedAgentName(agent),
         blocking: entry.blocking ?? false,
         ...(entry.when ? { when: { files: [...entry.when.files] } } : {}),
         timeoutMinutes: entry.timeoutMinutes ?? DEFAULT_TIMEOUT_MINUTES,
+        ...(entry.hosts ? { hosts: [...entry.hosts] } : {}),
       });
     });
     const commands = Object.entries(m.commands ?? {});

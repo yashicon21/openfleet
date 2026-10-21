@@ -7,6 +7,7 @@ import semver from "semver";
 import { copyDir, isDir, isFile, isInside, readJson, readJsonOr, writeJson } from "./fsutil.js";
 import { headSha, isGitRepo } from "./git.js";
 import { UserError, type Workspace } from "./workspace.js";
+import { HOSTS, isHost, type Host } from "./hosts.js";
 
 export const MANIFEST = "openfleet.extension.json";
 export const SLOTS = ["pre-spec", "post-plan", "plans-ready", "pre-implement", "post-test", "post-run"] as const;
@@ -60,12 +61,33 @@ export interface PhaseEntry {
   when?: { files: string[] };
   /** Default 30. */
   timeoutMinutes?: number;
+  /** Agent hosts this phase runs in. Default: every host. */
+  hosts?: Host[];
 }
 
 export interface AugmentEntry {
   role: ExtRole;
   /** Markdown instructions (relative path), appended to the role's agent prompt. */
   instructions: string;
+  /** Agent hosts whose role agent gets these instructions. Default: every host. */
+  hosts?: Host[];
+}
+
+/** Whether a phase or augment applies to a host (no `hosts` means every host). */
+export function forHost(entry: { hosts?: readonly Host[] }, host: Host): boolean {
+  return !entry.hosts || entry.hosts.includes(host);
+}
+
+function validateHosts(dir: string, raw: unknown, at: string): void {
+  if (raw === undefined) return;
+  if (
+    !Array.isArray(raw) ||
+    !raw.length ||
+    !raw.every((h) => typeof h === "string" && isHost(h)) ||
+    new Set(raw).size !== raw.length
+  ) {
+    fail(dir, `"${at}.hosts" must be a non-empty list of unique hosts from ${HOSTS.join(", ")}`);
+  }
 }
 
 export interface SettingDecl {
@@ -180,7 +202,7 @@ function validatePhase(dir: string, raw: unknown, i: number): PhaseEntry {
   const at = `phases[${i}]`;
   if (!isObject(raw)) fail(dir, `"${at}" must be an object`);
   for (const k of Object.keys(raw)) {
-    if (!["slot", "instructions", "blocking", "when", "timeoutMinutes"].includes(k))
+    if (!["slot", "instructions", "blocking", "when", "timeoutMinutes", "hosts"].includes(k))
       fail(dir, `unknown field "${at}.${k}"`);
   }
   if (!SLOTS.includes(raw.slot as Slot)) fail(dir, `"${at}.slot" must be one of ${SLOTS.join(", ")}`);
@@ -207,6 +229,7 @@ function validatePhase(dir: string, raw: unknown, i: number): PhaseEntry {
   ) {
     fail(dir, `"${at}.timeoutMinutes" must be a positive integer`);
   }
+  validateHosts(dir, raw.hosts, at);
   return raw as unknown as PhaseEntry;
 }
 
@@ -214,10 +237,11 @@ function validateAugment(dir: string, raw: unknown, i: number): AugmentEntry {
   const at = `augments[${i}]`;
   if (!isObject(raw)) fail(dir, `"${at}" must be an object`);
   for (const k of Object.keys(raw)) {
-    if (!["role", "instructions"].includes(k)) fail(dir, `unknown field "${at}.${k}"`);
+    if (!["role", "instructions", "hosts"].includes(k)) fail(dir, `unknown field "${at}.${k}"`);
   }
   if (!ROLES.includes(raw.role as ExtRole)) fail(dir, `"${at}.role" must be one of ${ROLES.join(", ")}`);
   relFile(dir, raw.instructions, `${at}.instructions`);
+  validateHosts(dir, raw.hosts, at);
   return raw as unknown as AugmentEntry;
 }
 
