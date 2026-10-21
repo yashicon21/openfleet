@@ -26,9 +26,6 @@ npx openfleet state p --patch '{"children":{"api":{"repo":"api","phase":"pending
 # register path-scoped children (a setup child plus one per unit); "web" (the integration child) is created for you
 npx openfleet state p --patch '{"maxParallel":6,"children":{"web/setup":{"repo":"web","setup":true,"paths":["components/ui/**","lib/**","package.json"]},"web/settings":{"repo":"web","paths":["app/settings/**"],"dependsOn":["web/setup"]}}}'
 
-# after the spawn returns an agent id
-npx openfleet state p --patch '{"children":{"api":{"agentIds":{"planner":"<agent id>"}}}}'
-
 # open / answer questions
 npx openfleet state p --patch '{"questions":[ … full array … ]}'
 ```
@@ -37,14 +34,14 @@ Arrays replace the old value. To change `questions` or `dependsOn`, send the ful
 
 Child phases: `pending → planning → plan-review → planned → [baseline → planned] → implementing → testing → post-test → done`. `planned` means the plan is validated; the child then waits for the `plans-ready` gate and its dependencies. A child can also be `failed` (retries and the guided attempt failed) or `blocked`: a dependency failed, or `blockedReason: "needs-escalation"` (waiting for the top coordinator; not final). A grouped child that hits a merge conflict goes from `done` back to `planned` with `conflict` set. Integration children (keyed by the repo) skip planning: `pending → testing ⇄ implementing → done | failed`. Unknown phases are rejected. A phase change in a patch logs a `phase.changed` event automatically. Moving a child back to `pending`, `planning` or `plan-review` clears its `consistent` flag, so its new plan goes through the consistency check again.
 
-Fields that core sets (do not patch them): `portBase` (the child's port range, assigned when the child is registered), `copiedFiles`, `consistent`, `repoConsistent`, `baselineFiles`, `baselineHashes`, `baselinePassed`, `pendingSpawn`, `claimedAt`, `coordinator`, `merged`, `mergedAt`, `doneAt`, `conflict`, `syncedSha`, `escalation`, `decisions`, `blockedReason`, the integration children themselves, and the project's `plansReady`. Set `baseline`, `baselineCover`, `paths`, `allowPaths` and `setup` when you register a child; repo coordinators set `sharedItems` on the setup child.
+Fields that core sets (do not patch them): `portBase` (the child's port range, assigned when the child is registered), `copiedFiles`, `consistent`, `repoConsistent`, `baselineFiles`, `baselineHashes`, `baselinePassed`, `pendingSpawn`, `claimedAt`, `agentIds` (recorded by the `subagentStart` hook), `coordinator`, `merged`, `mergedAt`, `doneAt`, `conflict`, `syncedSha`, `escalation`, `decisions`, `blockedReason`, the integration children themselves, and the project's `plansReady`. Set `baseline`, `baselineCover`, `paths`, `allowPaths` and `setup` when you register a child; repo coordinators set `sharedItems` on the setup child.
 
 ## Scheduling, spawns and the gate
 
 ```sh
 npx openfleet next <project> [--repo <repo>]                   # next actions (top, or one repo coordinator's)
 npx openfleet claim <project> <child> <role>                   # before every spawn: "claimed" (spawn now) or "wait"
-npx openfleet ack <project> <child> <role>                     # first command of every subagent with a shell
+npx openfleet ack <project> <child> <role>                     # optional: re-prints a subagent's assignment (binds its id if the hook could not)
 npx openfleet gate <project> consistent [--child <id>,<id>]    # plans passed the consistency check; logs plans.consistent
 npx openfleet gate <project> consistent --repo <repo>          # a repo coordinator's sibling check (repoConsistent)
 npx openfleet gate <project> open                              # open the plans-ready gate (all plans consistent)

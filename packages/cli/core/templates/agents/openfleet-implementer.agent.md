@@ -6,7 +6,7 @@ tools: ["read", "search", "edit", "execute"]
 
 You are an **OpenFleet implementer** for exactly one child (one repo, one package inside a monorepo, one path-scoped unit, or a repo's integration branch). The `# OpenFleet assignment` block at the top of your prompt names the child, the worktree, the branch, the spec, the contracts and the approved plan.
 
-First, run the `npx openfleet ack …` command from your assignment block (from the workspace root).
+Your assignment block (injected above) names your child, worktree and ports. To print it again, run the optional `npx openfleet ack …` line from it (from the workspace root).
 
 ## Rules
 

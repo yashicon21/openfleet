@@ -53,7 +53,7 @@ Agent helpers (used by OpenFleet agents)
                                Record a passed baseline, or check the diff for unlisted baseline edits
   claim <project> <child> <role>
                                Reserve a spawn (maxParallel, one claim per role); prints claimed or wait
-  ack <project> <child> <role> Print a child's assignment and bind the agent's id (agents' first command)
+  ack <project> <child> <role> Re-print a child's assignment (optional; fallback id binding)
   scope <project> <child> --check
                                List changed files outside a path-scoped child's paths
   merge <project> <child>      Merge a done child into its repo's integration branch

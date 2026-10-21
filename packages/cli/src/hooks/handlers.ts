@@ -315,6 +315,17 @@ export function runtimeContext(project: string, childId: string, child: ChildSta
   return parts.join("\n\n");
 }
 
+/** Optional for agents with a shell: re-prints the assignment and binds the agent id if the hook could not. */
+function ackLine(project: string, childId: string, role: Role): string {
+  return `- to re-print this assignment (from the workspace root): \`npx openfleet ack ${project} ${childId} ${role}\``;
+}
+
+/** The role a recorded agent id holds on this child, if any. */
+function roleByAgentId(child: ChildState, agentId: string | undefined): Role | undefined {
+  if (!agentId) return undefined;
+  return (Object.entries(child.agentIds) as [Role, string | undefined][]).find(([, id]) => id === agentId)?.[0];
+}
+
 export function childContext(p: ProjectPaths, state: ProjectState, childId: string, role: Role): string {
   const child = state.children[childId]!;
   const upstream = upstreamOutputs(state, childId);
@@ -332,9 +343,7 @@ export function childContext(p: ProjectPaths, state: ProjectState, childId: stri
     `- contracts: ${p.contracts}`,
     child.plan ? `- approved plan: ${child.plan}` : "",
     group ? `- repo coordinator: ${group} (it answers your questions and merges your branch)` : "",
-    role !== "planner"
-      ? `- first, from the workspace root, run: \`npx openfleet ack ${p.name} ${childId} ${role}\``
-      : "",
+    role !== "planner" ? ackLine(p.name, childId, role) : "",
     scope ? `\n${scope}` : "",
     upstream ? `\n${upstream}` : "",
     runtime ? `\n${runtime}` : "",
@@ -366,6 +375,7 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     const child = s.children[childId]!;
     delete child.pendingSpawn;
     delete child.claimedAt;
+    if (payload.agentId) child.agentIds[role as Role] = payload.agentId;
     if (role === "repo-coordinator") child.coordinator = "running";
     else child.role = role;
   });
@@ -374,12 +384,16 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     actor: actorFor(childId ?? "unknown", role),
     type: "agent.spawned",
     target: childId ?? null,
-    payload: { agentName: payload.agentName ?? null, agentDisplayName: payload.agentDisplayName ?? null },
+    payload: {
+      agentId: payload.agentId ?? null,
+      agentName: payload.agentName ?? null,
+      agentDisplayName: payload.agentDisplayName ?? null,
+    },
   });
   if (!childId) return {};
   if (role === "repo-coordinator") {
     return {
-      additionalContext: `${repoContext(p, state, childId)}\n- first, from the workspace root, run: \`npx openfleet ack ${p.name} ${childId} repo-coordinator\``,
+      additionalContext: `${repoContext(p, state, childId)}\n${ackLine(p.name, childId, role)}`,
     };
   }
   return { additionalContext: childContext(p, state, childId, role as Role) };
@@ -590,8 +604,8 @@ function shellCommand(toolName: string | undefined, rawArgs: unknown): string | 
 }
 
 /**
- * Bind the running subagent's id to its child when it runs `npx openfleet ack`, so
- * subagentStop attributes it correctly even while several agents of one role run.
+ * Fallback binding: subagentStart records the id when it consumes the claim. If the
+ * runtime sent no id then, `npx openfleet ack` binds it from a later tool call.
  */
 function bindAck(ctx: HookContext, payload: HookPayload): void {
   if (!payload.agentId) return;
@@ -620,7 +634,7 @@ export function onPostToolUse(ctx: HookContext, payload: HookPayload): HookOutpu
     const abs = path.resolve(cwd, change.path);
     const loc = locatePath(ctx.ws, abs, ctx.project);
     if (!loc) continue;
-    const role = roleOf(loc.child);
+    const role = roleByAgentId(loc.child, payload.agentId) ?? roleOf(loc.child);
     const rel = loc.rel.split(path.sep).join("/");
     const copied = loc.child.copiedFiles?.includes(rel) === true;
     let patch = "";

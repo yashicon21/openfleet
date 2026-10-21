@@ -326,6 +326,27 @@ describe("claim", () => {
     expect(claim(ws, "p", "web", "repo-coordinator")).toMatchObject({ result: "claimed", phase: "pending" });
   });
 
+  it("records agent ids at start so parallel planners' stops are attributed exactly", () => {
+    const { ws, p, state } = setup();
+    const env = { OPENFLEET_WORKSPACE: ws.root, OPENFLEET_PROJECT: "p" };
+    const ids = ["a", "b", "c", "d"];
+    for (const id of ids) {
+      expect(claim(ws, "p", id, "planner").result).toBe("claimed");
+      runHook("subagentStart", { agentName: "openfleet:openfleet-planner", agentId: `planner-${id}` }, env);
+    }
+    for (const id of ids) expect(state().children[id]!.agentIds).toEqual({ planner: `planner-${id}` });
+    for (const id of ["c", "a", "d", "b"]) {
+      runHook("subagentStop", { agentName: "openfleet:openfleet-planner", agentId: `planner-${id}` }, env);
+    }
+    const events = readEvents(p);
+    const spawned = events.filter((e) => e.type === "agent.spawned");
+    expect(spawned.map((e) => [e.target, e.payload.agentId])).toEqual(ids.map((id) => [id, `planner-${id}`]));
+    const stopped = events.filter((e) => e.type === "agent.stopped");
+    expect(stopped.map((e) => [e.actor, e.target, e.payload.agentId])).toEqual(
+      ["c", "a", "d", "b"].map((id) => [`${id}/planner`, id, `planner-${id}`]),
+    );
+  });
+
   it("binds the agent id from an ack command", () => {
     const { ws, state } = setup();
     const env = { OPENFLEET_WORKSPACE: ws.root, OPENFLEET_PROJECT: "p" };

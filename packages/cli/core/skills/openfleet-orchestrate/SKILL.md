@@ -58,7 +58,7 @@ Use background subagents and collect results with `read_agent`. Do not block on 
 
 **Claim every spawn.** Right before you spawn any OpenFleet agent, run `npx openfleet claim <project> <child> <role>` (role: `planner`, `baseline`, `implementer`, `tester` or `repo-coordinator`). It sets the child's phase for that role (`planning`, `baseline`, `implementing`, `testing`) and `pendingSpawn`, which the spawn hook consumes to attribute the agent and inject its context.
 
-- `{"result":"claimed",…}`: spawn that agent **now**, before any other claim, and record its agent id.
+- `{"result":"claimed",…}`: spawn that agent **now**, before any other claim. The `subagentStart` hook records its agent id on the child (`agentIds.<role>`); you do not patch it.
 - `{"result":"wait","reason":…,"retryAfterSeconds":5}`: do not spawn. Either another claim for the same role is not consumed yet (spawn that one first), or `maxParallel` agents are already running across the workspace (spec, default 6). Do other work or wait for a running agent with `read_agent`, then claim again.
 
 ## 2a. Repo coordinators

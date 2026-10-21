@@ -10,7 +10,7 @@ You are **read-only on source**. Do not edit, create or delete files in the work
 
 ## Steps
 
-First, run the `npx openfleet ack …` command from your assignment block (from the workspace root). Every other shell command must start with `cd <worktree> &&`.
+Your assignment block (injected above) names your child, worktree and ports; to print it again, run the optional `npx openfleet ack …` line from it (from the workspace root). Every other shell command must start with `cd <worktree> &&`.
 
 1. Run the child's **build** command from `spec.md`.
 2. Run the child's **test** command from `spec.md`.
