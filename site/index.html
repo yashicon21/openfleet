@@ -2009,11 +2009,11 @@
             <h2 id="run-h" class="rp-h2">Six repos. One coordinator. All at once.</h2>
             <div class="rp-introside">
               <p>
-                Every planner runs first, and no code is written until the plans agree. Then each child gets an
-                implementer and a tester, side by side. Ordering holds: <code>mobile</code> waits for
-                <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch. A broken test gets a fresh
-                implementer, and any call the spec didn’t cover is logged for you to confirm. Every step lands in
-                <code>events.jsonl</code>.
+                Every planner runs first, and no code is written until the plans agree. Then each child (a repo, package
+                or part of an app) gets an implementer and a tester, side by side. Ordering holds:
+                <code>mobile</code> waits for <code>sdk-js</code>. <code>web</code>’s three parts merge into one branch.
+                A broken test gets a fresh implementer, and any call the spec didn’t cover is logged for you to confirm.
+                Every step lands in <code>events.jsonl</code>.
               </p>
               <a class="of-ghost rp-link" href="how-it-works.html">WATCH THE WHOLE RUN, EVENT BY EVENT</a>
             </div>
@@ -2068,7 +2068,8 @@
             </div>
             <p class="rp-cap">
               Mocked run: the timings are made up, but every event type is one OpenFleet really logs. Replay a real run
-              with <code>pnpm demo</code>, or <a href="how-it-works.html">see this run event by event</a>.
+              with <code>pnpm demo</code> from a repo checkout, or
+              <a href="how-it-works.html">see this run event by event</a>.
             </p>
           </figure>
         </section>
