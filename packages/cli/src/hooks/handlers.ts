@@ -5,6 +5,7 @@ import { actorFor, bareAgentName, candidateProjects, locatePath, roleFromAgentNa
 import { findSlotEntry, readCoreIndex } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { filePatch, snapshotWorktree, type FileKind } from "../git.js";
+import { groupOf, isSetup, membersOf, scopeGlobs } from "../groups.js";
 import {
   dependenciesOf,
   PORT_STEP,
@@ -158,11 +159,109 @@ export function upstreamOutputs(state: ProjectState, childId: string): string {
   ].join("\n");
 }
 
+/** The child claimed for `role`. `npx openfleet claim` allows one fresh claim per role, so this is unambiguous. */
 function pickPending(state: ProjectState, role: Role): string | undefined {
   const ids = Object.entries(state.children)
     .filter(([, c]) => c.pendingSpawn === role)
+    .sort(([, a], [, b]) => (a.claimedAt ?? "").localeCompare(b.claimedAt ?? ""))
     .map(([id]) => id);
   return ids[0];
+}
+
+/** Scope, escalation decisions, merge conflicts and the integration task for a child's agents. */
+export function scopeContext(project: string, state: ProjectState, childId: string, role: Role): string {
+  const child = state.children[childId]!;
+  const parts: string[] = [];
+  const globs = scopeGlobs(child);
+  if (globs) {
+    parts.push(
+      [
+        "## Scope",
+        "",
+        "This child owns only these paths (globs relative to the repo root). Change nothing else: shared config, components and utils belong to the repo's setup child.",
+        ...globs.map((g) => `- \`${g}\``),
+        child.baselineFiles?.length ? "Its baseline test files are allowed too." : "",
+        role === "tester" || role === "implementer"
+          ? `Check it (from the workspace root): \`npx openfleet scope ${project} ${childId} --check\` lists changed files outside the scope. Any outside file fails the tester.`
+          : "",
+        role === "planner"
+          ? "List every shared item (config, component, util, dependency) this child needs under a **Shared items needed** heading in the plan. Do not plan to add shared items yourself."
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+  }
+  if (isSetup(childId, child) && child.sharedItems?.length) {
+    parts.push(
+      [
+        "## Shared items to provide",
+        "",
+        "Sibling children need these. Provide every one of them:",
+        ...child.sharedItems.map((i) => `- ${i}`),
+      ].join("\n"),
+    );
+  }
+  if (child.decisions?.length) {
+    parts.push(["## Coordinator decisions", "", ...child.decisions.map((d) => `- ${d}`)].join("\n"));
+  }
+  if (child.conflict && role === "implementer") {
+    parts.push(
+      [
+        "## Merge conflict",
+        "",
+        `Your branch is being rebased onto the integration branch (\`${child.conflict.onto}\`) and stopped with conflicts in:`,
+        ...child.conflict.files.map((f) => `- \`${f}\``),
+        child.conflict.outside.length
+          ? `These files are outside your scope; take the integration branch version unchanged (during a rebase that is \`git checkout --ours -- <file>\`): ${child.conflict.outside.map((f) => `\`${f}\``).join(", ")}.`
+          : "",
+        "Resolve each conflict so both your change and the integration branch's changes survive. Stage the files (`git add`), but do not run `git rebase --continue` or commit: the repo coordinator continues the rebase when it merges.",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+  }
+  if (child.integration && (role === "implementer" || role === "tester")) {
+    parts.push(
+      [
+        "## Integration",
+        "",
+        `The worktree holds the repo's integration branch with every child merged: ${child.dependsOn.map((d) => `\`${d}\``).join(", ")}.`,
+        role === "tester"
+          ? "Run the repo's full build and full test suite. Report failures with the commands and output."
+          : "The merged branch fails the full build or tests. Fix the integration problems with the smallest change, commit nothing.",
+      ].join("\n"),
+    );
+  }
+  return parts.join("\n\n");
+}
+
+/** Context for a repo coordinator: its children, integration worktree and the commands it drives. */
+export function repoContext(p: ProjectPaths, state: ProjectState, repo: string): string {
+  const integration = state.children[repo]!;
+  const rows = membersOf(state, repo).map((id) => {
+    const c = state.children[id]!;
+    return `| ${cell(id)} | ${c.phase} | ${cell((c.paths ?? []).join(", ") || "(whole package)")} | ${cell(c.dependsOn.join(", "))} | ${c.merged ? "yes" : "no"} |`;
+  });
+  return [
+    `# OpenFleet assignment`,
+    `- project: ${p.name}`,
+    `- role: repo-coordinator for repo \`${repo}\``,
+    integration.worktree
+      ? `- integration worktree: ${integration.worktree}`
+      : `- integration worktree: not created yet`,
+    integration.branch ? `- integration branch: ${integration.branch}` : "",
+    `- spec: ${p.spec}`,
+    `- contracts: ${p.contracts}`,
+    "",
+    "| Child | Phase | Paths | Depends on | Merged |",
+    "| ----- | ----- | ----- | ---------- | ------ |",
+    ...rows,
+    "",
+    `Your actions: \`npx openfleet next ${p.name} --repo ${repo}\`. Never edit code yourself.`,
+  ]
+    .filter((l) => l !== "")
+    .join("\n");
 }
 
 /** Port range, copied local files and protected baseline tests for agents that run code. */
@@ -216,10 +315,12 @@ export function runtimeContext(project: string, childId: string, child: ChildSta
   return parts.join("\n\n");
 }
 
-function childContext(p: ProjectPaths, state: ProjectState, childId: string, role: Role): string {
+export function childContext(p: ProjectPaths, state: ProjectState, childId: string, role: Role): string {
   const child = state.children[childId]!;
   const upstream = upstreamOutputs(state, childId);
   const runtime = runtimeContext(p.name, childId, child, role);
+  const scope = scopeContext(p.name, state, childId, role);
+  const group = groupOf(state, childId);
   return [
     `# OpenFleet assignment`,
     `- project: ${p.name}`,
@@ -230,6 +331,11 @@ function childContext(p: ProjectPaths, state: ProjectState, childId: string, rol
     `- spec: ${p.spec}`,
     `- contracts: ${p.contracts}`,
     child.plan ? `- approved plan: ${child.plan}` : "",
+    group ? `- repo coordinator: ${group} (it answers your questions and merges your branch)` : "",
+    role !== "planner"
+      ? `- first, from the workspace root, run: \`npx openfleet ack ${p.name} ${childId} ${role}\``
+      : "",
+    scope ? `\n${scope}` : "",
     upstream ? `\n${upstream}` : "",
     runtime ? `\n${runtime}` : "",
   ]
@@ -259,7 +365,9 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     if (!childId) return;
     const child = s.children[childId]!;
     delete child.pendingSpawn;
-    child.role = role;
+    delete child.claimedAt;
+    if (role === "repo-coordinator") child.coordinator = "running";
+    else child.role = role;
   });
   appendEvent(p, {
     ts: ts(payload),
@@ -269,6 +377,11 @@ export function onSubagentStart(ctx: HookContext, payload: HookPayload): HookOut
     payload: { agentName: payload.agentName ?? null, agentDisplayName: payload.agentDisplayName ?? null },
   });
   if (!childId) return {};
+  if (role === "repo-coordinator") {
+    return {
+      additionalContext: `${repoContext(p, state, childId)}\n- first, from the workspace root, run: \`npx openfleet ack ${p.name} ${childId} repo-coordinator\``,
+    };
+  }
   return { additionalContext: childContext(p, state, childId, role as Role) };
 }
 
@@ -330,7 +443,10 @@ export function onSubagentStop(ctx: HookContext, payload: HookPayload): HookOutp
   const entries = Object.entries(state.children);
   let match = entries.find(([, c]) => payload.agentId && c.agentIds[role as Role] === payload.agentId);
   if (!match) {
-    const byRole = entries.filter(([, c]) => roleOf(c) === role && c.phase !== "done");
+    const byRole =
+      role === "repo-coordinator"
+        ? entries.filter(([, c]) => c.coordinator === "running")
+        : entries.filter(([, c]) => roleOf(c) === role && c.phase !== "done");
     if (byRole.length === 1) match = byRole[0];
   }
   const childId = match?.[0];
@@ -351,6 +467,15 @@ export function onSubagentStop(ctx: HookContext, payload: HookPayload): HookOutp
       const c = s.children[childId];
       if (c) c.agentIds[role as Role] = payload.agentId!;
     });
+  }
+  if (role === "repo-coordinator") {
+    if (childId) {
+      updateState(p, (s) => {
+        const c = s.children[childId];
+        if (c) c.coordinator = "stopped";
+      });
+    }
+    return {};
   }
   // Ground truth: diff snapshot of the attributed worktree, or every worktree when unattributed.
   const targets = childId ? [[childId, match![1]] as const] : entries;
@@ -450,7 +575,44 @@ export function fileChangesFromTool(toolName: string | undefined, rawArgs: unkno
   }
 }
 
+const ACK = /openfleet\s+ack\s+(\S+)\s+(\S+)\s+(\S+)/;
+
+/** Command text of a shell tool call, if any. */
+function shellCommand(toolName: string | undefined, rawArgs: unknown): string | undefined {
+  if (!toolName || !/^(bash|shell|powershell|run_in_terminal)$/i.test(toolName)) return undefined;
+  const args = parseArgs(rawArgs);
+  if (typeof args === "string") return args;
+  if (args && typeof args === "object") {
+    const cmd = (args as Record<string, unknown>).command;
+    if (typeof cmd === "string") return cmd;
+  }
+  return undefined;
+}
+
+/**
+ * Bind the running subagent's id to its child when it runs `npx openfleet ack`, so
+ * subagentStop attributes it correctly even while several agents of one role run.
+ */
+function bindAck(ctx: HookContext, payload: HookPayload): void {
+  if (!payload.agentId) return;
+  const m = ACK.exec(shellCommand(payload.toolName, payload.toolArgs) ?? "");
+  if (!m) return;
+  const [, project, childId, role] = m as unknown as [string, string, string, string];
+  if (ctx.project && ctx.project !== project) return;
+  const p = projectPaths(ctx.ws, project);
+  if (!fs.existsSync(p.state)) return;
+  updateState(p, (s) => {
+    const c = s.children[childId];
+    if (c) c.agentIds[role as Role] = payload.agentId!;
+  });
+}
+
 export function onPostToolUse(ctx: HookContext, payload: HookPayload): HookOutput {
+  try {
+    bindAck(ctx, payload);
+  } catch {
+    // Attribution falls back to role matching.
+  }
   const changes = fileChangesFromTool(payload.toolName, payload.toolArgs);
   if (!changes.length) return {};
   const cwd = payload.cwd ?? ctx.ws.root;

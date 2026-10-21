@@ -23,10 +23,10 @@ The coordinator writes the fixtures to `openfleet/projects/<project>/contracts/`
 
 ## Changing a contract during the run
 
-Only the coordinator changes contracts, usually after a child asks a question. This happens during the hands-off run, so the coordinator decides without asking the user.
+Only the top coordinator changes contracts, usually after a child asks a question. This happens during the hands-off run, so the coordinator decides without asking the user. A repo coordinator never changes a contract or the Shared approach: it escalates the question (`npx openfleet escalate <project> <child> --question '…'`), and the top coordinator decides, changes the contract here, resolves each escalated child (`escalate … --resolve --decision '…'`) and resumes the repo coordinator with `write_agent`.
 
 1. Decide the change. If the spec already answers the question, use that answer. Otherwise decide yourself; do not ask the user. Log the decision as an `assumption` event with `"contractChange": true` (see `openfleet-orchestrate`).
 2. Update the fixture, its `.md` note and version line, and the Contracts table in `spec.md`.
 3. Log `contract.changed` with every affected child.
-4. **Broadcast:** send each affected child that is running (`write_agent`) a short message: what changed, the fixture path, and what they must adjust. Log each message as `message.sent`. For affected children that are already `done`, move them back to `implementing`. Spawn a new implementer with the change as findings, then re-test.
+4. **Broadcast:** send each affected child that is running (`write_agent`; for children of a repo coordinator, send it to the repo coordinator, which forwards it) a short message: what changed, the fixture path, and what they must adjust. Log each message as `message.sent`. For affected children that are already `done`, move them back to `implementing`. Spawn a new implementer with the change as findings, then re-test.
 5. **Re-plan if needed.** If a change invalidates a child's plan (for example, it has not started implementing yet, or the plan no longer fits), send the change to its planner, or spawn a new one, and patch the child `{"phase":"plan-review"}`. This clears its `consistent` flag. After you re-validate the plan and patch `{"phase":"planned"}`, `npx openfleet next` returns `check-consistency` for it: compare it with the other plans again before it continues.

@@ -14,7 +14,7 @@ export const SLOTS = ["pre-spec", "post-plan", "plans-ready", "pre-implement", "
 export const CHILD_SLOTS: readonly Slot[] = ["post-plan", "pre-implement", "post-test"];
 /** Slots whose entries may be blocking: the per-child slots and the `plans-ready` gate. */
 export const BLOCKING_SLOTS: readonly Slot[] = [...CHILD_SLOTS, "plans-ready"];
-export const ROLES = ["coordinator", "planner", "baseline", "implementer", "tester"] as const;
+export const ROLES = ["coordinator", "repo-coordinator", "planner", "baseline", "implementer", "tester"] as const;
 export const PERMISSIONS = ["read", "write", "shell", "web"] as const;
 export const BUILTIN_COMMANDS = [
   "init",
@@ -34,6 +34,11 @@ export const BUILTIN_COMMANDS = [
   "next",
   "gate",
   "baseline",
+  "claim",
+  "ack",
+  "scope",
+  "merge",
+  "escalate",
   "help",
   "version",
 ];

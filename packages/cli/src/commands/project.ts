@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { appendEvent, readEvents } from "../events.js";
 import { deleteBranch, removeWorktree, tryGit } from "../git.js";
 import { syncExtensions } from "../core.js";
+import { groupOf, membersOf } from "../groups.js";
 import { launch } from "../launcher.js";
 import { newState, readState, updateState, type ProjectState } from "../state.js";
 import { writeJson } from "../fsutil.js";
@@ -97,22 +98,36 @@ export function cmdResume(
   const p = projectPaths(ws, name);
   let state = readState(p);
   syncExtensions(ws, warn);
-  if (opts.fresh || !state.sessionId) {
-    const sessionId = crypto.randomUUID();
-    state = updateState(
-      p,
-      (s) => {
-        s.sessionId = sessionId;
-      },
-      "cli",
-    );
-  }
+  const sessionId = opts.fresh || !state.sessionId ? crypto.randomUUID() : state.sessionId;
+  // Subagents (repo coordinators included) do not survive the session: drop their claims and running marks.
+  state = updateState(
+    p,
+    (s) => {
+      s.sessionId = sessionId;
+      for (const c of Object.values(s.children)) {
+        delete c.pendingSpawn;
+        delete c.claimedAt;
+        if (c.coordinator === "running") c.coordinator = "stopped";
+      }
+    },
+    "cli",
+  );
+  const repoCoordinators = Object.entries(state.children)
+    .filter(([, c]) => c.integration && c.phase !== "done" && c.phase !== "failed")
+    .map(([id]) => id);
   warnOverlaps(ws, name);
   out(`Resuming project ${name} (status: ${state.status})…`);
   return launch({
     ws,
     agent: "openfleet-coordinator",
-    prompt: `Resume OpenFleet project \`${name}\`. Read openfleet/projects/${name}/state.json and continue from where it left off.`,
+    prompt: [
+      `Resume OpenFleet project \`${name}\`. Read openfleet/projects/${name}/state.json and continue from where it left off.`,
+      repoCoordinators.length
+        ? `Start the repo coordinators again (\`npx openfleet next ${name}\` lists them): ${repoCoordinators.join(", ")}.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
     sessionId: state.sessionId,
     name: `openfleet: ${name}`,
     project: name,
@@ -174,8 +189,17 @@ export function cmdStatus(args: string[], opts: { json?: boolean } = {}): number
   if (children.length) {
     out("");
     const rows = [["CHILD", "PHASE", "ROLE", "RETRIES", "BRANCH", "DEPENDS ON"]];
+    const row = (label: string, id: string) => {
+      const c = s.children[id]!;
+      const role = c.integration ? `repo-coordinator (${c.coordinator ?? "not started"})` : (c.role ?? "-");
+      const deps = c.integration ? "(its children)" : c.dependsOn.join(",") || "-";
+      const phase = c.phase === "done" && groupOf(s, id) ? (c.merged ? "done, merged" : "done") : c.phase;
+      rows.push([label, phase, role, String(c.retries), c.branch ?? "-", deps]);
+    };
     for (const [id, c] of children) {
-      rows.push([id, c.phase, c.role ?? "-", String(c.retries), c.branch ?? "-", c.dependsOn.join(",") || "-"]);
+      if (groupOf(s, id)) continue;
+      row(id, id);
+      if (c.integration) for (const m of membersOf(s, id)) row(`  ${m}`, m);
     }
     out(table(rows));
   }
@@ -223,7 +247,8 @@ export function cmdClean(args: string[], opts: { branches?: boolean; force?: boo
     }
     if (opts.branches && c.branch && c.repoPath) {
       try {
-        deleteBranch(c.repoPath, c.branch, opts.force);
+        // A merged member's commits live on its integration branch, which `-d` does not check.
+        deleteBranch(c.repoPath, c.branch, opts.force || c.merged === true);
         out(`Deleted branch ${c.branch} in ${c.repoPath}`);
       } catch (err) {
         failures++;

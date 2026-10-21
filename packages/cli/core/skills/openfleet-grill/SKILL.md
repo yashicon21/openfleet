@@ -21,7 +21,19 @@ Restate the user's request in one or two sentences and confirm it. Ask what "don
 
 - Suggest likely repos from `repos.json`, based on names, descriptions and a quick search of their code.
 - Ask about any other repos the change needs. Accept local paths or git URLs. Repos can live anywhere. The default search root is the workspace root (the folder the user ran `init` in). Look there for sibling checkouts before you ask for a path.
-- For monorepos, identify the **packages** involved. Each package becomes its own child (own worktree, branch and PR). The child id is `<repo>:<package-name>`.
+- For monorepos, identify the **packages** involved. Each package becomes its own child (own worktree and branch). The child id is `<repo>:<package-name>`.
+
+## 2b. Units: path-scoped children
+
+When one repo (or package) needs the same kind of change in many independent places, split it into **units** such as pages, modules or services, with one child (and one agent pipeline) per unit:
+
+- Find candidate units in the code. For example, in a Next.js app each route is a unit: `app/**/page.tsx` (App Router) or `pages/**` (Pages Router). For other stacks, use modules, services or feature folders.
+- Propose one child per unit, with its `paths` (globs relative to the repo or package root, for example `app/settings/**`). Show the list and let the user **group** units into one child or **skip** units before the spec review.
+- The child id is `<repo>[:<package>]/<unit>`, for example `web/settings` (unit: lowercase letters, digits, `.`, `_`, `-`).
+- Add a **setup child** `<repo>[:<package>]/setup` for shared setup (config, shared components, utils, dependencies), and make every unit child depend on it. Unit children never change shared files: their plans list the shared items they need, and the setup child provides them.
+- Ask which extra files a unit may change besides its `paths` (for example shared test fixtures); record them as `allowPaths`.
+
+A repo with more than one child (units or several packages) gets a **repo coordinator**: it runs that repo's children, merges them into one integration branch, runs the full build and tests there, and opens one PR for the repo. Other children can depend on a whole repo (`dependsOn: ["web"]`) or on one unit (`dependsOn: ["web/settings"]`).
 
 ## 3. Build and test commands
 
@@ -58,7 +70,8 @@ For each child, decide whether it needs a **baseline**: tests (usually e2e) that
 
 ## 6. Branches, completion mode, scope
 
-- **Branch names:** propose `openfleet/<project>` for single-repo children and `openfleet/<project>-<package>` for monorepo packages. Ask the user to confirm or override.
+- **Branch names:** propose `openfleet/<project>` for each repo (for a repo with several children, this is its integration branch and the PR branch; each child's own branch defaults to `openfleet/<project>--<child slug>`). Ask the user to confirm or override.
+- **Parallel agents:** propose `maxParallel` (default 6): how many planners, baseline testers, implementers and testers may run at once across the workspace. Suggest fewer on a small machine or when apps start heavy dev servers.
 - **Completion mode:** `staged` (default: changes are left staged in each worktree for review) or `draft-pr` (commit, push, and open draft PRs that link to each other and include a run summary).
 - **Out of scope:** list explicitly what this project must NOT change.
 

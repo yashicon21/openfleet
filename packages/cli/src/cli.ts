@@ -4,6 +4,7 @@ import { cmdAdd, cmdExtensions, cmdRemove, runExtensionCommand } from "./command
 import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
+import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
 import { cmdBaseline, cmdGate, cmdNext } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdInit, cmdUpdate } from "./commands/workspace.js";
@@ -35,14 +36,22 @@ Extensions
 Agent helpers (used by OpenFleet agents)
   state <project> [--patch <json>] [--actor <a>]
   event <project> --type <t> [--actor <a>] [--target <child>] [--payload <json>] [--patch-file <f>]
-  worktree <project> <child> --repo <key> --branch <b> [--package <p>] [--base <ref>]
+  worktree <project> <child> [--repo <key>] [--branch <b>] [--package <p>] [--base <ref>]
   ext plan <project> <slot> [--child <id>]
   ext result <project> <extension> --slot <s> [--child <id>] --report <json>
   ext fail <project> <extension> --slot <s> [--child <id>] --reason <text>
-  next <project>               Print the next scheduling actions (plans first, then the gate)
-  gate <project> consistent [--child <id>[,<id>…]]
+  next <project> [--repo <repo>]
+                               Print the next scheduling actions (plans first, then the gate)
+  gate <project> consistent [--repo <repo>] [--child <id>[,<id>…]]
   gate <project> open
   baseline <project> <child> --report <json> | --check
+  claim <project> <child> <role>
+                               Reserve a spawn (maxParallel, one claim per role); prints claimed or wait
+  ack <project> <child> <role> First command of every subagent: prints its assignment
+  scope <project> <child> --check
+                               List changed files outside a path-scoped child's paths
+  merge <project> <child>      Merge a done child into its repo's integration branch
+  escalate <project> <child> --question <text> | --resolve --decision <text>
 
   help, version
 Sessions auto-approve tool use (\`--allow-all-tools\`). File access stays limited to the workspace,
@@ -135,11 +144,32 @@ export function run(argv: string[]): number {
       });
       return cmdExt(positionals, values);
     }
-    case "next":
-      return cmdNext(parse(rest, {}).positionals);
+    case "next": {
+      const { values, positionals } = parse(rest, { repo: { type: "string" } });
+      return cmdNext(positionals, values);
+    }
     case "gate": {
-      const { values, positionals } = parse(rest, { child: { type: "string" } });
+      const { values, positionals } = parse(rest, { child: { type: "string" }, repo: { type: "string" } });
       return cmdGate(positionals, values);
+    }
+    case "claim":
+      return cmdClaim(parse(rest, {}).positionals);
+    case "ack":
+      return cmdAck(parse(rest, {}).positionals);
+    case "scope": {
+      const { values, positionals } = parse(rest, { check: { type: "boolean" } });
+      return cmdScope(positionals, values);
+    }
+    case "merge":
+      return cmdMerge(parse(rest, {}).positionals);
+    case "escalate": {
+      const { values, positionals } = parse(rest, {
+        question: { type: "string" },
+        resolve: { type: "boolean" },
+        decision: { type: "string" },
+        actor: { type: "string" },
+      });
+      return cmdEscalate(positionals, values);
     }
     case "baseline": {
       const { values, positionals } = parse(rest, { report: { type: "string" }, check: { type: "boolean" } });

@@ -39,12 +39,17 @@ export const EVENT_TYPES = [
   "extension.failed",
   "plans.consistent",
   "baseline.passed",
+  "question.escalated",
+  "child.merged",
+  "merge.conflict",
+  "worktree.synced",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];
 
 /**
- * Actor: `coordinator`, `<repo>/<role>` (repo may be `<repo>:<package>`),
+ * Actor: `coordinator`, `<child>/<role>` (child may be `<repo>:<package>` or
+ * `<repo>[:<package>]/<unit>`; role may be `repo-coordinator`),
  * `ext:<name>`, `cli` or `user`.
  */
 export interface EventInput {

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { appendEvent } from "./events.js";
+import { parseChildId, syncIntegrationChildren } from "./groups.js";
 import { readJson, writeJson } from "./fsutil.js";
 import { withLock } from "./lock.js";
 import { UserError, type ProjectPaths } from "./workspace.js";
@@ -14,7 +15,8 @@ export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
  * `planned`: the plan is validated and the child waits for the `plans-ready` gate, its
  * dependencies or its baseline. `baseline`: a baseline tester is writing tests against
  * the unchanged code. `failed`: retries and the coordinator's guided attempt both failed.
- * `blocked`: a dependency failed.
+ * `blocked`: a dependency failed, or (with `blockedReason: "needs-escalation"`) the child
+ * waits for the top coordinator to decide a cross-repo question.
  */
 export const CHILD_PHASES = [
   "pending",
@@ -31,7 +33,11 @@ export const CHILD_PHASES = [
 ] as const;
 export type ChildPhase = (typeof CHILD_PHASES)[number];
 
-export type Role = "planner" | "baseline" | "implementer" | "tester";
+export type WorkRole = "planner" | "baseline" | "implementer" | "tester";
+export type Role = WorkRole | "repo-coordinator";
+
+/** Default workspace-wide limit on children with a running planner, baseline, implementer or tester. */
+export const DEFAULT_MAX_PARALLEL = 6;
 
 /** Each child gets `PORT_STEP` ports starting at `PORT_BASE + PORT_STEP × slot`. */
 export const PORT_BASE = 4100;
@@ -54,8 +60,39 @@ export interface ChildState {
   phase: ChildPhase;
   /** Role of the currently active agent for this child. */
   role?: Role;
-  /** Set by the coordinator just before spawning; consumed by the subagentStart hook. */
+  /** Set by `npx openfleet claim` just before spawning; consumed by the subagentStart hook. */
   pendingSpawn?: Role;
+  /** When the pending claim was made. Claims older than the claim TTL are ignored. */
+  claimedAt?: string;
+  /** Globs (relative to the repo, or to `package`) this child owns. Path-scoped children only. */
+  paths?: string[];
+  /** Extra globs the spec explicitly lets this child change (for example shared test fixtures). */
+  allowPaths?: string[];
+  /** Shared-setup child of a repo with path-scoped children (unit `setup`). */
+  setup?: boolean;
+  /** Shared items (config, components, utils) the setup child must provide for its siblings. */
+  sharedItems?: string[];
+  /** Integration child of a grouped repo: id = repo key, branch = the repo's integration branch. */
+  integration?: boolean;
+  /** Repo coordinator of an integration child: `running` from spawn to stop (reset by `resume`). */
+  coordinator?: "running" | "stopped";
+  /** The plan passed the repo coordinator's check against its sibling plans (grouped repos only). */
+  repoConsistent?: boolean;
+  /** Merged into the repo's integration branch by `npx openfleet merge`. */
+  merged?: boolean;
+  mergedAt?: string;
+  /** When the child last reached `done`; grouped children merge in this order (setup first). */
+  doneAt?: string;
+  /** Set when merging conflicted: the branch was rebased onto `onto` and an implementer must resolve `files`. */
+  conflict?: { files: string[]; outside: string[]; onto: string };
+  /** Integration tip the branch was fast-forwarded to before implementing. */
+  syncedSha?: string;
+  /** Why the child is `blocked`. */
+  blockedReason?: "dependency" | "needs-escalation";
+  /** Open cross-repo question sent to the top coordinator, and the phase to return to. */
+  escalation?: { question: string; phase: ChildPhase; at: string };
+  /** Decisions the top coordinator made on this child's escalated questions; injected into its prompts. */
+  decisions?: string[];
   retries: number;
   dependsOn: string[];
   agentIds: Partial<Record<Role, string>>;
@@ -105,7 +142,9 @@ export interface ProjectState {
   sessionId?: string;
   completionMode?: CompletionMode;
   specApproved?: boolean;
-  /** Keyed by child id: `<repo>` or `<repo>:<package>`. */
+  /** Workspace-wide limit on children with a running planner, baseline, implementer or tester (spec; default 6). */
+  maxParallel?: number;
+  /** Keyed by child id: `<repo>`, `<repo>:<package>` or `<repo>[:<package>]/<unit>`. */
   children: Record<string, ChildState>;
   questions: Question[];
   /** Follow-ups from project-level extension slots (`pre-spec`, `plans-ready`, `post-run`), keyed by extension name. */
@@ -114,9 +153,20 @@ export interface ProjectState {
   plansReady?: boolean;
 }
 
-/** Children that are still part of the run (not `failed` or `blocked`). */
+export function isEscalated(c: ChildState): boolean {
+  return c.phase === "blocked" && c.blockedReason === "needs-escalation";
+}
+
+/** Finished for good: `done`, `failed`, or `blocked` by a failed dependency (not waiting on an escalation). */
+export function isFinal(c: ChildState): boolean {
+  return c.phase === "done" || c.phase === "failed" || (c.phase === "blocked" && !isEscalated(c));
+}
+
+/** Children that are still part of the run (not `failed` or permanently `blocked`). */
 export function activeChildren(state: ProjectState): [string, ChildState][] {
-  return Object.entries(state.children).filter(([, c]) => c.phase !== "failed" && c.phase !== "blocked");
+  return Object.entries(state.children).filter(
+    ([, c]) => c.phase !== "failed" && (c.phase !== "blocked" || isEscalated(c)),
+  );
 }
 
 /** Lowest free port slot, so a child keeps its range for the whole project. */
@@ -194,7 +244,10 @@ const PLANNING: readonly ChildPhase[] = ["pending", "planning", "plan-review"];
 
 function normalizeChildren(prev: ProjectState, state: ProjectState): void {
   for (const [id, child] of Object.entries(state.children)) {
-    child.repo ??= id.split(":")[0] ?? id;
+    child.repo ??= parseChildId(id)?.repo ?? id.split(":")[0] ?? id;
+  }
+  syncIntegrationChildren(state);
+  for (const [id, child] of Object.entries(state.children)) {
     child.phase ??= "pending";
     child.retries ??= 0;
     child.dependsOn ??= [];
@@ -202,7 +255,12 @@ function normalizeChildren(prev: ProjectState, state: ProjectState): void {
     child.portBase ??= nextPortBase(state);
     // A re-plan (for example after a contract change) needs a fresh consistency check.
     const before = prev.children[id]?.phase;
-    if (before !== child.phase && PLANNING.includes(child.phase)) delete child.consistent;
+    if (before !== child.phase && PLANNING.includes(child.phase)) {
+      delete child.consistent;
+      delete child.repoConsistent;
+    }
+    if (before !== child.phase && child.phase === "done") child.doneAt = new Date().toISOString();
+    if (child.phase !== "blocked") delete child.blockedReason;
   }
 }
 

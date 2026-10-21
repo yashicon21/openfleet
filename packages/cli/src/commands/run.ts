@@ -4,13 +4,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { checkCopyPath } from "../copyfiles.js";
 import { appendEvent } from "../events.js";
-import { schedule } from "../schedule.js";
+import { groupOf } from "../groups.js";
+import { scheduleFor, TOP } from "../schedule.js";
 import { activeChildren, readState, updateState, type ProjectState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName } from "../workspace.js";
 import { out } from "./output.js";
 
+export const NEXT_USAGE = `Usage:
+  openfleet next <project>               actions for the top coordinator (+ "delegated" repo actions)
+  openfleet next <project> --repo <repo> actions for that repo's coordinator`;
+
 export const GATE_USAGE = `Usage:
-  openfleet gate <project> consistent [--child <id>[,<id>…]]
+  openfleet gate <project> consistent [--child <id>[,<id>…]]               top-level check (all repos)
+  openfleet gate <project> consistent --repo <repo> [--child <id>[,<id>…]] repo coordinator's sibling check
   openfleet gate <project> open`;
 
 export const BASELINE_USAGE = `Usage:
@@ -32,24 +38,65 @@ export function baselineChanges(worktree: string, hashes: Record<string, string>
     .map(([rel]) => rel);
 }
 
-function print(state: ProjectState): void {
-  out(JSON.stringify(schedule(state), null, 2));
+function print(state: ProjectState, owner: string = TOP): void {
+  out(JSON.stringify(scheduleFor(state, owner), null, 2));
 }
 
-export function cmdNext(args: string[]): number {
+export function cmdNext(args: string[], flags: { repo?: string } = {}): number {
   const ws = requireWorkspace();
-  print(readState(projectPaths(ws, validateProjectName(args[0]))));
+  const state = readState(projectPaths(ws, validateProjectName(args[0])));
+  if (flags.repo !== undefined && !state.children[flags.repo]?.integration) {
+    throw new UserError(`Repo "${flags.repo}" has no repo coordinator (it needs two or more children).`);
+  }
+  print(state, flags.repo ?? TOP);
   return 0;
 }
 
-export function cmdGate(args: string[], flags: { child?: string }): number {
+function cmdRepoConsistent(p: ReturnType<typeof projectPaths>, repo: string, flags: { child?: string }): number {
+  let checked: string[] = [];
+  const next = updateState(p, (s) => {
+    if (!s.children[repo]?.integration) throw new UserError(`Repo "${repo}" has no repo coordinator.`);
+    const members = activeChildren(s).filter(([id]) => groupOf(s, id) === repo);
+    const waiting = members.filter(([, c]) => ["pending", "planning", "plan-review"].includes(c.phase));
+    if (!s.plansReady && waiting.length) {
+      throw new UserError(
+        `Not every plan in ${repo} is validated yet: ${waiting.map(([id, c]) => `${id} (${c.phase})`).join(", ")}.`,
+      );
+    }
+    checked = flags.child
+      ? flags.child.split(",").map((id) => id.trim())
+      : members.filter(([, c]) => c.phase === "planned" && !c.repoConsistent).map(([id]) => id);
+    if (!checked.length) throw new UserError(`No validated plans in ${repo} are waiting for the repo check.`);
+    for (const id of checked) {
+      const c = s.children[id];
+      if (!c || groupOf(s, id) !== repo) throw new UserError(`Child "${id}" is not part of repo ${repo}.`);
+      if (c.phase !== "planned") throw new UserError(`Child ${id} is "${c.phase}", not "planned".`);
+      c.repoConsistent = true;
+    }
+  });
+  appendEvent(p, {
+    actor: `${repo}/repo-coordinator`,
+    type: "plans.consistent",
+    payload: {
+      repo,
+      children: checked,
+      plans: Object.fromEntries(checked.map((id) => [id, next.children[id]!.plan ?? null])),
+      gateOpen: next.plansReady === true,
+    },
+  });
+  print(next, repo);
+  return 0;
+}
+
+export function cmdGate(args: string[], flags: { child?: string; repo?: string }): number {
   const ws = requireWorkspace();
   const p = projectPaths(ws, validateProjectName(args[0]));
   const sub = args[1];
+  if (sub === "consistent" && flags.repo !== undefined) return cmdRepoConsistent(p, flags.repo, flags);
   if (sub === "consistent") {
     let checked: string[] = [];
     const next = updateState(p, (s) => {
-      const active = activeChildren(s);
+      const active = activeChildren(s).filter(([, c]) => !c.integration);
       if (!s.plansReady) {
         const waiting = active.filter(([, c]) => ["pending", "planning", "plan-review"].includes(c.phase));
         if (waiting.length) {
@@ -60,12 +107,19 @@ export function cmdGate(args: string[], flags: { child?: string }): number {
       }
       checked = flags.child
         ? flags.child.split(",").map((id) => id.trim())
-        : active.filter(([, c]) => c.phase === "planned" && !c.consistent).map(([id]) => id);
+        : active
+            .filter(([id, c]) => c.phase === "planned" && !c.consistent && (!groupOf(s, id) || c.repoConsistent))
+            .map(([id]) => id);
       if (!checked.length) throw new UserError("No validated plans are waiting for a consistency check.");
       for (const id of checked) {
         const c = s.children[id];
         if (!c) throw new UserError(`Unknown child "${id}".`);
         if (c.phase !== "planned") throw new UserError(`Child ${id} is "${c.phase}", not "planned".`);
+        if (groupOf(s, id) && !c.repoConsistent) {
+          throw new UserError(
+            `Child ${id} has not passed its repo coordinator's check (gate consistent --repo ${c.repo}).`,
+          );
+        }
         c.consistent = true;
       }
     });
@@ -83,7 +137,7 @@ export function cmdGate(args: string[], flags: { child?: string }): number {
   }
   if (sub === "open") {
     const next = updateState(p, (s) => {
-      const active = activeChildren(s);
+      const active = activeChildren(s).filter(([, c]) => !c.integration);
       if (!active.length) throw new UserError("No active children: the gate cannot open.");
       const notReady = active.filter(([, c]) => c.phase !== "done" && !(c.phase === "planned" && c.consistent));
       if (notReady.length) {

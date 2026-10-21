@@ -9,7 +9,7 @@ import { appendEvent, EVENT_TYPES, readEvents } from "../src/events.js";
 import { BLOCKING_SLOTS, CHILD_SLOTS, SLOTS } from "../src/extensions.js";
 import { addWorktree, headSha, snapshotWorktree } from "../src/git.js";
 import { runHook, runtimeContext } from "../src/hooks/handlers.js";
-import { schedule } from "../src/schedule.js";
+import { schedule as fullSchedule } from "../src/schedule.js";
 import {
   newState,
   patchState,
@@ -29,6 +29,17 @@ function child(phase: ChildPhase, extra: Partial<ChildState> = {}): ChildState {
 
 function stateOf(children: Record<string, ChildState>, extra: Partial<ProjectState> = {}): ProjectState {
   return { ...newState("p"), status: "running", children, ...extra };
+}
+
+/** The single-repo scheduling tests predate `owner`; strip it (it is always "top" here). */
+function schedule(state: ProjectState) {
+  const s = fullSchedule(state);
+  const strip = <T extends { owner?: string }>(x: T) => {
+    const rest = { ...x };
+    delete rest.owner;
+    return rest;
+  };
+  return { ...s, actions: s.actions.map(strip), waiting: s.waiting.map(strip) };
 }
 
 describe("schedule", () => {
@@ -114,12 +125,12 @@ describe("state", () => {
     const ws = workspace();
     createProject(ws, "demo");
     const p = projectPaths(ws, "demo");
-    patchState(p, { children: { a: child("pending"), b: child("pending") } });
-    patchState(p, { children: { c: child("pending") } });
+    patchState(p, { children: { a: child("pending", { repo: "a" }), b: child("pending", { repo: "b" }) } });
+    patchState(p, { children: { c: child("pending", { repo: "c" }) } });
     const ports = () => Object.fromEntries(Object.entries(readState(p).children).map(([id, c]) => [id, c.portBase]));
     expect(ports()).toEqual({ a: PORT_BASE, b: PORT_BASE + PORT_STEP, c: PORT_BASE + 2 * PORT_STEP });
     patchState(p, { children: { b: null } });
-    patchState(p, { children: { d: child("pending"), a: { phase: "planning" } } });
+    patchState(p, { children: { d: child("pending", { repo: "d" }), a: { phase: "planning" } } });
     expect(ports()).toEqual({ a: PORT_BASE, c: PORT_BASE + 2 * PORT_STEP, d: PORT_BASE + PORT_STEP });
   });
 

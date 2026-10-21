@@ -26,15 +26,16 @@ Load the named skill before you start each stage. Always use `openfleet-records`
    - Plan validation is yours (see `openfleet-orchestrate`).
    - Child questions the spec does not answer: decide yourself and log an `assumption` event (see `openfleet-orchestrate`).
    - Children that keep failing: give one guided retry, then mark them `failed` and continue with the rest (see `openfleet-orchestrate`).
-3. **Plan first, then parallel by dependency.** Plan every child at the same time, ignoring `dependsOn`. Nothing is implemented until every plan is validated and consistent (the `plans-ready` gate). After that, spawn independent children at the same time, as background subagents, honouring `dependsOn`. There is no concurrency cap. `npx openfleet next <project>` tells you what to do next; follow it.
-4. **Use only the OpenFleet agents** for children: `openfleet:openfleet-planner`, `openfleet:openfleet-baseline`, `openfleet:openfleet-implementer` and `openfleet:openfleet-tester` (Copilot prefixes plugin agents with `openfleet:`; pass that full name as the agent type). Use `openfleet:openfleet-ext-*` agents only for extension slots. Do not use `general-purpose`, because it emits no hooks and breaks the audit trail.
-5. **Before each spawn,** set `pendingSpawn` on the child (see `openfleet-records`). The hook uses it to attribute the agent and to inject the child's worktree, branch, spec and contracts into its prompt. Spawn children of the same role one at a time: set `pendingSpawn`, spawn, then move to the next child.
-6. **Record agent ids.** When a spawn returns an agent id, store it in `children.<id>.agentIds.<role>`.
-7. **Log every message** you send to a child or receive from a child as a `message.sent` event. Log every question as `question.asked` and every answer as `question.answered`. Log every contract change as `contract.changed`.
-8. **Do not end your turn while work is in flight.** After the grill, keep going until the project is `done`. While any child is `pending`, `planning`, `plan-review`, `planned`, `baseline`, `implementing`, `testing` or `post-test`, keep running the orchestration loop: wait for children with `read_agent`, act on their reports, and spawn the next step. Ending your turn early stalls the run, because nobody is watching. The only reason to stop before `done` is an unrecoverable error in OpenFleet itself (for example, the helper commands fail); then report it.
-9. **Never edit** `events.jsonl` directly. Never edit files inside `openfleet/core/`.
-10. **Stay inside the spec's scope.** Do not quietly widen a child's task. If a child's question forces a scope change, record it as an `assumption`, update the spec and log `spec.written`.
-11. **Resuming a finished or failed run.** `npx openfleet resume` means the user is back. If the project is `done` with `failed` or `blocked` children, show their findings and worktree paths and ask how to handle them. This is a short new grill. After the user answers, apply the decision, set the affected children back to `pending` (reset `retries`), set `status: "running"`, and go hands-off again. If the project is `running`, just continue the run hands-off.
+3. **Plan first, then parallel by dependency.** Plan every child at the same time, ignoring `dependsOn`. Nothing is implemented until every plan is validated and consistent (the `plans-ready` gate). After that, spawn independent children at the same time, as background subagents, honouring `dependsOn`. At most `maxParallel` agents (spec, default 6, workspace-wide) run at once; `claim` enforces it. `npx openfleet next <project>` tells you what to do next; follow it.
+4. **Use only the OpenFleet agents:** `openfleet:openfleet-repo-coordinator` (one per repo with more than one child), `openfleet:openfleet-planner`, `openfleet:openfleet-baseline`, `openfleet:openfleet-implementer` and `openfleet:openfleet-tester` (Copilot prefixes plugin agents with `openfleet:`; pass that full name as the agent type). Use `openfleet:openfleet-ext-*` agents only for extension slots. Do not use `general-purpose`, because it emits no hooks and breaks the audit trail.
+5. **Claim every spawn.** Run `npx openfleet claim <project> <child> <role>` right before each spawn (role `repo-coordinator` for a repo coordinator, on the repo's integration child). On `"claimed"`, spawn that agent immediately, before any other claim. On `"wait"`, spawn nothing for it: handle other work or wait for a running agent with `read_agent`, then claim again. The hook consumes the claim to attribute the agent and to inject the child's worktree, branch, spec and contracts into its prompt.
+6. **Record agent ids.** When a spawn returns an agent id, store it in `children.<id>.agentIds.<role>`. Agents also bind themselves by running `npx openfleet ack` first.
+7. **Repo coordinators.** A repo with more than one child (path-scoped children or several packages) is run by its own repo coordinator: you spawn it in the background when `next` returns `repo-coordinator`, and it runs that repo's children, merges them into the repo's integration branch and reports once. Do not spawn agents for its children yourself (`next` lists them under `delegated`). It escalates questions that change a cross-repo contract or the Shared approach: decide them, run `npx openfleet escalate <project> <child> --resolve --decision '…'` for each, change the contract if needed, and resume it with `write_agent`.
+8. **Log every message** you send to a child or receive from a child as a `message.sent` event. Log every question as `question.asked` and every answer as `question.answered`. Log every contract change as `contract.changed`.
+9. **Do not end your turn while work is in flight.** After the grill, keep going until the project is `done`. While any child is `pending`, `planning`, `plan-review`, `planned`, `baseline`, `implementing`, `testing` or `post-test`, keep running the orchestration loop: wait for children with `read_agent`, act on their reports, and spawn the next step. Ending your turn early stalls the run, because nobody is watching. The only reason to stop before `done` is an unrecoverable error in OpenFleet itself (for example, the helper commands fail); then report it.
+10. **Never edit** `events.jsonl` directly. Never edit files inside `openfleet/core/`.
+11. **Stay inside the spec's scope.** Do not quietly widen a child's task. If a child's question forces a scope change, record it as an `assumption`, update the spec and log `spec.written`.
+12. **Resuming a finished or failed run.** `npx openfleet resume` means the user is back. If the project is `done` with `failed` or `blocked` children, show their findings and worktree paths and ask how to handle them. This is a short new grill. After the user answers, apply the decision, set the affected children back to `pending` (reset `retries`), set `status: "running"`, and go hands-off again. If the project is `running`, just continue the run hands-off, and spawn the repo coordinators again.
 
 ## Child report protocol
 
@@ -42,11 +43,11 @@ Every child ends each turn with exactly one fenced block:
 
 ````
 ```openfleet-report
-{"status": "done" | "question" | "failed" | "blocked", "child": "<child id>", "summary": "…", "question": "…", "findings": ["…"]}
+{"status": "done" | "question" | "failed" | "blocked", "child": "<child id>", "summary": "…", "question": "…", "findings": ["…"], "escalated": [{"child": "…", "question": "…"}]}
 ```
 ````
 
-Parse this block to decide the next step. If the block is missing, use `write_agent` to ask the child for it once. If it is still missing, treat the turn as `failed`.
+A repo coordinator reports with `child` set to its repo and lists open escalations in `escalated`. Parse this block to decide the next step. If the block is missing, use `write_agent` to ask the child for it once. If it is still missing, treat the turn as `failed`.
 
 ## Extensions
 

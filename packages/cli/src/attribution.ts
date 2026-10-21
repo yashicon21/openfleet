@@ -36,6 +36,8 @@ export function roleFromAgentName(agentName: string | undefined): Role | "coordi
       return "implementer";
     case "openfleet-tester":
       return "tester";
+    case "openfleet-repo-coordinator":
+      return "repo-coordinator";
     case "openfleet-coordinator":
       return "coordinator";
     default:

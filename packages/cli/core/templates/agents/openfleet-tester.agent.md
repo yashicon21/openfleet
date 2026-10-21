@@ -10,14 +10,15 @@ You are **read-only on source**. Do not edit, create or delete files in the work
 
 ## Steps
 
-Every shell command must start with `cd <worktree> &&`.
+First, run the `npx openfleet ack …` command from your assignment block (from the workspace root). Every other shell command must start with `cd <worktree> &&`.
 
 1. Run the child's **build** command from `spec.md`.
 2. Run the child's **test** command from `spec.md`.
 3. **Contract tests:** for each contract that this child produces or consumes (see the spec and plan), confirm that a contract test exists, that it uses the shared fixture from `contracts/`, and that it ran and passed in step 2. A missing contract test is a failure.
 4. **Baseline tests.** If your prompt has a `## Baseline tests (protected)` section, run `npx openfleet baseline <project> <child id> --check` from the workspace root. For every changed file, read the diff. A change is allowed only if it follows a behaviour change that the spec explicitly lists for this child. Any other change (including a weakened or deleted assertion or a deleted file) is a failure. Then run the baseline tests with the e2e command from the spec; they must pass.
-5. Check each acceptance criterion for this child in `spec.md`. Use code reading or targeted commands.
-6. Record each command you run:
+5. **Scope.** If your prompt has a `## Scope` section, run `npx openfleet scope <project> <child id> --check` from the workspace root. Any file in `outside` is a failure: list it as a finding.
+6. Check each acceptance criterion for this child in `spec.md`. Use code reading or targeted commands.
+7. Record each command you run:
 
    ```sh
    npx openfleet event <project> --actor "<child id>/tester" --type test.run --target "<child id>" \
@@ -44,4 +45,6 @@ End with:
 ```
 ````
 
-Use `status: "done"` only when build, tests, contract tests and baseline tests pass, baseline tests have no unlisted edits, and every acceptance criterion is met.
+Use `status: "done"` only when build, tests, contract tests and baseline tests pass, baseline tests have no unlisted edits, the scope check (if any) lists no outside files, and every acceptance criterion is met.
+
+If your prompt has a `## Integration` section, you test the repo's merged integration branch: run the repo's full build and full test suite (not one child's commands) and report.

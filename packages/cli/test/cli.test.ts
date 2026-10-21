@@ -475,7 +475,7 @@ describe("openfleet CLI", () => {
     expect(check().changed).toEqual([]);
     fs.writeFileSync(path.join(appWt, "e2e/login.spec.ts"), "test.skip('login')\n");
     expect(check().changed).toEqual(["e2e/login.spec.ts"]);
-    expect(next().actions).toEqual([{ action: "implement", child: "lib" }]);
+    expect(next().actions).toEqual([{ owner: "top", action: "implement", child: "lib" }]);
 
     // Re-planning after a contract change clears the consistency check without closing the gate.
     cli(root, ["state", "auth", "--patch", '{"children":{"lib":{"phase":"plan-review"}}}']);
@@ -487,7 +487,7 @@ describe("openfleet CLI", () => {
       cli(root, ["ext", "fail", "auth", "gatekeeper", "--slot", "plans-ready", "--reason", "plans need sign-off"]).code,
     ).toBe(0);
     expect(Object.values(state().children).map((c) => c.phase)).toEqual(["blocked", "blocked"]);
-    expect(next().actions).toEqual([{ action: "finalize" }]);
+    expect(next().actions).toEqual([{ owner: "top", action: "finalize" }]);
 
     const events = readEvents({ events: path.join(root, "openfleet/projects/auth/events.jsonl") } as never);
     expect(events.find((e) => e.type === "worktree.created" && e.target === "app")!.payload).toMatchObject({
