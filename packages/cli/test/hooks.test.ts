@@ -4,6 +4,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createProject } from "../src/commands/project.js";
 import { readEvents } from "../src/events.js";
+import { claim } from "../src/claim.js";
+import { formatOutput, normalizePayload, parseHookArgs } from "../src/hooks/adapters.js";
 import { fileChangesFromTool, runHook } from "../src/hooks/handlers.js";
 import { addWorktree, headSha } from "../src/git.js";
 import { patchState, readState } from "../src/state.js";
@@ -218,5 +220,109 @@ describe("hooks", () => {
     ).toContain("demo");
     expect(run("postToolUse", "not json")).toBe("");
     expect(readEvents(p).some((e) => e.type === "session.started")).toBe(true);
+  });
+});
+
+describe("hook adapters", () => {
+  it("parses `<host> <event>` and the legacy `<event>` form", () => {
+    expect(parseHookArgs(["sessionStart"])).toEqual({ host: "copilot", event: "sessionStart" });
+    expect(parseHookArgs(["claude", "SubagentStop"])).toEqual({ host: "claude", event: "subagentStop" });
+    expect(parseHookArgs(["copilot", "postToolUse"])).toEqual({ host: "copilot", event: "postToolUse" });
+  });
+
+  it("passes Copilot payloads through and tags the host", () => {
+    const raw = { sessionId: "s", agentName: "openfleet-planner", toolArgs: "{}" };
+    expect(normalizePayload("copilot", raw)).toEqual({ ...raw, host: "copilot" });
+  });
+
+  it("maps Claude's snake_case payloads for every event", () => {
+    const base = { session_id: "s", transcript_path: "/t.jsonl", cwd: "/w" };
+    expect(normalizePayload("claude", { ...base, hook_event_name: "SessionStart", source: "startup" })).toEqual({
+      host: "claude",
+      sessionId: "s",
+      cwd: "/w",
+      source: "startup",
+    });
+    expect(normalizePayload("claude", { ...base, hook_event_name: "SessionEnd", reason: "exit" })).toMatchObject({
+      reason: "exit",
+    });
+    const agent = { agent_id: "a1", agent_type: "openfleet:openfleet-planner" };
+    expect(normalizePayload("claude", { ...base, ...agent, hook_event_name: "SubagentStart" })).toMatchObject({
+      agentId: "a1",
+      agentName: "openfleet:openfleet-planner",
+      agentType: "openfleet:openfleet-planner",
+    });
+    expect(
+      normalizePayload("claude", {
+        ...base,
+        ...agent,
+        hook_event_name: "SubagentStop",
+        last_assistant_message: "done",
+        stop_hook_active: false,
+      }),
+    ).toMatchObject({ agentId: "a1", response: "done" });
+    const tool = normalizePayload("claude", {
+      ...base,
+      ...agent,
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "/w/a.ts", content: "x" },
+      tool_response: { success: true },
+    });
+    expect(tool).toMatchObject({ agentId: "a1", toolName: "Write", toolArgs: { file_path: "/w/a.ts" } });
+    expect(fileChangesFromTool(tool.toolName, tool.toolArgs)).toMatchObject([{ path: "/w/a.ts", kind: "added" }]);
+  });
+
+  it("formats additional context for each host", () => {
+    const out = { additionalContext: "ctx" };
+    expect(formatOutput("copilot", "subagentStart", out)).toBe(JSON.stringify(out));
+    expect(JSON.parse(formatOutput("claude", "subagentStart", out)!)).toEqual({
+      hookSpecificOutput: { hookEventName: "SubagentStart", additionalContext: "ctx" },
+    });
+    expect(JSON.parse(formatOutput("claude", "sessionStart", out)!)).toMatchObject({
+      hookSpecificOutput: { hookEventName: "SessionStart" },
+    });
+    expect(formatOutput("claude", "postToolUse", out)).toBeUndefined();
+    expect(formatOutput("claude", "subagentStart", {})).toBeUndefined();
+  });
+
+  it("runs a Claude session end to end through the installed entrypoint", () => {
+    const { ws, p, worktree, env } = setup();
+    const main = path.join(ws.core, "lib", "hooks", "main.js");
+    const run = (event: string, body: Record<string, unknown>) =>
+      execFileSync(process.execPath, [main, "claude", event], {
+        input: JSON.stringify({ session_id: "s", cwd: ws.root, hook_event_name: event, ...body }),
+        env: { ...process.env, ...env },
+        encoding: "utf8",
+      });
+    const ctx = (text: string) =>
+      (JSON.parse(text) as { hookSpecificOutput: { hookEventName: string; additionalContext: string } })
+        .hookSpecificOutput;
+
+    expect(ctx(run("SessionStart", { source: "startup" })).additionalContext).toContain("demo");
+    expect(readEvents(p).find((e) => e.type === "session.started")!.payload).toMatchObject({ host: "claude" });
+
+    expect(claim(ws, "demo", "api", "implementer")).toMatchObject({ result: "claimed" });
+    const agent = { agent_id: "agent-c1", agent_type: "openfleet:openfleet-implementer" };
+    const start = ctx(run("SubagentStart", agent));
+    expect(start.hookEventName).toBe("SubagentStart");
+    expect(start.additionalContext).toContain(worktree);
+    expect(readState(p).children.api!.agentIds.implementer).toBe("agent-c1");
+    expect(readState(p).children.api!.pendingSpawn).toBeUndefined();
+
+    fs.writeFileSync(path.join(worktree, "src", "b.ts"), "export const b = 2;\n");
+    run("PostToolUse", {
+      ...agent,
+      tool_name: "Write",
+      tool_input: { file_path: path.join(worktree, "src", "b.ts"), content: "export const b = 2;\n" },
+    });
+    expect(run("SubagentStop", { ...agent, last_assistant_message: "implemented" })).toBe("");
+
+    const events = readEvents(p);
+    expect(events.find((e) => e.type === "file.added")).toMatchObject({ target: "api" });
+    expect(events.find((e) => e.type === "agent.stopped")).toMatchObject({
+      target: "api",
+      payload: { agentId: "agent-c1", response: "implemented" },
+    });
   });
 });
