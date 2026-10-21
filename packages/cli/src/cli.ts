@@ -23,10 +23,10 @@ Projects
                                Create a project and launch the coordinator
   resume <name> [--fresh] [--ask]
                                Continue a project (--fresh starts a new Copilot session)
-  status [name] [--json]       Show a project's children, phases and open questions
+  status [name] [--json]       Show a project's children (grouped by repo), phases and open questions
   list                         List projects
   clean <name> [--branches] [--force]
-                               Remove the project's worktrees (and branches)
+                               Remove the project's child and integration worktrees (and branches)
 
 Extensions
   add <git-url[#ref]|path>     Install or update an extension
@@ -47,15 +47,18 @@ Agent helpers (used by OpenFleet agents)
   next <project> [--repo <repo>]
                                Print the next scheduling actions (plans first, then the gate)
   gate <project> consistent [--repo <repo>] [--child <id>[,<id>…]]
-  gate <project> open
+                               Record that plans agree (plans.consistent); --repo: one repo's sibling check
+  gate <project> open          Open the plans-ready gate
   baseline <project> <child> --report <json> | --check
+                               Record a passed baseline, or check the diff for unlisted baseline edits
   claim <project> <child> <role>
                                Reserve a spawn (maxParallel, one claim per role); prints claimed or wait
-  ack <project> <child> <role> First command of every subagent: prints its assignment
+  ack <project> <child> <role> Print a child's assignment and bind the agent's id (agents' first command)
   scope <project> <child> --check
                                List changed files outside a path-scoped child's paths
   merge <project> <child>      Merge a done child into its repo's integration branch
   escalate <project> <child> --question <text> | --resolve --decision <text>
+                               Block a child on a cross-repo question, or resolve it
 
   help, version
 Sessions auto-approve tool use (\`--allow-all-tools\`). File access stays limited to the workspace,

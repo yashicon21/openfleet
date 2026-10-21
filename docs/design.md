@@ -10,12 +10,15 @@
 
 - **Project** = a unit of work the user wants done (e.g. "refactor auth to use better-auth").
 - **Repo / package** = code target touched by a project (a repo, or a package inside a monorepo).
+- **Child** = one planner → implementer → tester pipeline with its own worktree and branch. Id: `<repo>` (whole repo), `<repo>:<package>` (monorepo package, the key in `repos.json` `packages`) or `<repo>[:<package>]/<unit>` (path-scoped unit owning `paths` globs, e.g. one page).
+- **Repo coordinator** = subagent of the top coordinator that runs every child of one repo when that repo has more than one child.
 - **Extension** = instruction-only add-on.
 
 ## Distribution & CLI
 
 - npm name `openfleet` is taken → scoped `@openfleet-tools/create` (init, `npm create @openfleet-tools`) + `@openfleet-tools/cli`; npm org `@openfleet-tools` (matches https://openfleet.tools). After init, `npx openfleet …` resolves to the local install.
-- Commands (v1): `init`, `update`, `new <name>`, `resume <name>`, `status [name]`, `list`, `clean <name>` (worktrees, optional branches), `add <git-url|path>`, `remove <ext>`, plus extension-declared commands.
+- Commands: `init`, `update`, `new <name>`, `resume <name>`, `status [name]` (children grouped by repo), `list`, `clean <name>` (child and integration worktrees, optional branches), `add <git-url|path>`, `remove <ext>`, `extensions`, `ext settings [--unset]` / `ext settings set <ext> <key> <value>`, plus extension-declared commands.
+- Agent helpers (deterministic, used by the agents instead of hand-editing files): `state`, `event`, `worktree`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate`, `ext plan|result|fail`.
 - CLI launches Copilot itself (`copilot --agent openfleet-coordinator` + plugin dir = `openfleet/core`). No global install. Same wrapper later launches `claude`.
 - Launch permissions: interactive (not `--autopilot`), `--allow-all-tools`; path verification stays on with `--add-dir` for the workspace root, the project's `worktrees/`, `openfleet/repos/` and the local repos in `repos.json`; URLs still prompt (no `--allow-all-urls`). `--ask` on `new`/`resume`/extension commands keeps per-tool prompts; args after `--` (e.g. `--yolo`) pass through.
 
@@ -34,7 +37,7 @@ openfleet/
     plans/<child>.md
     events.jsonl
     patches/<seq>.patch # gitignored
-    worktrees/<repo>/   # gitignored
+    worktrees/<child>/  # gitignored (`:` and `/` in the id become `__`)
 ```
 
 - Repos may live anywhere (path or git URL to clone); init cwd = default search root for the grill.
@@ -42,23 +45,33 @@ openfleet/
 
 ## Core contents
 
-- Agents: `openfleet-coordinator`, `openfleet-planner`, `openfleet-baseline`, `openfleet-implementer`, `openfleet-tester` (planner/tester read-only on source; the baseline tester edits tests only).
+- Agents: `openfleet-coordinator`, `openfleet-repo-coordinator`, `openfleet-planner`, `openfleet-baseline`, `openfleet-implementer`, `openfleet-tester` (planner/tester read-only on source; the baseline tester edits tests only; coordinators never edit code). Nesting is at most top coordinator → repo coordinator → role agent (depth 3 of Copilot's 4).
 - Skills, hooks (Node scripts), per-host adapter → normalized event schema, event capture/writer.
 
 ## Flow
 
-1. `npx openfleet new <name>` → coordinator grill session (suggests repos from `repos.json`, auto-discovers build/test cmds, confirms with user, adds new repos to `repos.json`).
-2. Output `projects/<name>/spec.md`: goal, repos/packages, cross-repo contracts, ordering deps, per-repo acceptance criteria, build/test cmds, branch names (asked; default `openfleet/<slug>[-<pkg>]`), completion mode, out-of-scope.
+1. `npx openfleet new <name>` → coordinator grill session (suggests repos from `repos.json`, auto-discovers build/test cmds, confirms with user, adds new repos to `repos.json`). It can split a repo into path-scoped units (pages, modules or services; e.g. Next.js routes under `app/**/page.tsx` or `pages/**`), proposing one child per unit that the user may group or skip, and asks for `maxParallel` (default 6). It also asks about every installed extension setting with no workspace value (`ext settings --unset`), writing answers with `ext settings set`; values are workspace-level, so set keys are not asked again.
+2. Output `projects/<name>/spec.md`: goal, children (repo, package, paths), cross-repo contracts, Shared approach, baselines, ordering deps, per-child acceptance criteria, build/test cmds, branch names (asked; default `openfleet/<project>` per repo, `<integration branch>--<child slug>` for members of a grouped repo), parallelism, completion mode, out-of-scope.
 3. User input happens only in the grill. Its last question shows the spec summary and asks "anything to change?"; the answer ends the grill (changes applied, `spec.approved`, `status: running`). After that the run is fully hands-off until `done`.
 4. **Plan everything first.** Every child's planner runs in parallel, ignoring `dependsOn` (dependent plans rely on the contracts). The coordinator validates each plan vs the spec (bounces on mismatch, `plan.rejected` `reason: invalid`).
 5. **`plans-ready` gate.** When every plan is validated, the coordinator compares all plans with the spec's **Shared approach** section and with each other, sends revisions to differing planners (`plan.rejected` `reason: inconsistent`) until they agree, then logs `plans.consistent`. The project-level `plans-ready` extension slot runs, then the gate opens (`plansReady`). A contract change later re-plans the affected children; their plans go through the consistency check again, without closing the gate. `npx openfleet next` computes the schedule deterministically.
 6. **Baseline (optional per child, decided in the grill).** After the gate, a baseline tester (`openfleet-baseline`) writes tests (e.g. Playwright e2e) for the behaviour about to change and runs them on the unchanged code until they pass, fixing tests only. `baseline.passed` records the files; core stores a hash per file. The implementer may change baseline tests only for behaviour changes the spec lists; the tester runs `npx openfleet baseline <p> <child> --check` and fails unlisted edits. Then the per-child `pre-implement` slot runs.
-7. Per repo/package after the gate: [baseline →] implementer → tester, in `dependsOn` order. No concurrency cap.
+7. Per child after the gate: [baseline →] implementer → tester, in `dependsOn` order. `dependsOn` can name a child or a whole grouped repo (its integration result). Every spawn first runs `npx openfleet claim <project> <child> <role>`, which sets `pendingSpawn` under a workspace lock, keeps at most one unconsumed claim per role (so the `subagentStart` hook attributes the spawn exactly, even with several coordinators spawning at once) and enforces the workspace-wide `maxParallel` (children in `planning`, `baseline`, `implementing` or `testing` across all running projects). With no free slot it returns `wait` and the coordinator retries.
 8. Tester failure → new implementer with findings, max 3 retries → coordinator reviews findings + diff, writes guidance, spawns one more implementer → if that fails, child `failed` (`child.failed` event), dependents `blocked`, other children continue. Final summary reports failures; user handles them later via `resume`.
-9. Child questions → coordinator (write_agent/read_agent) → answers from spec, otherwise decides itself and logs an `assumption` event (listed in the final summary); contract changes broadcast to affected children. The coordinator never ends its turn while children are pending or running.
+9. Child questions → their coordinator (write_agent/read_agent) → answers from spec, otherwise decides itself and logs an `assumption` event (listed in the final summary); contract changes broadcast to affected children. A repo coordinator decides questions within its repo; one that changes a cross-repo contract or the Shared approach is escalated (`npx openfleet escalate --question`: the affected children become `blocked` with `blockedReason: needs-escalation`, `question.escalated` is logged, the rest continues). The top coordinator decides, changes the contract if needed, runs `escalate --resolve` and resumes that repo coordinator with `write_agent`. No coordinator ends its turn while children are pending or running.
 10. Completion mode chosen in grill: default staged changes for review; optional draft PRs cross-linked with run summary.
 
-- Monorepo: one worktree + branch + PR per package.
+- Monorepo: one worktree + branch per package; a repo whose only child is one package gets one PR for it.
+
+## Path-scoped children & repo coordinators
+
+- A repo with more than one child (path-scoped units or several monorepo packages) is **grouped**: core adds an integration child with the repo key as id, and the top coordinator spawns one `openfleet:openfleet-repo-coordinator` background subagent for it. Single-child repos stay directly under the top coordinator.
+- **Setup child.** For each repo with scoped children the grill adds `<repo>[:<package>]/setup` for shared config, components and utils; every scoped child `dependsOn` it. At the gate each plan lists the shared items it needs; the coordinator adds them to the setup child's `sharedItems` and re-validates its plan. Scoped children never add shared items themselves.
+- **Two-level gate.** Each repo coordinator checks its children's plans against each other (`gate consistent --repo`, sets `repoConsistent`); the top coordinator checks across repos against the Shared approach (`gate consistent`).
+- **Scope check.** `npx openfleet scope <project> <child> --check` lists changed files outside the child's `paths` and spec-allowed `allowPaths` (relative to the package); the tester fails the child on any.
+- **Merging.** `npx openfleet merge` merges a `done` child into the integration branch in the repo coordinator's own worktree: the setup child first, then in `doneAt` order (`child.merged`). On a conflict (`merge.conflict`) the child branch is rebased onto the integration branch and that child's implementer resolves it within its own paths, then its tester runs again; a conflict in a file the child does not own is a scope violation. Before implementing, a member branch is fast-forwarded to the integration tip (`worktree.synced`).
+- **Integration.** The repo coordinator runs the repo's full build and tests on the merged integration branch. On failure it spawns an integration implementer and tester (3 retries + 1 guided attempt); if those fail the repo is `failed`, dependents `blocked`, and child branches and worktrees are kept. One PR per grouped repo, from the integration branch; Related PRs still link across repos.
+- `npx openfleet next` returns actions with an `owner` (`top` or a repo key); the top coordinator's output also lists `delegated` repo actions. `resume` restarts repo coordinators from `state.json`; `status` groups children under their repo; `clean` removes child and integration worktrees.
 - **Ports:** each child gets a unique range of 10 ports, `4100 + 10 × k` (lowest free `k`, assigned when the child is registered, stable for the run). The spawn hook injects `PORT` and `OPENFLEET_PORT_BASE` (both the first port) into baseline, implementer and tester prompts, with rules: start servers on `$PORT`, read ports and auth callback URLs from env, Playwright `webServer` with `reuseExistingServer: false`, stop servers afterwards.
 - **Local files (`copyFiles`):** `npx openfleet worktree` copies each listed file (relative, inside the repo, no `.git`) from the main checkout, warns about missing ones, and hides them from git: tracked files get `skip-worktree`, untracked ones go into the repo's shared `info/exclude` (also hides them in the main checkout, where they are usually ignored already). They are never staged or committed (finalize also checks), are left out of snapshots and file patches, and their values are redacted from every event.
 - Multiple projects may be active concurrently, even on same repo; CLI warns on overlap.
@@ -70,12 +83,12 @@ openfleet/
 
 ## State & resume
 
-- `state.json`: per child phase (`pending → planning → plan-review → planned → [baseline] → implementing → testing → post-test → done | failed | blocked`), worktree, branch, agent ids, port range, copied files, consistency/baseline flags, open questions; project `plansReady`. Updated on every child event; `resume` continues from it.
+- `state.json`: per child phase (`pending → planning → plan-review → planned → [baseline] → implementing → testing → post-test → done | failed | blocked`), worktree, branch, agent ids, `pendingSpawn`/`claimedAt`, port range, copied files, consistency/baseline flags, `paths`/`allowPaths`/`setup`/`sharedItems`, `integration`/`coordinator`/`merged`/`doneAt`/`conflict`, `blockedReason`/`escalation`, extension outputs and follow-ups, open questions; project `plansReady`, `maxParallel`. Written only through the locked `npx openfleet state` (and the other helpers); `resume` continues from it.
 
 ## Events / audit (core, always on)
 
-- `events.jsonl` append-only, `v: 1`: `ts, seq (global, file-locked), actor (coordinator | <repo>/<role> | ext:<name>), type, target, payload`.
-- Types: agent.spawned/stopped, message.sent, file.added/edited/deleted (path + kind + lines ±), phase.changed, question.asked, test.run, …
+- `events.jsonl` append-only, `v: 1`: `ts, seq (global, file-locked), actor (coordinator | <child>/<role> | <repo>/repo-coordinator | ext:<name> | cli | user), type, target, payload`.
+- Types: see [events.md](events.md) (agents, messages, files, worktrees, phases, questions and escalations, plans and the gate, baselines, tests, extensions, merges, run completion).
 - Full patches in `patches/<seq>.patch`; messages logged in full with secret redaction.
 - Capture: hooks (`subagentStart/Stop`, `postToolUse`; attribution cwd→worktree→repo, role via agentName/state.json) + git diff snapshot per worktree on agent stop (ground truth) + coordinator logs messages.
 - Hooks no-op unless cwd is under an OpenFleet workspace.
@@ -84,11 +97,11 @@ openfleet/
 ## Extensions (instruction-only)
 
 - Folder with `openfleet.extension.json` + Markdown skills/agent instructions. No executable scripts.
-- Manifest v2 (`"manifest": 2`; v1 `mode`/`slot`/`role` manifests are rejected with the v2 equivalent in the error): `core` semver range; `phases: [{slot, instructions, blocking?=false, when?: {files}, timeoutMinutes?=30}]` (slot `pre-spec|post-plan|plans-ready|pre-implement|post-test|post-run`, each entry runs as its own agent `openfleet-ext-<name>-<slot>`); `augments: [{role, instructions}]` (appended to the role's prompt); at least one phase or augment entry. Top-level `commands: {name: skill.md}` (CLI launches Copilot with that skill) and `permissions` (default read-only; write/shell must be declared, enforced via one tool allow-list for all of the extension's phase agents; augments use the role's own tools).
+- Manifest v2 (`"manifest": 2`; v1 `mode`/`slot`/`role` manifests are rejected with the v2 equivalent in the error): `core` semver range; `phases: [{slot, instructions, blocking?=false, when?: {files}, timeoutMinutes?=30}]` (slot `pre-spec|post-plan|plans-ready|pre-implement|post-test|post-run`, each entry runs as its own agent `openfleet-ext-<name>-<slot>`); `augments: [{role, instructions}]` (role `coordinator|repo-coordinator|planner|baseline|implementer|tester`; appended to the role's prompt); at least one phase or augment entry. Top-level `commands: {name: skill.md}` (CLI launches Copilot with that skill) and `permissions` (default read-only; write/shell must be declared, enforced via one tool allow-list for all of the extension's phase agents; augments use the role's own tools).
 - Blocking phases (`post-plan`/`plans-ready`/`pre-implement`/`post-test`): a failure or timeout gets one retry with a fresh agent, then `extension.failed`, the child is `failed` and its dependents `blocked` (for `plans-ready`: every active child `blocked`, gate stays closed). A child is `done` only after its `post-test` entries finish, so dependents wait for blocking post-test work. Advisory phases never block.
 - `when.files`: `npx openfleet ext plan` checks the paths in the child's package dir and repo root; no match → the entry is skipped and `extension.skipped` is logged.
-- Outputs: a phase report may include flat string `outputs` and `followUps`. `npx openfleet ext result` stores them in `state.json` (`children[id].outputs[ext]`, `followUps`) and logs `extension.outputs`. The `subagentStart` hook injects an "Upstream outputs" table into the planner/implementer/tester prompts of every child that depends on it, directly or transitively. An output `prUrl` sets the child's `prUrl`; finalize then commits, pushes to the same branch and updates that PR (also in `staged` mode) instead of opening a second one. Follow-ups are listed in `summary.md`, PR bodies and the final report.
-- Settings: the manifest declares `settings: {key: {default, description}}`; the workspace overrides them in `openfleet/extensions.config.json` (`{ext: {key: value}}`, undeclared keys rejected). Core injects a `## Settings` table into the extension's phase agents, augment sections and command skills.
+- Outputs: a phase report may include flat string `outputs` and `followUps`. `npx openfleet ext result` stores them in `state.json` (`children[id].outputs[ext]`, `followUps`) and logs `extension.outputs`. The `subagentStart` hook injects an "Upstream outputs" table into the planner/implementer/tester prompts of every child that depends on it, directly or transitively (including scoped children under a repo coordinator). An output `prUrl` sets the child's `prUrl`; finalize then commits, pushes to the same branch and updates that PR (also in `staged` mode) instead of opening a second one. Follow-ups are listed in `summary.md`, PR bodies and the final report.
+- Settings: the manifest declares `settings: {key: {default, description}}`; the workspace overrides them in `openfleet/extensions.config.json` (`{ext: {key: value}}`, undeclared keys rejected), written with `npx openfleet ext settings set` (the grill asks about unset ones). Core injects a `## Settings` table into the extension's phase agents, augment sections and command skills.
 - Install from git URL or local path; `add` pins SHA in lock file and prints declared permissions. Same-slot ordering = lock order, then manifest order.
 - `update` disables incompatible extensions (core semver range) with a warning.
 - Planned official extensions:

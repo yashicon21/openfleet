@@ -66,12 +66,12 @@ Each phase entry becomes the agent `openfleet:openfleet-ext-<name>-<slot>` (a se
 
 ### Augment entries
 
-| Field          | Notes                                                            |
-| -------------- | ---------------------------------------------------------------- |
-| `role`         | `coordinator`, `planner`, `baseline`, `implementer` or `tester`. |
-| `instructions` | Markdown appended to that role's agent prompt.                   |
+| Field          | Notes                                                                                |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `role`         | `coordinator`, `repo-coordinator`, `planner`, `baseline`, `implementer` or `tester`. |
+| `instructions` | Markdown appended to that role's agent prompt.                                       |
 
-Augments are appended under `## Extension: <name>` and use the role's own tools. Copilot limits an agent prompt to 30,000 characters, so keep augments short.
+`repo-coordinator` augments reach the agent that runs a repo with several children (path-scoped children or several monorepo packages): use them for rules about merging into the integration branch or deciding in-repo questions. Augments are appended under `## Extension: <name>` and use the role's own tools. Copilot limits an agent prompt to 30,000 characters, so keep augments short.
 
 ### Version 1 manifests
 
@@ -103,6 +103,8 @@ becomes
 | `pre-implement` | Per child, after the gate (and its baseline, if any), right before its implementer.                 |
 | `post-test`     | Per child, after the tester passes. The child is `done` only after these finish.                    |
 | `post-run`      | Once per project, during finalize.                                                                  |
+
+For a repo with several children, its repo coordinator runs the per-child slots (`post-plan`, `pre-implement`, `post-test`) for each of its children, with the same `ext plan` / `ext result` / `ext fail` commands. `when.files` is checked in that child's worktree. A blocking failure marks that child `failed`, and its dependents become `blocked`, as for any failed child.
 
 ### Reports
 
@@ -147,7 +149,7 @@ If none exist, the entry is skipped and `extension.skipped` is logged with the d
 
 `npx openfleet ext result` stores a report's `outputs` in `state.json` under `children.<id>.outputs.<extension>` and logs `extension.outputs`.
 
-When the coordinator spawns a planner, baseline tester, implementer or tester for another child, the `subagentStart` hook adds an **Upstream outputs** table to its prompt. It lists the outputs of every child it depends on, **directly or transitively**, so a value published by a library reaches every repo downstream of it. The hook does this from `state.json`, so it does not depend on the coordinator relaying values. An implementer augment can tell the implementer how to use them (for example, pin the version exactly).
+When the coordinator spawns a planner, baseline tester, implementer or tester for another child, the `subagentStart` hook adds an **Upstream outputs** table to its prompt. It lists the outputs of every child it depends on, **directly or transitively**, so a value published by a library reaches every repo downstream of it, including path-scoped children run by a repo coordinator. The hook does this from `state.json`, so it does not depend on the coordinator relaying values. An implementer augment can tell the implementer how to use them (for example, pin the version exactly).
 
 An output named **`prUrl`** marks a pull request the extension opened for the child mid-run. It sets the child's `prUrl`. In finalize, OpenFleet commits anything left in the worktree, pushes to the same branch and updates the existing PR body (summary, Related PRs, follow-ups) instead of opening a second PR. This happens in `staged` mode too, because those changes are already pushed.
 
