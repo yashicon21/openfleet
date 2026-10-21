@@ -7,7 +7,7 @@ description: The hands-off OpenFleet run loop after the grill. Create worktrees,
 
 Use this skill when the project `status` is `running`. Use `openfleet-records` for every state change and log entry.
 
-**This loop is hands-off.** The user is not watching. Never ask the user anything and never use `ask_user`. Do not end your turn while any child is still pending or in progress: keep waiting with `read_agent` and acting on reports until every child is `done`, `failed` or `blocked`, then go to completion.
+**This loop is hands-off.** The user is not watching. Never ask the user anything and never use <!--host:copilot-->`ask_user`. Do not end your turn while any child is still pending or in progress: keep waiting with `read_agent` and acting on reports until every child is `done`, `failed` or `blocked`, then go to completion.<!--host:claude-->`AskUserQuestion`. Spawn agents with the `Agent` tool in the background, then end your turn: each finished agent arrives as a completion notification that starts your next turn. On every notification, act on the report, run `npx openfleet next <project>` and spawn what it returns. Never block waiting on one child. Keep going until every child is `done`, `failed` or `blocked`, then go to completion.<!--/host-->
 
 ## 0. Preflight
 
@@ -41,7 +41,7 @@ Do not work this out by hand. Run this whenever something changes (a report arri
 npx openfleet next <project>
 ```
 
-It prints `{"gate": "planning"|"checking"|"plans-ready"|"open", "actions": [...], "waiting": [...]}`. Do every action, then wait for the next report with `read_agent`:
+It prints `{"gate": "planning"|"checking"|"plans-ready"|"open", "actions": [...], "waiting": [...]}`. Do every action, <!--host:copilot-->then wait for the next report with `read_agent`:<!--host:claude-->then end your turn and act on the next completion notification:<!--/host-->
 
 Every action has an `owner`: `top` (you) or a repo key. `next <project>` returns your actions, plus `delegated`: actions that belong to a repo coordinator (read them, but do not act on them). A repo coordinator runs `next <project> --repo <repo>` for its own.
 
@@ -59,12 +59,12 @@ Every action has an `owner`: `top` (you) or a repo key. `next <project>` returns
 
 Repo coordinators also get `check-repo-consistency`, `merge`, `resolve-conflict` and `integrate` (section 2a).
 
-Use background subagents and collect results with `read_agent`. Do not block on one child while others could make progress.
+<!--host:copilot-->Use background subagents and collect results with `read_agent`. Do not block on one child while others could make progress.<!--host:claude-->Spawn every agent with the `Agent` tool in the background (`subagent_type` is the full agent name, e.g. `openfleet:openfleet-planner`), then end your turn. Results arrive as completion notifications; after each one, run `npx openfleet next <project>`, which stays the source of truth. Do not block on one child while others could make progress. Never use the `Agent` tool's worktree isolation: OpenFleet creates the worktrees and passes their paths in the assignment.<!--/host-->
 
 **Claim every spawn.** Right before you spawn any OpenFleet agent, run `npx openfleet claim <project> <child> <role>` (role: `planner`, `baseline`, `implementer`, `tester` or `repo-coordinator`). It sets the child's phase for that role (`planning`, `baseline`, `implementing`, `testing`) and `pendingSpawn`, which the spawn hook consumes to attribute the agent and inject its context.
 
 - `{"result":"claimed",…}`: spawn that agent **now**, before any other claim. The `subagentStart` hook records its agent id on the child (`agentIds.<role>`); you do not patch it.
-- `{"result":"wait","reason":…,"retryAfterSeconds":5}`: do not spawn. Either another claim for the same role is not consumed yet (spawn that one first), or `maxParallel` agents are already running across the workspace (workspace setting, `npx openfleet config`; default 6). Do other work or wait for a running agent with `read_agent`, then claim again.
+- `{"result":"wait","reason":…,"retryAfterSeconds":5}`: do not spawn. Either another claim for the same role is not consumed yet (spawn that one first), or `maxParallel` agents are already running across the workspace (workspace setting, `npx openfleet config`; default 6). <!--host:copilot-->Do other work or wait for a running agent with `read_agent`, then claim again.<!--host:claude-->Do other work, or end your turn and claim again after the next completion notification.<!--/host-->
 
 ## 2a. Repo coordinators
 
@@ -74,7 +74,7 @@ A repo with more than one child (path-scoped children such as pages or modules, 
 2. **What it does.** It runs its children's planners, baselines, implementers and testers (and their extension slots), answers their questions, and merges each `done` child into the repo's integration branch (`openfleet/<project>` or the spec's branch) with `npx openfleet merge`: the setup child first, then the others in the order they reached `done`. A merge conflict sends the child back to its implementer (rebased onto the integration branch) and tester. Once every child is merged, an integration tester runs the repo's full build and tests on the integration branch; failures go to an integration implementer with the usual retries (3 plus one guided attempt). Then it sets the integration child (`<repo>`) to `done` or `failed` and reports once.
 3. **Two-level gate.** The repo coordinator checks its own children's plans against each other and the **Shared approach** (`gate <project> consistent --repo <repo>`), and adds every plan's **Shared items needed** to the setup child's scope. Then `next` gives you `check-consistency` for them: you check across repos as usual (section 3) and open the gate. Scoped children never add shared items themselves.
 4. **Dependencies.** `dependsOn: ["<repo>"]` waits for the whole repo (its integration child); `dependsOn: ["<repo>/<unit>"]` waits for one child. A failed or blocked integration child blocks its dependents.
-5. **Escalations.** A repo coordinator decides questions inside its repo itself. A question that changes a cross-repo contract or the Shared approach is escalated: the child is `blocked` with `blockedReason: "needs-escalation"` (`question.escalated`) and the coordinator lists it under `escalated` in its report. Decide it as in section 4, change the contract if needed (`openfleet-contracts`), then run `npx openfleet escalate <project> <child> --resolve --decision '<decision>'` for each child and resume the repo coordinator with `write_agent` ("Escalations decided: … Continue."). Escalated children are not final: the run does not finalize while any is open.
+5. **Escalations.** A repo coordinator decides questions inside its repo itself. A question that changes a cross-repo contract or the Shared approach is escalated: the child is `blocked` with `blockedReason: "needs-escalation"` (`question.escalated`) and the coordinator lists it under `escalated` in its report. Decide it as in section 4, change the contract if needed (`openfleet-contracts`), then run `npx openfleet escalate <project> <child> --resolve --decision '<decision>'` for each child and resume the repo coordinator with <!--host:copilot-->`write_agent`<!--host:claude-->`SendMessage`<!--/host--> ("Escalations decided: … Continue."). Escalated children are not final: the run does not finalize while any is open.
 6. **Its report.** When it reports `done` or `failed`, the integration child already has that phase. If it stopped while work remains (for example after `resume`), `next` returns `repo-coordinator` for it again.
 
 ## 3. Per-child pipeline
@@ -91,7 +91,7 @@ A repo with more than one child (path-scoped children such as pages or modules, 
    - Nothing is out of scope or touches another child's repo.
    - The build and test commands match the spec.
 
-   If the plan fails, log `plan.rejected` with `{"reason":"invalid","reasons":["…"]}`. Send the reasons to the **same** planner with `write_agent`. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
+   If the plan fails, log `plan.rejected` with `{"reason":"invalid","reasons":["…"]}`. Send the reasons to the **same** <!--host:copilot-->planner with `write_agent`<!--host:claude-->planner with `SendMessage` (to its agent id)<!--/host-->. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
 
    If the plan passes, log `plan.validated`.
 
@@ -103,7 +103,7 @@ Run it when `next` returns `check-consistency`. Before the gate opens, that happ
 
 1. Read every listed plan, the spec's **Shared approach** section, and the other children's plans (including ones already checked).
 2. Compare them. Plans must agree on everything the Shared approach lists (config shape, patterns, env var names, library versions, naming) and on anything two plans both touch (a shared interface, a value one child produces and another reads).
-3. For each plan that differs: log `plan.rejected` with `{"reason":"inconsistent","reasons":["<what differs and what to use instead>"],"with":["<other child ids>"]}`. Patch the child `{"phase":"plan-review"}`. Send the revision to the **same** planner with `write_agent` and log it. When the revision arrives, save it, re-validate it (step 3 of "Plan") and patch `{"phase":"planned"}` again. Pick one approach and send the same decision to every differing planner; record the choice as an `assumption` if the spec did not settle it.
+3. For each plan that differs: log `plan.rejected` with `{"reason":"inconsistent","reasons":["<what differs and what to use instead>"],"with":["<other child ids>"]}`. Patch the child `{"phase":"plan-review"}`. Send the revision to the **same** <!--host:copilot-->planner with `write_agent`<!--host:claude-->planner with `SendMessage` (to its agent id)<!--/host--> and log it. When the revision arrives, save it, re-validate it (step 3 of "Plan") and patch `{"phase":"planned"}` again. Pick one approach and send the same decision to every differing planner; record the choice as an `assumption` if the spec did not settle it.
 4. Repeat until no plan differs. Then run:
 
    ```sh
@@ -157,7 +157,7 @@ Only for children whose spec section has **Baseline: yes** (`baseline: true` in 
 `post-plan`, `pre-implement` and `post-test` run per child (`--child <id>`). `plans-ready` runs once per project (no `--child`).
 
 1. `npx openfleet ext plan <project> <slot> --child <id>`. Run only the entries under `run`; skipped entries are already logged as `extension.skipped`.
-2. For each entry, in order: spawn its `agent` with "Run `<slot>` for child `<id>` of project `<project>`. Worktree: `<worktree>`." Wait for it with `read_agent`. If it is still running after `timeoutMinutes`, stop it and treat the attempt as failed.
+2. For each entry, in order: spawn its `agent` with "Run `<slot>` for child `<id>` of project `<project>`. Worktree: `<worktree>`." <!--host:copilot-->Wait for it with `read_agent`. If it is still running after `timeoutMinutes`, stop it<!--host:claude-->End your turn and wait for its completion notification. If it is still running after `timeoutMinutes`, stop it with `TaskStop`<!--/host--> and treat the attempt as failed.
 3. Record its `openfleet-report` block: `npx openfleet ext result <project> <extension> --slot <slot> --child <id> --report '<json from the block>'`. Pass `outputs` and `followUps` through exactly as reported; the helper validates them (flat string values only). An output named `prUrl` becomes the child's `prUrl`.
 4. If the attempt failed (report `status: "failed"`, no report, or a timeout):
    - **advisory** entry: record it and continue.
@@ -179,8 +179,8 @@ Dependents are implemented only when this child is `done`, so they start after e
 When a child reports `status: "question"`:
 
 1. Add the question to `questions` with status `open`, and log `question.asked`.
-2. **If `spec.md` or `contracts/` answers it,** reply with `write_agent`, quoting the relevant spec lines. Set `answeredBy: "spec"`.
-3. **Otherwise, decide yourself.** Do not ask the user. Choose the option that best fits the goal, the existing code, the contracts and the out-of-scope list. When in doubt, prefer the smallest, most conventional and backward-compatible choice. Reply with `write_agent` and set `answeredBy: "coordinator"`. Log an `assumption` event:
+2. **If `spec.md` or `contracts/` answers it,** reply with <!--host:copilot-->`write_agent`<!--host:claude-->`SendMessage`<!--/host-->, quoting the relevant spec lines. Set `answeredBy: "spec"`.
+3. **Otherwise, decide yourself.** Do not ask the user. Choose the option that best fits the goal, the existing code, the contracts and the out-of-scope list. When in doubt, prefer the smallest, most conventional and backward-compatible choice. Reply with <!--host:copilot-->`write_agent`<!--host:claude-->`SendMessage`<!--/host--> and set `answeredBy: "coordinator"`. Log an `assumption` event:
 
    ```sh
    npx openfleet event <project> --type assumption --target <child id> --payload '{"child":"<child id>","question":"…","decision":"…","rationale":"…","contractChange":false}'
@@ -199,7 +199,7 @@ When every child is `done`, `failed` or `blocked` (not counting children waiting
 
 On resume, run `npx openfleet preflight <project>` first (section 0): `resume` marks the last result stale, and nothing can be claimed until it passes. Then read `state.json` and answer any `open` questions. For each child:
 
-- `planning`, `baseline`, `implementing` or `testing` with a recorded agent id: try `read_agent` on that id. If the agent is gone, re-spawn that role. Implementers and baseline testers continue from the worktree's current contents.
+- `planning`, `baseline`, `implementing` or `testing` with a recorded agent id: <!--host:copilot-->try `read_agent` on that id. If the agent is gone,<!--host:claude-->send it a `SendMessage` ("Continue.") on that id. If the agent cannot be found,<!--/host--> re-spawn that role. Implementers and baseline testers continue from the worktree's current contents.
 - `plan-review`: re-validate the saved plan.
 - `planned`: nothing to do; `next` decides.
 - Integration children (repo coordinators): `resume` marks them stopped and clears every unconsumed claim. `next` returns `repo-coordinator` for each repo that is not finished: spawn them again; they continue from `state.json`.
