@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-20T01:30:04Z",
+  "generatedAt": "2026-10-20T03:39:46Z",
   "title": "Design System: OpenFleet",
   "extensions": {
     "colorMeta": {
@@ -105,6 +105,12 @@
         "displayName": "Warning Wash",
         "canonical": "#FFF1CC",
         "tonalRamp": ["#4C3700", "#805C00", "#B28100", "#E6A600", "#FFC01A", "#FFD25C", "#FFE6A3", "#FFF8E5"]
+      },
+      "ground-raised-3": {
+        "role": "neutral",
+        "displayName": "Raised Ground 3",
+        "canonical": "#2E2D35",
+        "tonalRamp": ["#242329", "#3C3B45", "#545261", "#6C697C", "#858396", "#A8A7B4", "#CECDD5", "#F1F1F3"]
       }
     },
     "typographyMeta": {
@@ -131,6 +137,38 @@
       "mono": {
         "displayName": "Mono",
         "purpose": "Commands, paths, events, clocks and counted values."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "h1 on inner pages."
+      },
+      "section-title": {
+        "displayName": "Section title",
+        "purpose": "Numbered section headings on reading pages."
+      },
+      "title-sm": {
+        "displayName": "Title small",
+        "purpose": "Small card and step titles."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Intro paragraph under a page title."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Figure captions, keys, notes, source line."
+      },
+      "mono-sm": {
+        "displayName": "Mono small",
+        "purpose": "Dense mono data: file rows, log lines, table cells."
+      },
+      "lcd": {
+        "displayName": "LCD",
+        "purpose": "Figure clocks and counted values."
+      },
+      "lcd-sm": {
+        "displayName": "LCD small",
+        "purpose": "Clocks and counters on phones."
       }
     },
     "shadows": [

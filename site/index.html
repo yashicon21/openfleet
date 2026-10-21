@@ -29,6 +29,279 @@
       href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Share+Tech+Mono&amp;display=swap"
     />
     <style>
+      .of-mq-wrap {
+        position: relative;
+      }
+      .of-mq.paused .of-track {
+        animation-play-state: paused;
+      }
+      .of-mq-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 2px solid #2b1e1b;
+        border-radius: 8px;
+        background: #0e0e10;
+        color: #f4f4f6;
+        cursor: pointer;
+      }
+      .of-mq-toggle:hover {
+        background: #1c1b21;
+      }
+      .of-mq-toggle .i-play,
+      .of-mq-toggle[aria-pressed="true"] .i-pause {
+        display: none;
+      }
+      .of-mq-toggle[aria-pressed="true"] .i-play {
+        display: block;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .of-mq-toggle {
+          display: none;
+        }
+      }
+      .of-qs-list {
+        margin: 0;
+        padding: 22px 24px 26px;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .of-qs {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .of-qs-c {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 14px;
+        color: #5f5754;
+      }
+      .of-qs-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 4px 4px 14px;
+        border-radius: 8px;
+        background: #dfe2e6;
+      }
+      .of-qs-row code {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 17px;
+        line-height: 24px;
+        color: #2b1e1b;
+        overflow-wrap: anywhere;
+        padding: 6px 0;
+      }
+      .of-qs-s {
+        color: #1632e6;
+      }
+      .of-qs-copy {
+        flex: none;
+        align-self: center;
+        min-height: 44px;
+        min-width: 72px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2b1e1b;
+        color: #eef0f2;
+        cursor: pointer;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+      }
+      @media (max-width: 479px) {
+        .of-qs-list {
+          padding: 18px 16px 20px;
+        }
+        .of-qs-row code {
+          font-size: 14px;
+          line-height: 22px;
+        }
+        .of-qs-copy {
+          min-width: 64px;
+        }
+      }
+      .of-qs-copy:hover {
+        background: #4a3934;
+      }
+      .of-qs-copy:focus-visible {
+        outline: 2px solid #1632e6;
+        outline-offset: 2px;
+      }
+      .of-fail {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: clamp(112px, 13vw, 176px) 24px 0;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        gap: 48px;
+        align-items: center;
+      }
+      .of-fail-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      .of-fail-kick {
+        margin: 0;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        color: #a8a6af;
+      }
+      .of-fail h2 {
+        margin: 0;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-weight: 400;
+        font-size: clamp(32px, 4.6vw, 56px);
+        line-height: 1.02;
+        color: #f4f4f6;
+        text-wrap: balance;
+      }
+      .of-fail-copy > p:not(.of-fail-kick) {
+        margin: 0;
+        font-size: 20px;
+        line-height: 30px;
+        color: #a8a6af;
+        max-width: 46ch;
+      }
+      .of-fail-copy code {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        color: #f4f4f6;
+      }
+      .of-fail-link {
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 16px;
+        letter-spacing: 0.02em;
+        color: #f4f4f6;
+        text-decoration: underline 2px #ee5ad6;
+        text-underline-offset: 6px;
+        padding: 11px 0;
+      }
+      .of-fail-link::after {
+        content: " →";
+      }
+      .of-fail-link:hover {
+        color: #48a6ee;
+      }
+      .of-fail-log {
+        margin: 0;
+        padding: 20px 22px;
+        list-style: none;
+        background: #1c1b21;
+        border: 1px solid #45434c;
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 14px;
+        line-height: 22px;
+      }
+      .of-fl {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-areas: "t e tag" "t d tag";
+        gap: 0 12px;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #45434c;
+      }
+      .of-fl:last-child {
+        border-bottom: 0;
+      }
+      .of-fl-t {
+        grid-area: t;
+        color: #a8a6af;
+        align-self: start;
+      }
+      .of-fl-e {
+        grid-area: e;
+        color: #a8a6af;
+        overflow-wrap: anywhere;
+      }
+      .of-fl-e b {
+        font-weight: 400;
+        color: #f4f4f6;
+      }
+      .of-fl-d {
+        grid-area: d;
+        color: #a8a6af;
+        overflow-wrap: anywhere;
+      }
+      .of-fl-tag {
+        grid-area: tag;
+        font-family: "Russo One", "Arial Black", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        padding: 4px 9px;
+        border-radius: 8px;
+        background: #2e2d35;
+        color: #f4f4f6;
+        white-space: nowrap;
+      }
+      .of-fl-bad {
+        background: #fff1cc;
+        color: #8a5300;
+      }
+      .of-fl-ok {
+        background: #eef0f2;
+        color: #17703a;
+      }
+      .of-fl-you {
+        background: none;
+        border: 2px dashed #f4f4f6;
+        padding: 2px 7px;
+      }
+      @media (max-width: 900px) {
+        .of-fail {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 32px;
+        }
+      }
+      @media (max-width: 479px) {
+        .of-fail-log {
+          padding: 14px 16px;
+          border-radius: 16px;
+          font-size: 14px;
+        }
+        .of-fl {
+          grid-template-columns: 40px minmax(0, 1fr);
+          grid-template-areas: "t e" "t d" "t tag";
+        }
+        .of-fl-tag {
+          justify-self: start;
+          margin-top: 6px;
+        }
+      }
+      .of-legend {
+        display: flex;
+        gap: 4px 14px;
+        flex-wrap: wrap;
+      }
+      .of-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .of-lg i {
+        width: 14px;
+        height: 8px;
+        border-radius: 3px;
+        display: inline-block;
+      }
       [hidden] {
         display: none !important;
       }
@@ -69,6 +342,7 @@
       }
       a:focus-visible,
       button:focus-visible,
+      summary:focus-visible,
       li:focus-visible {
         outline: 2px solid #48a6ee;
         outline-offset: 3px;
@@ -281,7 +555,7 @@
           content: attr(data-label);
           display: block;
           font-family: "Russo One", "Arial Black", sans-serif;
-          font-size: 11px;
+          font-size: 12px;
           letter-spacing: 0.06em;
           color: #5f5754;
           margin-top: 8px;
@@ -304,7 +578,7 @@
           padding: 0 13px !important;
         }
         .of-logo {
-          font-size: 19px !important;
+          font-size: 20px !important;
         }
         .of-herobtns a {
           flex: 1 1 100%;
@@ -326,16 +600,17 @@
           padding: 0 14px !important;
         }
         .of-evbox {
-          min-height: 244px !important;
+          min-height: 196px !important;
         }
         .of-seg {
           width: 56px !important;
         }
         .of-legend {
           padding-left: 90px !important;
+          gap: 4px 10px !important;
         }
         .of-term {
-          font-size: 15px !important;
+          font-size: 14px !important;
           padding: 20px !important;
         }
       }
@@ -354,21 +629,6 @@
             to {
               opacity: 1;
               transform: none;
-            }
-          }
-          .of-motion .of-reveal {
-            view-timeline: --of-rev block;
-          }
-          .of-motion .of-w {
-            animation: of-word linear both;
-            animation-timeline: --of-rev;
-          }
-          @keyframes of-word {
-            from {
-              opacity: 0.14;
-            }
-            to {
-              opacity: 1;
             }
           }
         }
@@ -527,6 +787,7 @@
       .rp-controls input[type="range"] {
         accent-color: #48a6ee;
         width: 180px;
+        height: 44px;
       }
       .rp-controls input[type="range"]:focus-visible {
         outline: 2px solid #48a6ee;
@@ -534,7 +795,7 @@
       }
       .rp-clock {
         font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 26px;
+        font-size: 28px;
         color: #edeb3c;
         min-width: 64px;
         text-align: right;
@@ -547,6 +808,20 @@
       }
       .rp-scroll {
         overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-color: #45434c transparent;
+      }
+      .rp-hint {
+        display: none;
+        margin: -8px 0 0;
+        font-size: 14px;
+        line-height: 20px;
+        color: #a8a6af;
+      }
+      @media (max-width: 639px) {
+        .rp-hint {
+          display: block;
+        }
       }
       .rp-scroll svg {
         display: block;
@@ -599,14 +874,14 @@
         display: block;
       }
       .rp-log li:first-child b {
-        color: #edeb3c;
+        color: #f4f4f6;
+        text-decoration: underline 2px #45434c;
+        text-underline-offset: 4px;
       }
       .rp-log li em {
         font-style: normal;
         display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
       }
       @keyframes rp-pop {
         from {
@@ -617,6 +892,16 @@
           opacity: 1;
           transform: none;
         }
+      }
+      .rp-cap {
+        margin: 0;
+        font-size: 14px;
+        line-height: 22px;
+        color: #a8a6af;
+      }
+      .rp-cap code {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        color: #f4f4f6;
       }
       .rp-legend {
         display: flex;
@@ -653,7 +938,7 @@
       @media (max-width: 639px) {
         .rp-fig {
           padding: 16px;
-          border-radius: 20px;
+          border-radius: 16px;
         }
         .rp-controls {
           width: 100%;
@@ -664,10 +949,10 @@
           min-width: 0;
         }
         .rp-clock {
-          font-size: 22px;
+          font-size: 24px;
         }
         .rp-title {
-          font-size: 11px;
+          font-size: 12px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -681,6 +966,11 @@
     </style>
   </head>
   <body>
+    <div
+      id="sr-announce"
+      aria-live="polite"
+      style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap"
+    ></div>
     <div
       id="of-root"
       style="
@@ -718,6 +1008,7 @@
             aria-label="OpenFleet home"
             style="
               display: flex;
+              min-height: 44px;
               align-items: center;
               gap: 10px;
               text-decoration: none;
@@ -836,7 +1127,7 @@
                   href="how-it-works.html"
                   style="
                     padding: 12px 14px;
-                    border-radius: 10px;
+                    border-radius: 8px;
                     text-decoration: none;
                     color: #a8a6af;
                     font-weight: 600;
@@ -847,7 +1138,7 @@
                   href="#features"
                   style="
                     padding: 12px 14px;
-                    border-radius: 10px;
+                    border-radius: 8px;
                     text-decoration: none;
                     color: #a8a6af;
                     font-weight: 600;
@@ -858,7 +1149,7 @@
                   href="#quickstart"
                   style="
                     padding: 12px 14px;
-                    border-radius: 10px;
+                    border-radius: 8px;
                     text-decoration: none;
                     color: #a8a6af;
                     font-weight: 600;
@@ -869,7 +1160,7 @@
                   href="#commands"
                   style="
                     padding: 12px 14px;
-                    border-radius: 10px;
+                    border-radius: 8px;
                     text-decoration: none;
                     color: #a8a6af;
                     font-weight: 600;
@@ -880,7 +1171,7 @@
                   href="#extensions"
                   style="
                     padding: 12px 14px;
-                    border-radius: 10px;
+                    border-radius: 8px;
                     text-decoration: none;
                     color: #a8a6af;
                     font-weight: 600;
@@ -1116,10 +1407,10 @@
                   "
                 >
                   <span aria-hidden="true" style="display: flex; gap: 3px"
-                    ><span style="width: 6px; height: 14px; border-radius: 2px; background: #48a6ee"></span
-                    ><span style="width: 6px; height: 14px; border-radius: 2px; background: #ee5ad6"></span
-                    ><span style="width: 6px; height: 14px; border-radius: 2px; background: #edeb3c"></span></span
-                  >Run it in a new, empty folder. Open source, MIT licensed.
+                    ><span style="width: 6px; height: 14px; border-radius: 3px; background: #48a6ee"></span
+                    ><span style="width: 6px; height: 14px; border-radius: 3px; background: #ee5ad6"></span
+                    ><span style="width: 6px; height: 14px; border-radius: 3px; background: #edeb3c"></span></span
+                  >Run it in a new, empty folder. Early release · open source · MIT.
                 </p>
               </div>
             </div>
@@ -1154,19 +1445,19 @@
                     letter-spacing: 0.06em;
                     color: #edeb3c;
                   "
-                  >EXAMPLE RUN</span
+                  >ILLUSTRATIVE RUN</span
                 >
                 <span style="display: flex; align-items: center; gap: 10px">
                   <span
                     style="
                       font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 15px;
+                      font-size: 14px;
                       color: #eef0f2;
                       padding-right: 16px;
                       white-space: nowrap;
                     "
                     ><span class="of-slug">account-id · </span
-                    ><span style="color: #edeb3c"><span id="of-done">1</span>/7</span> done</span
+                    ><span style="color: #edeb3c"><span id="of-done">2</span>/7</span> done</span
                   >
                   <button
                     id="of-replay"
@@ -1182,11 +1473,11 @@
                       padding: 0 14px;
                       border: 0;
                       border-radius: 999px;
-                      background: #3a2c28;
+                      background: #2e2d35;
                       color: #eef0f2;
                       cursor: pointer;
                       font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                      font-size: 11px;
+                      font-size: 12px;
                       letter-spacing: 0.06em;
                     "
                   >
@@ -1226,7 +1517,9 @@
                     color: #5f5754;
                   "
                 >
-                  Plan · Implement · Test
+                  <span class="of-lg"><i style="background: #48a6ee"></i>Plan</span
+                  ><span class="of-lg"><i style="background: #ee5ad6"></i>Implement</span
+                  ><span class="of-lg"><i style="background: #edeb3c"></i>Test</span>
                 </div>
                 <ul
                   id="of-rows"
@@ -1258,7 +1551,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1268,7 +1561,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1278,7 +1571,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
@@ -1291,10 +1584,11 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #2b1e1b;
-                        color: #edeb3c;
+                        box-shadow: inset 0 0 0 2px #2b1e1b;
+                        background: #eef0f2;
+                        color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1303,7 +1597,7 @@
                         height="11"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke="#EDEB3C"
+                        stroke="#2B1E1B"
                         stroke-width="3.5"
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -1348,7 +1642,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1358,18 +1652,18 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
                       ><span
-                        class="of-sg of-cur"
+                        class="of-sg"
                         style="
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
-                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                          background: #edeb3c;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1381,14 +1675,27 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        box-shadow: inset 0 0 0 2px #2b1e1b;
+                        background: #eef0f2;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >TEST<span
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#2B1E1B"
+                        stroke-width="3.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12.5l4.5 4.5L19 7.5"></path></svg
+                      >DONE<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1397,7 +1704,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: testing</span
+                        >: plan, implement and test complete</span
                       ></span
                     >
                   </li>
@@ -1426,7 +1733,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1436,7 +1743,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1446,7 +1753,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span></span
@@ -1462,7 +1769,7 @@
                         background: #fff1cc;
                         color: #8a5300;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1517,7 +1824,17 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1527,18 +1844,8 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #edeb3c;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span></span
                     ><span
@@ -1550,14 +1857,14 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
-                      >IMPLEMENT<span
+                      >TEST<span
                         style="
                           position: absolute;
                           width: 1px;
@@ -1566,7 +1873,7 @@
                           clip: rect(0 0 0 0);
                           white-space: nowrap;
                         "
-                        >: implementing</span
+                        >: testing</span
                       ></span
                     >
                   </li>
@@ -1595,7 +1902,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #2b1e1b;
+                          background: #48a6ee;
                           box-shadow: inset 0 0 0 0px #2b1e1b;
                         "
                       ></span
@@ -1605,7 +1912,7 @@
                           flex: 1;
                           height: 10px;
                           border-radius: 3px;
-                          background: #48a6ee;
+                          background: #ee5ad6;
                           box-shadow: inset 0 0 0 2px #2b1e1b;
                         "
                       ></span
@@ -1628,10 +1935,10 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1668,6 +1975,76 @@
                       >web/ui</span
                     ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
                       ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #48a6ee;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg of-cur"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #ee5ad6;
+                          box-shadow: inset 0 0 0 2px #2b1e1b;
+                        "
+                      ></span
+                      ><span
+                        class="of-sg"
+                        style="
+                          flex: 1;
+                          height: 10px;
+                          border-radius: 3px;
+                          background: #dfe2e6;
+                          box-shadow: inset 0 0 0 0px #2b1e1b;
+                        "
+                      ></span></span
+                    ><span
+                      class="of-st"
+                      style="
+                        margin-left: auto;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 4px 9px;
+                        border-radius: 8px;
+                        background: #dfe2e6;
+                        color: #2b1e1b;
+                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                        font-size: 12px;
+                        letter-spacing: 0.04em;
+                        white-space: nowrap;
+                      "
+                      >IMPLEMENT<span
+                        style="
+                          position: absolute;
+                          width: 1px;
+                          height: 1px;
+                          overflow: hidden;
+                          clip: rect(0 0 0 0);
+                          white-space: nowrap;
+                        "
+                        >: implementing</span
+                      ></span
+                    >
+                  </li>
+                  <li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 0">
+                    <span
+                      class="of-rname"
+                      style="
+                        width: 92px;
+                        flex: none;
+                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
+                        font-size: 17px;
+                      "
+                      >mobile</span
+                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
+                      ><span
                         class="of-sg of-cur"
                         style="
                           flex: 1;
@@ -1706,10 +2083,10 @@
                         gap: 5px;
                         padding: 4px 9px;
                         border-radius: 8px;
-                        background: #48a6ee;
+                        background: #dfe2e6;
                         color: #2b1e1b;
                         font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
+                        font-size: 12px;
                         letter-spacing: 0.04em;
                         white-space: nowrap;
                       "
@@ -1723,76 +2100,6 @@
                           white-space: nowrap;
                         "
                         >: planning</span
-                      ></span
-                    >
-                  </li>
-                  <li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 0">
-                    <span
-                      class="of-rname"
-                      style="
-                        width: 92px;
-                        flex: none;
-                        font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                        font-size: 17px;
-                      "
-                      >mobile</span
-                    ><span class="of-seg" aria-hidden="true" style="display: flex; gap: 3px; width: 84px; flex: none"
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span
-                      ><span
-                        class="of-sg"
-                        style="
-                          flex: 1;
-                          height: 10px;
-                          border-radius: 3px;
-                          background: #dfe2e6;
-                          box-shadow: inset 0 0 0 0px #2b1e1b;
-                        "
-                      ></span></span
-                    ><span
-                      class="of-st"
-                      style="
-                        margin-left: auto;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 5px;
-                        padding: 4px 9px;
-                        border-radius: 8px;
-                        background: #dfe2e6;
-                        color: #5f5754;
-                        font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                        font-size: 11px;
-                        letter-spacing: 0.04em;
-                        white-space: nowrap;
-                      "
-                      >AFTER SDK-JS<span
-                        style="
-                          position: absolute;
-                          width: 1px;
-                          height: 1px;
-                          overflow: hidden;
-                          clip: rect(0 0 0 0);
-                          white-space: nowrap;
-                        "
-                        >: blocked until sdk-js finishes</span
                       ></span
                     >
                   </li>
@@ -1817,11 +2124,11 @@
                 >
                   <div aria-hidden="true" style="color: #a8a6af">events.jsonl</div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #48a6ee">contract.changed</span
+                    <span style="color: #f4f4f6">contract.changed</span
                     ><span style="min-width: 0; overflow-wrap: anywhere">contracts/account.json → 5 repos</span>
                   </div>
                   <div class="of-evt" style="display: flex; gap: 10px; flex-wrap: wrap">
-                    <span style="color: #edeb3c">assumption</span
+                    <span style="color: #f4f4f6">assumption</span
                     ><span style="min-width: 0; overflow-wrap: anywhere"
                       >sdk-python keeps user_id as a deprecated alias</span
                     >
@@ -1832,93 +2139,100 @@
           </div>
         </section>
 
-        <div aria-hidden="true" style="overflow: hidden; display: flex; flex-direction: column">
-          <div style="background: #48a6ee; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i></span
-              ><span
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-                >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
-                  class="of-sep"
-                ></i
-              ></span>
+        <div class="of-mq-wrap">
+          <div class="of-mq" aria-hidden="true" style="overflow: hidden; display: flex; flex-direction: column">
+            <div style="background: #48a6ee; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i></span
+                ><span
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                  >SPEC<i class="of-sep"></i>PLAN<i class="of-sep"></i>IMPLEMENT<i class="of-sep"></i>TEST<i
+                    class="of-sep"
+                  ></i
+                ></span>
+              </div>
+            </div>
+            <div style="background: #ee5ad6; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track of-rev"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
+                  REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE
+                  CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i></span
+                ><span
+                  >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
+                  REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE
+                  CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i
+                ></span>
+              </div>
+            </div>
+            <div style="background: #edeb3c; overflow: hidden; height: 40px; display: flex; align-items: center">
+              <div
+                class="of-track"
+                style="
+                  font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
+                  font-size: 18px;
+                  letter-spacing: 0.04em;
+                  color: #2b1e1b;
+                  white-space: nowrap;
+                "
+              >
+                <span
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
+                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                    class="of-sep"
+                  ></i
+                  >DRAFT PRS<i class="of-sep"></i></span
+                ><span
+                  >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
+                  PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
+                    class="of-sep"
+                  ></i
+                  >DRAFT PRS<i class="of-sep"></i
+                ></span>
+              </div>
             </div>
           </div>
-          <div style="background: #ee5ad6; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track of-rev"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i></span
-              ><span
-                >ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY
-                REPOS<i class="of-sep"></i>ONE CHANGE<i class="of-sep"></i>MANY REPOS<i class="of-sep"></i>ONE CHANGE<i
-                  class="of-sep"
-                ></i
-                >MANY REPOS<i class="of-sep"></i
-              ></span>
-            </div>
-          </div>
-          <div style="background: #edeb3c; overflow: hidden; height: 40px; display: flex; align-items: center">
-            <div
-              class="of-track"
-              style="
-                font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 18px;
-                letter-spacing: 0.04em;
-                color: #2b1e1b;
-                white-space: nowrap;
-              "
-            >
-              <span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
-                  class="of-sep"
-                ></i
-                >DRAFT PRS<i class="of-sep"></i></span
-              ><span
-                >WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i class="of-sep"></i>DRAFT
-                PRS<i class="of-sep"></i>WORKTREES<i class="of-sep"></i>CONTRACTS<i class="of-sep"></i>EVENT LOG<i
-                  class="of-sep"
-                ></i
-                >DRAFT PRS<i class="of-sep"></i
-              ></span>
-            </div>
-          </div>
+          <button class="of-mq-toggle" type="button" aria-pressed="false" aria-label="Pause the scrolling banner">
+            <svg class="i-pause" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+              <rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" />
+            </svg>
+            <svg class="i-play" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4 2.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 4 2.5Z" fill="currentColor" />
+            </svg>
+          </button>
         </div>
 
         <section id="run" aria-labelledby="run-h" class="rp-sec">
@@ -1934,18 +2248,24 @@
             </div>
           </div>
           <figure class="rp-fig" id="rp-fig">
+            <noscript
+              ><p class="rp-cap">
+                The run diagram needs JavaScript, which is turned off. The caption below and the How it works page tell
+                the same story in text.
+              </p></noscript
+            >
             <div class="rp-head">
               <span class="rp-title"
-                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>EXAMPLE RUN · ACCOUNT-ID ·
-                ILLUSTRATIVE TIMINGS</span
+                ><span class="rp-dots" aria-hidden="true"><i></i><i></i><i></i></span>ILLUSTRATIVE RUN ·
+                ACCOUNT-ID</span
               >
               <div class="rp-controls">
                 <button class="rp-btn" type="button" id="rp-play">↺ REPLAY</button
                 ><input
                   type="range"
                   min="0"
-                  max="1000"
-                  value="1000"
+                  max="280"
+                  value="280"
                   id="rp-scrub"
                   aria-label="Scrub the example run"
                 /><span class="rp-clock" id="rp-clock">4:40</span>
@@ -1960,6 +2280,7 @@
                   aria-label="Swimlane of the example run: the project bar on top, then one lane per repo showing plan, implement and test. mobile waits for sdk-js; sdk-python fails a test once and retries."
                 ></svg>
               </div>
+              <p class="rp-hint" aria-hidden="true">Swipe sideways to see the whole run →</p>
               <div class="rp-log">
                 <h3>LATEST EVENTS</h3>
                 <ol id="rp-log"></ol>
@@ -1970,8 +2291,13 @@
               ><span><i style="background: #ee5ad6"></i>Implement</span
               ><span><i style="background: #edeb3c"></i>Test</span
               ><span><i style="background: #fff1cc; box-shadow: inset 0 0 0 2px #8a5300"></i>Failed test</span
-              ><span><i class="rp-dash"></i>Waiting on another repo</span>
+              ><span><i class="rp-dash"></i>Waiting on another repo</span
+              ><span><i style="border: 2px dashed #f4f4f6; background: none"></i>You</span>
             </div>
+            <p class="rp-cap">
+              Mocked run: the timings are made up, but every event type is one OpenFleet really logs. Replay a real run
+              with <code>pnpm demo</code>, or <a href="how-it-works.html">see this run event by event</a>.
+            </p>
           </figure>
         </section>
 
@@ -2007,7 +2333,7 @@
                 margin: 0;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                 font-weight: 400;
-                font-size: clamp(32px, 4.4vw, 54px);
+                font-size: clamp(32px, 4.6vw, 56px);
                 line-height: 1.03;
                 color: #f4f4f6;
               "
@@ -2060,9 +2386,10 @@
                   >1</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #48a6ee;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2075,8 +2402,8 @@
                   margin: 0;
                   font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                   font-weight: 400;
-                  font-size: 30px;
-                  line-height: 34px;
+                  font-size: 34px;
+                  line-height: 40px;
                 "
               >
                 Grill
@@ -2117,9 +2444,10 @@
                   >2</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #48a6ee;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2132,8 +2460,8 @@
                   margin: 0;
                   font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                   font-weight: 400;
-                  font-size: 30px;
-                  line-height: 34px;
+                  font-size: 34px;
+                  line-height: 40px;
                 "
               >
                 Spec
@@ -2177,7 +2505,8 @@
                   style="
                     padding: 4px 10px;
                     border-radius: 8px;
-                    background: #edeb3c;
+                    background: #dfe2e6;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2190,8 +2519,8 @@
                   margin: 0;
                   font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                   font-weight: 400;
-                  font-size: 30px;
-                  line-height: 34px;
+                  font-size: 34px;
+                  line-height: 40px;
                 "
               >
                 Plan, build, test
@@ -2230,10 +2559,10 @@
                   >4</span
                 ><span
                   style="
-                    padding: 4px 10px;
+                    padding: 2px 8px;
                     border-radius: 8px;
-                    background: #2b1e1b;
-                    color: #edeb3c;
+                    border: 2px dashed #2b1e1b;
+                    color: #2b1e1b;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-size: 12px;
                     letter-spacing: 0.06em;
@@ -2246,8 +2575,8 @@
                   margin: 0;
                   font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                   font-weight: 400;
-                  font-size: 30px;
-                  line-height: 34px;
+                  font-size: 34px;
+                  line-height: 40px;
                 "
               >
                 Finish
@@ -2315,8 +2644,8 @@
                     margin: 0;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-weight: 400;
-                    font-size: 30px;
-                    line-height: 34px;
+                    font-size: 34px;
+                    line-height: 40px;
                   "
                 >
                   A worktree and branch for every repo.
@@ -2382,7 +2711,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2420,7 +2749,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2458,7 +2787,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2496,7 +2825,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2534,7 +2863,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2572,7 +2901,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2610,7 +2939,7 @@
                       ><span
                         style="
                           font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                          font-size: 15px;
+                          font-size: 14px;
                           line-height: 22px;
                           color: #1632e6;
                           overflow-wrap: anywhere;
@@ -2646,8 +2975,8 @@
                     margin: 0;
                     font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                     font-weight: 400;
-                    font-size: 26px;
-                    line-height: 30px;
+                    font-size: 28px;
+                    line-height: 32px;
                   "
                 >
                   Shared contracts keep repos in step.
@@ -2666,7 +2995,7 @@
                   background: #2b1e1b;
                   color: #edeb3c;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                  font-size: 26px;
+                  font-size: 24px;
                 "
                 >contracts/</code
               >
@@ -2700,8 +3029,8 @@
                   transform-origin: left top;
                 "
               >{"seq": 7,
- "actor": <span style="color: #EDEB3C;">"api/implementer"</span>,
- "type": <span style="color: #48A6EE;">"file.edited"</span>}</pre>
+ "actor": <span style="color: #EE5AD6;">"api/implementer"</span>,
+ "type": <span style="color: #F4F4F6;">"file.edited"</span>}</pre>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3
                   style="
@@ -2714,7 +3043,7 @@
                 >
                   Every action on the record.
                 </h3>
-                <p style="margin: 0; font-size: 15px; line-height: 22px; color: #a8a6af">
+                <p style="margin: 0; font-size: 14px; line-height: 22px; color: #a8a6af">
                   An append-only
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                     >events.jsonl</code
@@ -2767,7 +3096,7 @@
                 >
                   Pick up where it stopped.
                 </h3>
-                <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600">
+                <p style="margin: 0; font-size: 14px; line-height: 22px; font-weight: 600">
                   A failed repo doesn’t stop the run. State lives in
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">state.json</code>, so
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace"
@@ -2780,80 +3109,40 @@
           </div>
         </section>
 
-        <section
-          aria-label="The idea behind OpenFleet"
-          style="max-width: 1200px; margin: 0 auto; padding: clamp(112px, 13vw, 176px) 24px 0; box-sizing: border-box"
-        >
-          <p
-            class="of-reveal"
-            style="
-              margin: 0;
-              max-width: 1040px;
-              font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-              font-size: clamp(28px, 3.8vw, 50px);
-              line-height: 1.18;
-              letter-spacing: -0.005em;
-              color: #f4f4f6;
-            "
-          >
-            <span
-              style="
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                overflow: hidden;
-                clip: rect(0 0 0 0);
-                white-space: nowrap;
-              "
-              >Write one prompt. OpenFleet turns it into a spec with you, then runs a coordinated fleet of agents that
-              plan, build and test the change in every repo at once. No new runtime: it is built from the agent
-              primitives you already use.</span
-            ><span aria-hidden="true"
-              ><span class="of-w" style="animation-range: cover 8% cover 17%; color: #48a6ee">Write</span>
-              <span class="of-w" style="animation-range: cover 9.2% cover 18.2%; color: #48a6ee">one</span>
-              <span class="of-w" style="animation-range: cover 10.4% cover 19.4%; color: #48a6ee">prompt.</span>
-              <span class="of-w" style="animation-range: cover 11.6% cover 20.6%">OpenFleet</span>
-              <span class="of-w" style="animation-range: cover 12.8% cover 21.8%">turns</span>
-              <span class="of-w" style="animation-range: cover 14% cover 23%">it</span>
-              <span class="of-w" style="animation-range: cover 15.3% cover 24.3%">into</span>
-              <span class="of-w" style="animation-range: cover 16.5% cover 25.5%">a</span>
-              <span class="of-w" style="animation-range: cover 17.7% cover 26.7%">spec</span>
-              <span class="of-w" style="animation-range: cover 18.9% cover 27.9%">with</span>
-              <span class="of-w" style="animation-range: cover 20.1% cover 29.1%">you,</span>
-              <span class="of-w" style="animation-range: cover 21.3% cover 30.3%">then</span>
-              <span class="of-w" style="animation-range: cover 22.5% cover 31.5%">runs</span>
-              <span class="of-w" style="animation-range: cover 23.7% cover 32.7%">a</span>
-              <span class="of-w" style="animation-range: cover 24.9% cover 33.9%; color: #48a6ee">coordinated</span>
-              <span class="of-w" style="animation-range: cover 26.1% cover 35.1%; color: #48a6ee">fleet</span>
-              <span class="of-w" style="animation-range: cover 27.3% cover 36.3%; color: #48a6ee">of</span>
-              <span class="of-w" style="animation-range: cover 28.6% cover 37.6%; color: #48a6ee">agents</span>
-              <span class="of-w" style="animation-range: cover 29.8% cover 38.8%">that</span>
-              <span class="of-w" style="animation-range: cover 31% cover 40%">plan,</span>
-              <span class="of-w" style="animation-range: cover 32.2% cover 41.2%">build</span>
-              <span class="of-w" style="animation-range: cover 33.4% cover 42.4%">and</span>
-              <span class="of-w" style="animation-range: cover 34.6% cover 43.6%">test</span>
-              <span class="of-w" style="animation-range: cover 35.8% cover 44.8%">the</span>
-              <span class="of-w" style="animation-range: cover 37% cover 46%">change</span>
-              <span class="of-w" style="animation-range: cover 38.2% cover 47.2%">in</span>
-              <span class="of-w" style="animation-range: cover 39.4% cover 48.4%">every</span>
-              <span class="of-w" style="animation-range: cover 40.7% cover 49.7%">repo</span>
-              <span class="of-w" style="animation-range: cover 41.9% cover 50.9%">at</span>
-              <span class="of-w" style="animation-range: cover 43.1% cover 52.1%">once.</span>
-              <span class="of-w" style="animation-range: cover 44.3% cover 53.3%">No</span>
-              <span class="of-w" style="animation-range: cover 45.5% cover 54.5%">new</span>
-              <span class="of-w" style="animation-range: cover 46.7% cover 55.7%">runtime:</span>
-              <span class="of-w" style="animation-range: cover 47.9% cover 56.9%">it</span>
-              <span class="of-w" style="animation-range: cover 49.1% cover 58.1%">is</span>
-              <span class="of-w" style="animation-range: cover 50.3% cover 59.3%">built</span>
-              <span class="of-w" style="animation-range: cover 51.5% cover 60.5%">from</span>
-              <span class="of-w" style="animation-range: cover 52.7% cover 61.7%">the</span>
-              <span class="of-w" style="animation-range: cover 54% cover 63%">agent</span>
-              <span class="of-w" style="animation-range: cover 55.2% cover 64.2%">primitives</span>
-              <span class="of-w" style="animation-range: cover 56.4% cover 65.4%">you</span>
-              <span class="of-w" style="animation-range: cover 57.6% cover 66.6%">already</span>
-              <span class="of-w" style="animation-range: cover 58.8% cover 67.8%">use.</span></span
-            >
-          </p>
+        <section class="of-fail" aria-labelledby="fail-h">
+          <div class="of-fail-copy">
+            <p class="of-fail-kick">ILLUSTRATIVE RUN · 2:49 → 3:42</p>
+            <h2 id="fail-h">A test failed. The run kept going.</h2>
+            <p>
+              sdk-python’s first tester found callers still reading <code>.user_id</code>. The coordinator sent the repo
+              back with the findings, made the one call the spec didn’t cover, and logged it for you to confirm. The
+              other six repos never stopped.
+            </p>
+            <a class="of-fail-link" href="how-it-works.html">See how the run handled it</a>
+          </div>
+          <ol class="of-fail-log" aria-label="Events from the illustrative run">
+            <li class="of-fl">
+              <span class="of-fl-t">2:49</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
+              ><span class="of-fl-d">pytest 22/23</span><span class="of-fl-tag of-fl-bad">1 FAILING</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">2:53</span><span class="of-fl-e"><b>phase.changed</b> sdk-python</span
+              ><span class="of-fl-d">testing → implementing</span><span class="of-fl-tag">RETRY 1/3</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">2:54</span><span class="of-fl-e"><b>agent.spawned</b> sdk-python/implementer</span
+              ><span class="of-fl-d">with the tester’s findings</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">2:56</span><span class="of-fl-e"><b>assumption</b> coordinator</span
+              ><span class="of-fl-d">keep user_id as a deprecated alias</span
+              ><span class="of-fl-tag of-fl-you">FOR YOU</span>
+            </li>
+            <li class="of-fl">
+              <span class="of-fl-t">3:39</span><span class="of-fl-e"><b>test.run</b> sdk-python/tester</span
+              ><span class="of-fl-d">pytest 24/24</span><span class="of-fl-tag of-fl-ok">PASS</span>
+            </li>
+          </ol>
         </section>
 
         <section
@@ -2906,7 +3195,7 @@
                       width: 38%;
                       font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                       font-weight: 400;
-                      font-size: 15px;
+                      font-size: 14px;
                       letter-spacing: 0.04em;
                       color: #5f5754;
                     "
@@ -2920,7 +3209,7 @@
                       padding: 20px 0 14px 0;
                       font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                       font-weight: 400;
-                      font-size: 15px;
+                      font-size: 14px;
                       letter-spacing: 0.04em;
                     "
                   >
@@ -3014,7 +3303,7 @@
                 margin: 0;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                 font-weight: 400;
-                font-size: clamp(32px, 4vw, 48px);
+                font-size: clamp(32px, 4.6vw, 56px);
                 line-height: 1.04;
                 color: #f4f4f6;
               "
@@ -3022,7 +3311,10 @@
               Three commands to your first fleet.
             </h2>
             <p style="margin: 0; font-size: 18px; line-height: 28px; color: #a8a6af">
-              You need Node.js 20+, git and a signed-in coding agent CLI. Add
+              You need Node.js 20+, git and a signed-in coding agent CLI (<a
+                href="https://github.com/yashicon21/openfleet#quick-start"
+                >see which ones work today</a
+              >). Add
               <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">gh</code>
               if you want draft PRs. To try it on a toy example first, run
               <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
@@ -3055,13 +3347,13 @@
                 <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
               </svg>
               <p style="margin: 0; font-size: 16px; line-height: 25px; color: #a8a6af">
-                <strong style="color: #f4f4f6; font-weight: 600">Know what it can touch.</strong> Tools are
-                auto-approved, but file access stays limited to the workspace and your repos, and URLs still prompt.
-                Pass
+                <strong style="color: #f4f4f6; font-weight: 600">Know what it can touch.</strong> File access stays
+                limited to the workspace and the repos you list, and every URL still prompts. Inside those limits, tools
+                run without asking. Pass
                 <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
                   >--ask</code
                 >
-                for per-tool prompts.
+                to be asked before every tool.
               </p>
             </div>
           </div>
@@ -3099,26 +3391,52 @@
                 >~/my-fleet</span
               >
             </div>
-            <pre
-              class="of-term"
-              style="
-                margin: 0;
-                padding: 24px 28px 28px;
-                white-space: pre-wrap;
-                overflow-wrap: anywhere;
-                font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                font-size: 17px;
-                line-height: 28px;
-                color: #2b1e1b;
-              "
-            ><span style="color: #5F5754;"># 1. make a workspace</span>
-mkdir my-fleet &amp;&amp; cd my-fleet
-
-<span style="color: #5F5754;"># 2. install OpenFleet into it</span>
-npm create @openfleet-tools@latest
-
-<span style="color: #5F5754;"># 3. describe the change</span>
-npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <span style="white-space: nowrap;">account_id</span> everywhere"</span></pre>
+            <ol class="of-term of-qs-list">
+              <li class="of-qs">
+                <span class="of-qs-c"># 1. make a workspace</span>
+                <div class="of-qs-row">
+                  <code>mkdir my-fleet &amp;&amp; cd my-fleet</code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy="mkdir my-fleet && cd my-fleet"
+                    aria-label="Copy step 1: make a workspace"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+              <li class="of-qs">
+                <span class="of-qs-c"># 2. install OpenFleet into it</span>
+                <div class="of-qs-row">
+                  <code>npm create @openfleet-tools@latest</code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy="npm create @openfleet-tools@latest"
+                    aria-label="Copy step 2: install OpenFleet into it"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+              <li class="of-qs">
+                <span class="of-qs-c"># 3. describe the change</span>
+                <div class="of-qs-row">
+                  <code
+                    >npx openfleet new account-id
+                    <span class="of-qs-s">"Rename user_id to account_id everywhere"</span></code
+                  ><button
+                    class="of-qs-copy"
+                    type="button"
+                    data-copy='npx openfleet new account-id "Rename user_id to account_id everywhere"'
+                    aria-label="Copy step 3: describe the change"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </li>
+            </ol>
           </div>
         </section>
 
@@ -3141,7 +3459,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               margin: 0;
               font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
               font-weight: 400;
-              font-size: clamp(30px, 4vw, 48px);
+              font-size: clamp(32px, 4.6vw, 56px);
               line-height: 1.04;
               color: #f4f4f6;
             "
@@ -3192,89 +3510,12 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                       font-size: 18px;
                       color: #1632e6;
                     "
-                    ><span style="color: #5f5754">npx</span> openfleet resume &lt;name&gt;
-                    <span style="white-space: nowrap">[--fresh]</span></code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Continue a project, optionally in a new agent session
-                </dd>
-              </div>
-              <div
-                class="of-cmd"
-                style="
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 4px 24px;
-                  align-items: baseline;
-                  padding: 18px 0;
-                  border-bottom: 2px solid #dfe2e6;
-                "
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
                     ><span style="color: #5f5754">npx</span> openfleet status [name]
                     <span style="white-space: nowrap">[--json]</span></code
                   >
                 </dt>
                 <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
                   Each repo’s phase, retries and open questions
-                </dd>
-              </div>
-              <div
-                class="of-cmd"
-                style="
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 4px 24px;
-                  align-items: baseline;
-                  padding: 18px 0;
-                  border-bottom: 2px solid #dfe2e6;
-                "
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
-                    ><span style="color: #5f5754">npx</span> openfleet clean &lt;name&gt;
-                    <span style="white-space: nowrap">[--branches]</span></code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Remove the project’s worktrees, and branches if you ask
-                </dd>
-              </div>
-              <div
-                class="of-cmd"
-                style="
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 4px 24px;
-                  align-items: baseline;
-                  padding: 18px 0;
-                  border-bottom: 2px solid #dfe2e6;
-                "
-              >
-                <dt style="flex: 1 1 360px; min-width: 0">
-                  <code
-                    style="
-                      font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
-                      font-size: 18px;
-                      color: #1632e6;
-                    "
-                    ><span style="color: #5f5754">npx</span> openfleet add &lt;git-url|path&gt;</code
-                  >
-                </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
-                  Install or update an extension and print its permissions
                 </dd>
               </div>
               <div
@@ -3288,15 +3529,23 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                       font-size: 18px;
                       color: #1632e6;
                     "
-                    ><span style="color: #5f5754">npx</span> openfleet update</code
+                    ><span style="color: #5f5754">npx</span> openfleet resume &lt;name&gt;
+                    <span style="white-space: nowrap">[--fresh]</span></code
                   >
                 </dt>
-                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">Replace core with the installed CLI version</dd>
+                <dd style="flex: 1 1 280px; margin: 0; color: #5f5754">
+                  Continue a project, optionally in a new agent session
+                </dd>
               </div>
             </dl>
           </div>
           <p style="margin: -16px 0 0; font-size: 16px; line-height: 25px; color: #a8a6af">
             Also
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">clean</code
+            >,
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">add</code>,
+            <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">update</code
+            >,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">init</code>,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6">list</code>,
             <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace; color: #f4f4f6"
@@ -3342,7 +3591,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 max-width: 640px;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
                 font-weight: 400;
-                font-size: clamp(32px, 4.4vw, 54px);
+                font-size: clamp(32px, 4.6vw, 56px);
                 line-height: 1.03;
                 color: #f4f4f6;
               "
@@ -3430,7 +3679,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     line-height: 22px;
                   "
                   >Before the spec is written</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
+                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
                   >Runs as its own agent, ahead of the coordinator writing
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">spec.md</code>.</span
                 >
@@ -3468,7 +3717,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     line-height: 22px;
                   "
                   >After each plan is approved</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
+                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
                   >Runs once the coordinator has validated a repo’s plan, before implementation.</span
                 >
               </div>
@@ -3505,7 +3754,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     line-height: 22px;
                   "
                   >After tests pass</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
+                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
                   >Runs for each repo whose build, tests and contract tests pass.</span
                 >
               </div>
@@ -3542,7 +3791,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                     line-height: 22px;
                   "
                   >When every repo is done</span
-                ><span style="font-size: 15px; line-height: 21px; font-weight: 600; max-width: 32ch"
+                ><span style="font-size: 14px; line-height: 21px; font-weight: 600; max-width: 32ch"
                   >For example, an audit that summarises a finished run from
                   <code style="font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace">events.jsonl</code
                   >.</span
@@ -3573,13 +3822,13 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               max-width: 1100px;
               font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
               font-weight: 400;
-              font-size: clamp(36px, 6.4vw, 88px);
+              font-size: clamp(44px, 8vw, 88px);
               line-height: 1.04;
               letter-spacing: -0.015em;
               color: #f4f4f6;
             "
           >
-            WRITE ONE PROMPT.<br />RUN IT ACROSS<span
+            Write one prompt.<br />Run it across<span
               style="
                 display: flex;
                 flex-wrap: wrap;
@@ -3598,7 +3847,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #48a6ee;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -3615,7 +3864,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #ee5ad6;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -3632,7 +3881,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   padding: 0 0.7em;
                   margin: 0;
                   border-radius: 999px;
-                  background: #edeb3c;
+                  background: #eef0f2;
                   color: #2b1e1b;
                   font-family: &quot;Share Tech Mono&quot;, ui-monospace, monospace;
                   font-size: 0.42em;
@@ -3698,7 +3947,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 color: #2b1e1b;
                 text-decoration: none;
                 font-family: &quot;Russo One&quot;, &quot;Arial Black&quot;, sans-serif;
-                font-size: 19px;
+                font-size: 18px;
                 letter-spacing: 0.02em;
               "
               >GET STARTED</a
@@ -3812,8 +4061,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         ];
         var EVENTS_AT_STEP = [0, 0, 1, 1, 2, 2, 2, 3];
         var EVENTS = [
-          { color: "#48A6EE", type: "contract.changed", text: "contracts/account.json → 5 repos" },
-          { color: "#EDEB3C", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
+          { color: "#F4F4F6", type: "contract.changed", text: "contracts/account.json → 5 repos" },
+          { color: "#F4F4F6", type: "assumption", text: "sdk-python keeps user_id as a deprecated alias" },
           { color: "#F4F4F6", type: "run.completed", text: "7 draft PRs opened, cross-linked" },
         ];
         var SR =
@@ -3821,18 +4070,19 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         var MONO = "font-family: 'Share Tech Mono', ui-monospace, monospace;";
         var DISP = "font-family: 'Russo One', 'Arial Black', sans-serif;";
         var TICK =
-          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#EDEB3C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2B1E1B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
         var RETRY =
           '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8A5300" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3-6.2"></path><path d="M20 4v5h-5"></path></svg>';
 
+        var ROLE_BG = ["#48A6EE", "#EE5AD6", "#EDEB3C"];
         function segment(p, k) {
           var bg = "#DFE2E6";
           var ring = "0px";
           var cls = "of-sg";
           if (p === 4 || p > k + 1) {
-            bg = "#2B1E1B";
+            bg = ROLE_BG[k];
           } else if (p === k + 1) {
-            bg = "#48A6EE";
+            bg = ROLE_BG[k];
             ring = "2px";
             cls = "of-sg of-cur";
           }
@@ -3860,8 +4110,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 done += 1;
                 label = "DONE";
                 sr = ": plan, implement and test complete";
-                bg = "#2B1E1B";
-                fg = "#EDEB3C";
+                bg = "#EEF0F2";
+                fg = "#2B1E1B";
                 icon = TICK;
               } else if (retry) {
                 label = "RETRY 1/3";
@@ -3877,10 +4127,11 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               } else {
                 label = ["", "PLAN", "IMPLEMENT", "TEST"][p];
                 sr = ["", ": planning", ": implementing", ": testing"][p];
-                bg = "#48A6EE";
+                bg = "#DFE2E6";
                 fg = "#2B1E1B";
               }
               var border = i === phases.length - 1 ? "0" : "2px solid #DFE2E6";
+              var chipEdge = p === 4 ? "box-shadow: inset 0 0 0 2px #2B1E1B; " : "";
               return (
                 '<li style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: ' +
                 border +
@@ -3892,13 +4143,15 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 segment(p, 0) +
                 segment(p, 1) +
                 segment(p, 2) +
-                '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; background: ' +
+                '</span><span class="of-st" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 8px; ' +
+                chipEdge +
+                "background: " +
                 bg +
                 "; color: " +
                 fg +
                 "; " +
                 DISP +
-                ' font-size: 11px; letter-spacing: 0.04em; white-space: nowrap;">' +
+                ' font-size: 12px; letter-spacing: 0.04em; white-space: nowrap;">' +
                 icon +
                 label +
                 '<span style="' +
@@ -3915,6 +4168,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         function eventsHtml(count) {
           return (
             '<div aria-hidden="true" style="color: #A8A6AF;">events.jsonl</div>' +
+            (count === 0 ? '<div style="color: #A8A6AF;">Waiting for the first coordinator event…</div>' : "") +
             EVENTS.slice(0, count)
               .map(function (ev) {
                 return (
@@ -3946,26 +4200,99 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           rows.innerHTML = r.html;
           doneCount.textContent = String(r.done);
           events.innerHTML = eventsHtml(EVENTS_AT_STEP[step]);
-          replay.hidden = step !== STEPS.length - 1;
+          var last = step === STEPS.length - 1;
+          if (last) playing = false;
+          replay.hidden = !last && !playing;
+          replayLabel.textContent = last ? "REPLAY" : "SKIP";
+          replay.setAttribute("aria-label", last ? "Replay the illustrative run" : "Skip to the end of the run");
         }
 
-        function play(lead) {
+        var playing = false;
+        var replayLabel = replay.querySelector(".of-rlabel");
+        var cursor = 0;
+        function runFrom(from, lead) {
           timers.forEach(clearTimeout);
           timers = [];
+          playing = true;
           root.classList.add("of-live");
-          show(0);
-          for (var i = 1; i < STEPS.length; i++) {
-            timers.push(setTimeout(show.bind(null, i), (lead || 0) + i * 1100));
+          cursor = from;
+          show(from);
+          for (var i = from + 1; i < STEPS.length; i++) {
+            timers.push(
+              setTimeout(
+                function (k) {
+                  cursor = k;
+                  show(k);
+                }.bind(null, i),
+                (lead || 0) + (i - from) * 1100,
+              ),
+            );
           }
+        }
+        function play(lead) {
+          runFrom(0, lead);
+        }
+        // Pause the hero run while it's off screen and pick up from the same step when it's back.
+        var held = false;
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) {
+              if (!e.isIntersecting && playing) {
+                timers.forEach(clearTimeout);
+                timers = [];
+                held = true;
+              } else if (e.isIntersecting && held) {
+                held = false;
+                runFrom(cursor, 300);
+              }
+            });
+          }).observe(rows);
         }
 
         replay.addEventListener("click", function () {
-          play(0);
+          if (playing) {
+            timers.forEach(clearTimeout);
+            timers = [];
+            show(STEPS.length - 1);
+          } else play(0);
         });
 
+        var live = document.getElementById("sr-announce");
+        function say(msg) {
+          live.textContent = "";
+          setTimeout(function () {
+            live.textContent = msg;
+          }, 50);
+        }
+        // Clipboard API first; fall back to a hidden textarea; say so if both fail.
+        function copyText(text, onDone) {
+          function ok() {
+            onDone();
+            say("Copied: " + text);
+          }
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            var done = false;
+            try {
+              done = document.execCommand("copy");
+            } catch (e) {
+              done = false;
+            }
+            document.body.removeChild(ta);
+            if (done) ok();
+            else say("Copy didn't work here. Select the command and copy it yourself: " + text);
+          }
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok, fallback);
+          else fallback();
+        }
         copyButton.addEventListener("click", function () {
-          if (!navigator.clipboard) return;
-          navigator.clipboard.writeText("npm create @openfleet-tools@latest").then(function () {
+          copyText("npm create @openfleet-tools@latest", function () {
             copyLabel.textContent = "COPIED";
             clearTimeout(copyTimer);
             copyTimer = setTimeout(function () {
@@ -3973,11 +4300,25 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
             }, 1800);
           });
         });
+        document.querySelectorAll(".of-qs-copy").forEach(function (btn) {
+          var t;
+          btn.addEventListener("click", function () {
+            copyText(btn.getAttribute("data-copy"), function () {
+              btn.textContent = "COPIED";
+              clearTimeout(t);
+              t = setTimeout(function () {
+                btn.textContent = "COPY";
+              }, 1800);
+            });
+          });
+        });
 
         root.classList.add("of-motion");
         var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!reduce && window.scrollY < window.innerHeight) {
           play(500);
+        } else {
+          show(4);
         }
       })();
       (function () {
@@ -4061,8 +4402,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           ["FINALIZE", 272, 280, "raised"],
         ];
         var MARKS = [
-          { t: 120, label: "contract.changed", color: "#48A6EE" },
-          { t: 176, label: "assumption", color: "#EDEB3C" },
+          { t: 120, label: "contract.changed", color: "#F4F4F6" },
+          { t: 176, label: "assumption", color: "#F4F4F6" },
         ];
         var END = 280;
         var COLORS = { p: "#48A6EE", i: "#EE5AD6", t: "#EDEB3C", f: "#FFF1CC" };
@@ -4116,9 +4457,9 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           bars = [];
           markEls = [];
           projEls = [];
-          var W = narrow ? 400 : 1000;
+          var W = narrow ? 640 : 1000;
           var X0 = narrow ? 4 : 120;
-          var X1 = narrow ? 396 : 990;
+          var X1 = narrow ? 632 : 990;
           var x = function (t) {
             return X0 + (t / END) * (X1 - X0);
           };
@@ -4147,20 +4488,27 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
               width: Math.max(2, w),
               height: 26,
               rx: 6,
-              fill: you ? "#EDEB3C" : "#26252C",
+              fill: you ? "none" : "#26252C",
+              stroke: you ? "#F4F4F6" : "none",
+              "stroke-width": you ? 2 : 0,
+              "stroke-dasharray": you ? "6 4" : "none",
             });
             projEls.push({ r: r, a: p[1] });
-            if (w > 70)
+            // Use the full label when it fits, a short one when it doesn't, nothing otherwise.
+            var plab = [p[0], p[0].split(" ")[0]].filter(function (l) {
+              return w > l.length * 8 + 16;
+            })[0];
+            if (plab && !you)
               el(
                 "text",
                 {
                   x: x(p[1]) + 8,
                   y: PY + 18,
-                  "font-size": narrow ? 11 : 12,
+                  "font-size": 12,
                   fill: "#A8A6AF",
                   style: "font-family: 'Russo One', sans-serif",
                 },
-                p[0],
+                plab,
               );
             if (you)
               el(
@@ -4168,8 +4516,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                 {
                   x: x(p[1]) + w / 2,
                   y: PY + 42,
-                  "font-size": 11,
-                  fill: "#EDEB3C",
+                  "font-size": 12,
+                  fill: "#F4F4F6",
                   "text-anchor": "middle",
                   style: "font-family: 'Russo One', sans-serif",
                 },
@@ -4213,11 +4561,20 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   "stroke-dasharray": "5 5",
                 });
                 bars.push({ kind: "w", node: line, a: s[1], b: s[2], x: x });
+                // The label sits on mobile's own dashed line, on a patch of panel colour.
+                var pad = el("rect", {
+                  x: x(s[1]) + 4,
+                  y: barY + barH / 2 - 9,
+                  width: 120,
+                  height: 18,
+                  fill: "#1C1B21",
+                });
+                bars.push({ kind: "label", node: pad, a: s[1] });
                 var lab = el(
                   "text",
                   {
                     x: x(s[1]) + 8,
-                    y: barY - 3,
+                    y: barY + barH / 2 + 4,
                     "font-size": 12,
                     fill: "#A8A6AF",
                     style: "font-family: 'Share Tech Mono', monospace",
@@ -4240,7 +4597,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
                   {
                     x: x(s[2]) - 4,
                     y: barY + barH / 2 + 4,
-                    "font-size": 11,
+                    "font-size": 12,
                     fill: "#8A5300",
                     "text-anchor": "end",
                     style: "font-family: 'Russo One', sans-serif",
@@ -4277,7 +4634,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           });
           var axisY = bottom + (narrow ? 45 : 30);
           el("line", { x1: X0, x2: X1, y1: axisY, y2: axisY, stroke: "#45434C", "stroke-width": 2 });
-          for (var s = 0; s <= END; s += narrow ? 120 : 60) {
+          for (var s = 0; s <= END; s += 60) {
             el("line", { x1: x(s), x2: x(s), y1: axisY, y2: axisY + 6, stroke: "#45434C", "stroke-width": 2 });
             el(
               "text",
@@ -4294,7 +4651,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           }
           head = el("line", { x1: x(END), x2: x(END), y1: PY - 4, y2: axisY, stroke: "#F4F4F6", "stroke-width": 2 });
           svg.setAttribute("viewBox", "0 0 " + W + " " + (axisY + 30));
-          svg.style.minWidth = narrow ? "0" : "720px";
+          svg.style.minWidth = narrow ? "640px" : "720px";
           dims = { x: x };
         }
 
@@ -4345,7 +4702,8 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         var DURATION_MS = 12000;
         function set(v) {
           t = Math.max(0, Math.min(END, v));
-          range.value = Math.round((t / END) * 1000);
+          range.value = String(Math.round(t));
+          range.setAttribute("aria-valuetext", fmt(t) + " of " + fmt(END));
           clock.textContent = fmt(t);
           frame(t);
         }
@@ -4363,21 +4721,32 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           }
           raf = requestAnimationFrame(tick);
         }
-        function play() {
-          if (reduce) {
-            set(END);
+        var stepTimer = 0;
+        // Reduced motion: the replay runs as eight still frames instead of continuous movement.
+        function stepTick() {
+          set(t + END / 8);
+          if (t >= END) {
+            playing = false;
             label();
             return;
           }
+          stepTimer = setTimeout(stepTick, 900);
+        }
+        function play() {
           if (t >= END) set(0);
           playing = true;
           label();
+          if (reduce) {
+            stepTimer = setTimeout(stepTick, 900);
+            return;
+          }
           last = performance.now();
           raf = requestAnimationFrame(tick);
         }
         function pause() {
           playing = false;
           cancelAnimationFrame(raf);
+          clearTimeout(stepTimer);
           label();
         }
         btn.addEventListener("click", function () {
@@ -4386,7 +4755,7 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
         });
         range.addEventListener("input", function () {
           pause();
-          set((range.value / 1000) * END);
+          set(Number(range.value));
           label();
         });
 
@@ -4399,20 +4768,49 @@ npx openfleet new account-id <span style="color: #1632E6;">"Rename user_id to <s
           frame(t);
         };
         if (narrowMq.addEventListener) narrowMq.addEventListener("change", onChange);
-        if (!reduce && "IntersectionObserver" in window) {
-          var io = new IntersectionObserver(
+        if ("IntersectionObserver" in window) {
+          var started = false;
+          new IntersectionObserver(
             function (entries) {
               entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                  io.disconnect();
+                // First arrival plays the run once (with motion allowed); leaving pauses it.
+                if (e.isIntersecting && !started && !reduce) {
+                  started = true;
                   play();
-                }
+                } else if (!e.isIntersecting && playing) pause();
               });
             },
             { threshold: 0.3 },
-          );
-          io.observe(fig);
+          ).observe(fig);
         }
+      })();
+    </script>
+    <script>
+      (function () {
+        var t = document.querySelector(".of-mq-toggle"),
+          m = document.querySelector(".of-mq");
+        if (!t || !m) return;
+        t.addEventListener("click", function () {
+          var paused = t.getAttribute("aria-pressed") !== "true";
+          t.setAttribute("aria-pressed", String(paused));
+          t.setAttribute("aria-label", paused ? "Play the scrolling banner" : "Pause the scrolling banner");
+          m.classList.toggle("paused", paused);
+        });
+      })();
+      // Mobile menu: close on Escape (returning focus to the toggle) and after following a link.
+      (function () {
+        var menu = document.querySelector(".of-menu");
+        if (!menu) return;
+        var toggle = menu.querySelector("summary");
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && menu.open) {
+            menu.open = false;
+            toggle.focus();
+          }
+        });
+        menu.addEventListener("click", function (e) {
+          if (e.target.closest("a")) menu.open = false;
+        });
       })();
     </script>
   </body>
