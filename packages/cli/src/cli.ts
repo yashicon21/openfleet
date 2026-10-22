@@ -17,9 +17,9 @@ export const HELP = `openfleet — coordinate one change across many repos with 
 Usage: npx openfleet <command> [options] [-- <host args>]
 
 Workspace
-  init                         Create openfleet/ in the current directory and install core
-  update                       Replace openfleet/core with this CLI version and re-sync extensions
-  config                       Show workspace settings (openfleet/config.json) as JSON
+  init                         Create the workspace in the current directory and install core
+  update                       Replace core with this CLI version and re-sync extensions
+  config                       Show workspace settings (openfleet.json) as JSON
   config set <key> <value>     Change a workspace setting: maxParallel (default 6) caps planners,
                                baseline testers, implementers and testers running at once, across all projects;
                                host (copilot | claude, default copilot) picks the agent host for new projects
@@ -50,7 +50,7 @@ Agent helpers (used by OpenFleet agents)
   ext settings [--unset]
                                List declared extension settings (JSON); --unset: only those not yet set
   ext settings set <ext> <key> <value>
-                               Write a workspace-level setting to openfleet/extensions.config.json
+                               Write a workspace-level setting to extensions.config.json
   preflight <project>          Check that git can write ref locks and worktrees in every repo (sandbox check)
   next <project> [--repo <repo>]
                                Print the next scheduling actions (plans first, then the gate)

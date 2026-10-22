@@ -23,7 +23,7 @@ export function cmdAdd(args: string[]): number {
   });
   for (const a of manifest.augments ?? []) out(`Augment: appended to the ${a.role} agent's instructions.`);
   const settings = Object.keys(manifest.settings ?? {});
-  if (settings.length) out(`Settings: ${settings.join(", ")} (override in openfleet/extensions.config.json).`);
+  if (settings.length) out(`Settings: ${settings.join(", ")} (override in extensions.config.json).`);
   out("Declared permissions:");
   out(describePermissions(manifest));
   const cmds = Object.keys(manifest.commands ?? {});

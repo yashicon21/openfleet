@@ -63,7 +63,7 @@ npx openfleet worktree <project> <child id> [--repo <repos.json key>] [--branch 
 
 `--repo` defaults to the child id's repo. `--branch` defaults to `openfleet/<project>` (the repo's integration branch for a grouped repo) and to `<integration branch>--<child slug>` for a child of a grouped repo, for example `openfleet/p--web-settings`.
 
-This command creates `openfleet/projects/<project>/worktrees/<child id>/` from the repo's local checkout (it clones `url` first if there is no local `path`). It also records `worktree`, `branch`, `baseSha` and `repoPath` on the child and logs `worktree.created`. If the worktree already exists, it is reused.
+This command creates `projects/<project>/worktrees/<child id>/` from the repo's local checkout (it clones `url` first if there is no local `path`). It also records `worktree`, `branch`, `baseSha` and `repoPath` on the child and logs `worktree.created`. If the worktree already exists, it is reused.
 
 Every run of the command also copies the repo's `copyFiles` from its main checkout into the worktree (refreshing older copies), records them as `copiedFiles`, and hides them from git: tracked files get `git update-index --skip-worktree`, untracked ones are added to the repo's `info/exclude`. Their contents are redacted from events and excluded from snapshots and patches. Missing files are reported as warnings.
 

@@ -174,7 +174,7 @@ describe("settings", () => {
     // Keeping the default is recorded too, so later projects do not ask again.
     setSetting(ws, "publish", "workflow", "preview.yml");
     expect(unset()).toEqual([]);
-    expect(JSON.parse(fs.readFileSync(path.join(ws.dir, "extensions.config.json"), "utf8"))).toEqual({
+    expect(JSON.parse(fs.readFileSync(path.join(ws.root, "extensions.config.json"), "utf8"))).toEqual({
       publish: { label: "nightly", workflow: "preview.yml" },
     });
     expect(fs.readFileSync(path.join(ws.core, "agents", "openfleet-ext-publish-post-test.agent.md"), "utf8")).toMatch(
@@ -184,7 +184,7 @@ describe("settings", () => {
     expect(() => setSetting(ws, "publish", "lable", "x")).toThrow(/does not declare setting "lable"/);
     expect(() => setSetting(ws, "plain", "x", "y")).toThrow(/declares no settings/);
     expect(() => setSetting(ws, "missing", "x", "y")).toThrow(/not installed/);
-    expect(JSON.parse(fs.readFileSync(path.join(ws.dir, "extensions.config.json"), "utf8"))).toEqual({
+    expect(JSON.parse(fs.readFileSync(path.join(ws.root, "extensions.config.json"), "utf8"))).toEqual({
       publish: { label: "nightly", workflow: "preview.yml" },
     });
   });
@@ -206,7 +206,7 @@ describe("add / sync / remove", () => {
     addExtension(ws, audit, installedCoreVersion(ws)!);
     addExtension(ws, style, installedCoreVersion(ws)!);
     addExtension(ws, publishFixture(tmpDir()), installedCoreVersion(ws)!);
-    writeJson(path.join(ws.dir, "extensions.config.json"), { publish: { label: "snap" } });
+    writeJson(path.join(ws.root, "extensions.config.json"), { publish: { label: "snap" } });
     syncExtensions(ws);
 
     expect(readLock(ws).extensions.map((e) => [e.name, e.sha, e.enabled])).toEqual([
@@ -267,9 +267,9 @@ describe("add / sync / remove", () => {
       slot: "post-test",
     });
 
-    writeJson(path.join(ws.dir, "extensions.config.json"), { publish: { nope: "x" } });
+    writeJson(path.join(ws.root, "extensions.config.json"), { publish: { nope: "x" } });
     expect(() => syncExtensions(ws)).toThrow(/does not declare setting "nope"/);
-    writeJson(path.join(ws.dir, "extensions.config.json"), {});
+    writeJson(path.join(ws.root, "extensions.config.json"), {});
 
     removeExtension(ws, "audit");
     syncExtensions(ws);

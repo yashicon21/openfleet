@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { claim, CLAIM_TTL_MS } from "../src/claim.js";
 import { readConfig, setConfig } from "../src/config.js";
 import { createProject } from "../src/commands/project.js";
+import { packageVersion } from "../src/core.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import { defaultBranch, globToRegExp, outOfScope, parseChildId, requireChildId } from "../src/groups.js";
@@ -369,7 +370,7 @@ describe("repo coordinator flow (CLI)", () => {
     });
     expect(cli(root, ["init"]).code).toBe(0);
     fs.writeFileSync(
-      path.join(root, "openfleet/repos.json"),
+      path.join(root, "repos.json"),
       JSON.stringify({ v: 1, repos: { web: { path: web, defaultBranch: "main" } } }),
     );
     const fake = path.join(root, "fake.mjs");
@@ -380,7 +381,7 @@ describe("repo coordinator flow (CLI)", () => {
     fs.chmodSync(fake, 0o755);
     const env = { OPENFLEET_COPILOT_BIN: fake };
     expect(cli(root, ["new", "p"], env).code).toBe(0);
-    const state = () => readJson<ProjectState>(path.join(root, "openfleet/projects/p/state.json"));
+    const state = () => readJson<ProjectState>(path.join(root, "projects/p/state.json"));
     const patch = (obj: unknown) => expect(cli(root, ["state", "p", "--patch", JSON.stringify(obj)]).code).toBe(0);
     patch({
       status: "running",
@@ -518,15 +519,17 @@ describe("repo coordinator flow (CLI)", () => {
 });
 
 describe("workspace config", () => {
-  it("defaults maxParallel to 6, and config set validates and writes it", () => {
+  it("defaults maxParallel to 6, and config set validates and writes it into openfleet.json", () => {
     const ws = workspace();
-    const file = path.join(ws.dir, "config.json");
-    expect(readJson(file)).toEqual({ maxParallel: 6, host: "copilot" });
-    fs.rmSync(file);
+    const file = ws.marker;
+    const version = packageVersion();
+    expect(readJson(file)).toEqual({ version, maxParallel: 6, host: "copilot" });
+    fs.writeFileSync(file, JSON.stringify({ version }));
     expect(readConfig(ws)).toEqual({ maxParallel: 6, host: "copilot" });
     expect(json(cli(ws.root, ["config"]))).toEqual({ maxParallel: 6, host: "copilot" });
     expect(json(cli(ws.root, ["config", "set", "maxParallel", "3"]))).toEqual({ maxParallel: 3, host: "copilot" });
-    expect(readJson(file)).toEqual({ maxParallel: 3 });
+    expect(readJson(file)).toEqual({ version, maxParallel: 3 });
+    expect(cli(ws.root, ["config", "set", "version", "9.9.9"]).stderr).toMatch(/Unknown config key/);
     expect(cli(ws.root, ["config", "set", "maxParallel", "0"]).stderr).toMatch(/positive integer/);
     expect(cli(ws.root, ["config", "set", "maxParalel", "2"]).stderr).toMatch(/Unknown config key/);
     expect(cli(ws.root, ["config", "get"]).stderr).toMatch(/Usage/);
@@ -536,10 +539,10 @@ describe("workspace config", () => {
 
   it("config set host accepts copilot or claude and rejects anything else", () => {
     const ws = workspace();
-    const file = path.join(ws.dir, "config.json");
+    const file = ws.marker;
     expect(readConfig(ws).host).toBe("copilot");
     expect(json(cli(ws.root, ["config", "set", "host", "claude"]))).toEqual({ maxParallel: 6, host: "claude" });
-    expect(readJson(file)).toEqual({ maxParallel: 6, host: "claude" });
+    expect(readJson(file)).toEqual({ version: packageVersion(), maxParallel: 6, host: "claude" });
     const bad = cli(ws.root, ["config", "set", "host", "other"]);
     expect(bad.code).toBe(1);
     expect(bad.stderr).toMatch(/host must be one of copilot, claude/);

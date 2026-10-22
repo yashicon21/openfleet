@@ -6,7 +6,7 @@ flowchart LR
     direction TB
     H0["<b>0A · Install</b><br/>npm create @openfleet-tools"]
     C0["<b>0B · Scaffold workspace</b>"]
-    F0["openfleet/<br/>core/ · extensions/ · projects/<br/>repos.json · extensions.lock.json"]
+    F0["workspace root (next to node_modules/)<br/>openfleet.json · core/ · extensions/ · projects/<br/>repos.json · extensions.lock.json"]
     H0b["<b>0C · Add extensions</b><br/>npx openfleet add &lt;git|path&gt;"]
     F0b["extensions/&lt;ext&gt;/<br/>manifest + *.md"]
     H0 --> C0 --> F0 --> H0b --> F0b

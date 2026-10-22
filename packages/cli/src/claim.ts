@@ -1,6 +1,6 @@
 // `npx openfleet claim`: the spawn lock. Before spawning any planner, baseline,
 // implementer, tester or repo coordinator, a coordinator claims the child for that
-// role. The claim enforces the workspace-wide `maxParallel` (openfleet/config.json) and keeps at most
+// role. The claim enforces the workspace-wide `maxParallel` (openfleet.json) and keeps at most
 // one fresh claim per role, so the subagentStart hook attributes the spawn exactly.
 import path from "node:path";
 import { readConfig } from "./config.js";
@@ -88,7 +88,7 @@ function syncWithIntegration(state: ProjectState, id: string): string | undefine
 export function claim(ws: Workspace, project: string, childId: string, roleArg: string | undefined): ClaimResult {
   const role = checkRole(roleArg);
   const p = projectPaths(ws, project);
-  return withLock(path.join(ws.dir, ".claim.lock"), () => {
+  return withLock(path.join(ws.root, ".claim.lock"), () => {
     const now = Date.now();
     const state = readState(p);
     const c = state.children[childId];

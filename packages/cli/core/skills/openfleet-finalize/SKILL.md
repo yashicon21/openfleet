@@ -13,7 +13,7 @@ Run `npx openfleet ext plan <project> post-run` and spawn each entry under `run`
 
 ## 2. Run summary
 
-Write `openfleet/projects/<project>/summary.md`:
+Write `projects/<project>/summary.md`:
 
 - Goal (from the spec).
 - A table of children, grouped by repo (members of a repo with several children under its integration child, with whether they were merged): child id, outcome (`done`, `failed` or `blocked`), branch, worktree, files changed, lines added/removed (from the latest `worktree.snapshot` event of each child), retries, and tester result.

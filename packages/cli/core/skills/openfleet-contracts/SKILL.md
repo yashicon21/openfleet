@@ -9,7 +9,7 @@ A **contract** is any interface that crosses a child boundary. In v1, OpenFleet 
 
 ## Fixtures
 
-The coordinator writes the fixtures to `openfleet/projects/<project>/contracts/` during the grill:
+The coordinator writes the fixtures to `projects/<project>/contracts/` during the grill:
 
 - Prefer machine-checkable formats: JSON Schema (`*.schema.json`), example payloads (`*.example.json`), OpenAPI fragments, `.proto` or `.graphql` snippets, or TypeScript `.d.ts` type declarations.
 - Give each fixture a sibling Markdown note (`<name>.md`). It must state the producer, the consumers, the semantics that the format cannot capture (units, nullability, ordering, error cases), and a version line.

@@ -62,7 +62,7 @@ WS="$DEMO_DIR/fleet"
 npm_config_user_agent="npm/10" node "$REPO_ROOT/packages/create/dist/index.js" "$WS" --cli "file:$REPO_ROOT/packages/cli" \
   >"$DEMO_DIR/setup.log" 2>&1 || { cat "$DEMO_DIR/setup.log" >&2; exit 1; }
 
-cat >"$WS/openfleet/repos.json" <<'JSON'
+cat >"$WS/repos.json" <<'JSON'
 {
   "v": 1,
   "repos": {
@@ -107,12 +107,12 @@ $(printf '\033[1m')Demo ready.$(printf '\033[0m')
 
   2. Watch it from another terminal:
        cd "$WS" && npx openfleet status $PROJECT
-       tail -f "$WS/openfleet/projects/$PROJECT/events.jsonl"
+       tail -f "$WS/projects/$PROJECT/events.jsonl"
 
   3. Review the result (default completion mode stages changes, nothing is committed):
-       spec, plans, contracts:  $WS/openfleet/projects/$PROJECT/
-       staged diffs:            git -C "$WS/openfleet/projects/$PROJECT/worktrees/<child>" diff --cached
-       full patches:            $WS/openfleet/projects/$PROJECT/patches/
+       spec, plans, contracts:  $WS/projects/$PROJECT/
+       staged diffs:            git -C "$WS/projects/$PROJECT/worktrees/<child>" diff --cached
+       full patches:            $WS/projects/$PROJECT/patches/
 
   Clean up: cd "$WS" && npx openfleet clean $PROJECT --branches --force   (or re-run this script)
 EOF

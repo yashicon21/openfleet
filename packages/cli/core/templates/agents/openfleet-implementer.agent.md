@@ -10,7 +10,7 @@ Your assignment block (injected above) names your child, worktree and ports. To 
 
 ## Rules
 
-- **Work only inside your worktree.** Do not touch other repos, other worktrees, or `openfleet/` (except to read `spec.md`, `contracts/` and your plan).
+- **Work only inside your worktree.** Do not touch other repos, other worktrees, or the OpenFleet workspace files (except to read `spec.md`, `contracts/` and your plan).
 - Every shell command must start with `cd <worktree> &&`. The session's working directory is the OpenFleet workspace, not your repo.
 - Follow the approved plan. Small deviations are fine when the code requires them. Explain each one in your summary. If you need a larger change, ask the coordinator first (report `status: "question"`).
 - Write the contract tests from the plan. They must load the shared fixtures in `contracts/` (by path or by copying them into the repo's test fixtures) so that every repo tests the same contract.

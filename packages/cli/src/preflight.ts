@@ -97,16 +97,12 @@ function gitCommonDir(repoPath: string): string | undefined {
 }
 
 function checkRepo(ws: Workspace, key: string, entry: RepoEntry, io: ProbeFs): CheckResult[] {
-  const repoPath = entry.path
-    ? path.resolve(ws.root, entry.path)
-    : entry.url
-      ? path.join(ws.dir, "repos", key)
-      : undefined;
+  const repoPath = entry.path ? path.resolve(ws.root, entry.path) : entry.url ? path.join(ws.repos, key) : undefined;
   if (!repoPath) return [{ repo: key, check: "repo", path: "", ok: false, error: 'needs a "path" or "url"' }];
   const gitDir = gitCommonDir(repoPath);
   if (!gitDir) {
     if (entry.path) return [{ repo: key, check: "repo", path: repoPath, ok: false, error: "not a git repository" }];
-    // Not cloned yet: the clone goes to openfleet/repos/<key>.
+    // Not cloned yet: the clone goes to repos/<key>.
     const reposDir = path.dirname(repoPath);
     return [
       attempt(key, "clone-dir", reposDir, () => {
@@ -166,7 +162,7 @@ export function runChecks(ws: Workspace, project: string | undefined, io: ProbeF
   }
   for (const key of project ? projectRepos(ws, project) : Object.keys(repos).sort()) {
     const entry = repos[key];
-    if (!entry) checks.push({ repo: key, check: "repo", path: "", ok: false, error: "not in openfleet/repos.json" });
+    if (!entry) checks.push({ repo: key, check: "repo", path: "", ok: false, error: "not in repos.json" });
     else checks.push(...checkRepo(ws, key, entry, io));
   }
   return checks;

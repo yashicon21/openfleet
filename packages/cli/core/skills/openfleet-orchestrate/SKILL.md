@@ -82,7 +82,7 @@ A repo with more than one child (path-scoped children such as pages or modules, 
 ### Plan
 
 1. Claim it (`npx openfleet claim <project> <id> planner`). Spawn `openfleet:openfleet-planner` with: "Plan child `<id>` of project `<project>`." Log the prompt as `message.sent`.
-2. When it reports `done`, save the plan to `openfleet/projects/<project>/plans/<child id>.md`. Patch `{"phase":"plan-review","plan":"<abs path>"}` and log `plan.submitted`.
+2. When it reports `done`, save the plan to `projects/<project>/plans/<child id>.md`. Patch `{"phase":"plan-review","plan":"<abs path>"}` and log `plan.submitted`.
 3. **Validate the plan against the spec yourself:**
    - Every acceptance criterion for this child is mapped.
    - Every contract it produces or consumes has a contract test.

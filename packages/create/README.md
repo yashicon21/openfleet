@@ -8,7 +8,7 @@ Set up an [OpenFleet](https://openfleet.tools) workspace. OpenFleet coordinates 
 npm create @openfleet-tools@latest [dir]   # or: npx @openfleet-tools/create [dir]
 ```
 
-This creates `package.json` in `dir` (default: the current directory) if it's missing, installs [`@openfleet-tools/cli`](https://www.npmjs.com/package/@openfleet-tools/cli) as a dev dependency with your package manager, and runs `openfleet init`.
+This creates `package.json` in `dir` (default: the current directory) if it's missing, installs [`@openfleet-tools/cli`](https://www.npmjs.com/package/@openfleet-tools/cli) as a dev dependency with your package manager, and runs `openfleet init`. The workspace is flat: `openfleet.json`, `core/`, `projects/`, `repos.json` and the rest sit in `dir` next to `node_modules/`. `init` refuses a folder that already has any of those, so use an empty folder or a new subfolder.
 
 | Option           | What it does                                                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
