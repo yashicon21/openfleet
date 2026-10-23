@@ -195,8 +195,8 @@ describe("add / sync / remove", () => {
     const ws = workspace();
     const audit = writeExtension(
       tmpDir(),
-      { ...base, name: "audit", ...phase("post-run"), commands: { report: "report.md" } },
-      { "report.md": "# Report\nSummarise events.\n" },
+      { ...base, name: "audit", ...phase("post-run"), commands: { digest: "digest.md" } },
+      { "digest.md": "# Digest\nSummarise events.\n" },
     );
     const style = writeExtension(
       tmpDir(),
@@ -238,7 +238,7 @@ describe("add / sync / remove", () => {
 
     expect(read("openfleet-ext-audit-post-run.agent.md")).toContain("Do the thing.");
     expect(read("openfleet-ext-audit.agent.md")).toContain("running one of its CLI commands");
-    expect(fs.readFileSync(path.join(ws.core, "skills", "openfleet-ext-audit-report", "SKILL.md"), "utf8")).toContain(
+    expect(fs.readFileSync(path.join(ws.core, "skills", "openfleet-ext-audit-digest", "SKILL.md"), "utf8")).toContain(
       "Summarise events.",
     );
     expect(
@@ -260,7 +260,7 @@ describe("add / sync / remove", () => {
       { extension: "audit", agent: "openfleet:openfleet-ext-audit-post-run", blocking: false, timeoutMinutes: 30 },
     ]);
     expect(index.augments.implementer).toEqual(["style", "publish"]);
-    expect(index.commands.report).toMatchObject({ extension: "audit", agent: "openfleet:openfleet-ext-audit" });
+    expect(index.commands.digest).toMatchObject({ extension: "audit", agent: "openfleet:openfleet-ext-audit" });
     expect(index.settings).toEqual({ publish: { label: "snap", workflow: "preview.yml" } });
     expect(findSlotEntry(index, "openfleet-ext-publish-post-test")).toMatchObject({
       extension: "publish",
@@ -275,8 +275,8 @@ describe("add / sync / remove", () => {
     syncExtensions(ws);
     expect(fs.existsSync(path.join(agents, "openfleet-ext-audit-post-run.agent.md"))).toBe(false);
     expect(fs.existsSync(path.join(agents, "openfleet-ext-audit.agent.md"))).toBe(false);
-    expect(fs.existsSync(path.join(ws.core, "skills", "openfleet-ext-audit-report"))).toBe(false);
-    expect(readCoreIndex(ws)!.commands.report).toBeUndefined();
+    expect(fs.existsSync(path.join(ws.core, "skills", "openfleet-ext-audit-digest"))).toBe(false);
+    expect(readCoreIndex(ws)!.commands.digest).toBeUndefined();
   });
 
   it("installs from a git repo at a ref and pins the SHA", () => {

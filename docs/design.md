@@ -17,7 +17,7 @@
 ## Distribution & CLI
 
 - npm name `openfleet` is taken → scoped `@openfleet-tools/create` (init, `npm create @openfleet-tools`) + `@openfleet-tools/cli`; npm org `@openfleet-tools` (matches https://openfleet.tools). After init, `npx openfleet …` resolves to the local install.
-- Commands: `init`, `update`, `config` / `config set <key> <value>` (workspace settings), `new <name>`, `resume <name>`, `status [name]` (children grouped by repo), `list`, `clean <name>` (child and integration worktrees, optional branches), `add <git-url|path>`, `remove <ext>`, `extensions`, `ext settings [--unset]` / `ext settings set <ext> <key> <value>`, plus extension-declared commands.
+- Commands: `init`, `update`, `config` / `config set <key> <value>` (workspace settings), `new <name>`, `resume <name>`, `status [name]` (children grouped by repo), `list`, `clean <name>` (child and integration worktrees, optional branches), `report <name>` (HTML run report), `add <git-url|path>`, `remove <ext>`, `extensions`, `ext settings [--unset]` / `ext settings set <ext> <key> <value>`, plus extension-declared commands.
 - Agent helpers (deterministic, used by the agents instead of hand-editing files): `state`, `event`, `worktree`, `next`, `gate`, `baseline`, `claim`, `ack`, `scope`, `merge`, `escalate`, `ext plan|result|fail`.
 - CLI launches the host itself (`copilot --agent openfleet-coordinator` + plugin dir = `core`). No global install. The same launcher starts `claude` for the experimental Claude Code host (see Hosts).
 - Launch permissions: interactive (not `--autopilot`), `--allow-all-tools`; path verification stays on with `--add-dir` for the workspace root, the project's `worktrees/`, `repos/` and the local repos in `repos.json`; URLs still prompt (no `--allow-all-urls`). `--ask` on `new`/`resume`/extension commands keeps per-tool prompts; args after `--` (e.g. `--yolo`) pass through.
@@ -108,7 +108,18 @@ Everything is flat in the workspace root (the folder `npm create` ran in), next 
 - Full patches in `patches/<seq>.patch`; messages logged in full with secret redaction.
 - Capture: hooks (`subagentStart/Stop`, `postToolUse`; attribution cwd→worktree→repo, role via agentName/state.json) + git diff snapshot per worktree on agent stop (ground truth) + coordinator logs messages.
 - Hooks no-op unless cwd is under an OpenFleet workspace.
-- No viewer in v1; schema documented/versioned for future viewer/animation.
+- No live viewer; `npx openfleet report` renders a finished or running project as a static HTML report (see Run report).
+
+## Run report
+
+- `npx openfleet report <name> [--out <file>] [--open] [--gap <min>]` → `projects/<name>/report.html` (default). Deterministic, no agent: derived from `events.jsonl`, `state.json`, `spec.md` (`## Goal`), `summary.md` and git (`--shortstat` only for children without a `worktree.snapshot`). Finalize runs it after `run.completed` and links it from `summary.md`.
+- One self-contained file: inline CSS and SVG, no JS, no web fonts (system fallbacks for the site's fonts), no network. Charts scroll inside their card on narrow screens.
+- Timeline: child bars from child-scoped `phase.changed` (a final phase ends the bar; a non-final last phase stays open to the last event); project bands from project-scoped `phase.changed`. Event gaps over `--gap` minutes (default 15) are collapsed into fixed-width hatched bands, and active time (wall clock minus gaps) is reported next to wall-clock time.
+- Agents: `agent.spawned`/`agent.stopped` matched by `agentId`. A spawn without a stop ends at the next `session.started`, the next spawn for the same child and role, or the last event, and is flagged as inferred. The top coordinator session is not counted.
+- Plan gate from `plan.submitted|validated|rejected` and `plans.consistent`; first code = the first `implementing`/`baseline` phase. Diffs from each child's last `worktree.snapshot` (repo totals use the integration child). Tests from `test.run`.
+- `summary.md` sections `## Coverage`, `## Assumptions`, `## Follow-ups`, `## Lessons` are rendered when present (finalize writes them); the report's markdown renderer is a safe subset and escapes everything else.
+- Tokens: session ids from `session.started`/`session.replaced`/`project.created` and `state.sessionId`. Claude Code: `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<workspace root, non-alphanumerics → '-'>/<id>.jsonl` (coordinator) + `<id>/subagents/*.jsonl` (role from `*.meta.json` `agentType`). Copilot CLI: `<COPILOT_HOME or ~/.copilot>/session-state/<id>/events.jsonl` `session.usage_record` (role via `subagent.started` agent ids, best effort). Messages are de-duplicated by id (forked sessions and streamed lines repeat them; the largest count of each field wins); `<synthetic>` messages are dropped.
+- Cost only with `pricing` in `openfleet.json` (USD per million tokens per model; `input`, `output`, `cacheRead` required; `cacheWrite`, `cacheWrite5m`, `cacheWrite1h` optional). No built-in prices. Models without a usable price are listed and left out of the total. `config set` refuses `pricing`; edit the file.
 
 ## Extensions (instruction-only)
 

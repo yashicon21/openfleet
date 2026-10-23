@@ -13,19 +13,21 @@ Run `npx openfleet ext plan <project> post-run` and spawn each entry under `run`
 
 ## 2. Run summary
 
-Write `projects/<project>/summary.md`:
+Write `projects/<project>/summary.md`. Start it with a `# <project>` title, then use `##` headings. `npx openfleet report` copies the sections named **Coverage**, **Assumptions**, **Follow-ups** and **Lessons** into the HTML report, so use those exact headings for them:
 
 - Goal (from the spec).
 - A table of children, grouped by repo (members of a repo with several children under its integration child, with whether they were merged): child id, outcome (`done`, `failed` or `blocked`), branch, worktree, files changed, lines added/removed (from the latest `worktree.snapshot` event of each child), retries, and tester result.
 - **Failed and blocked children:** for each one, the reason, the last tester findings, the worktree path, and which children it blocked (from the `child.failed` events). Say that `npx openfleet resume <project>` continues with them.
-- **Assumptions:** every `assumption` event, as a list of child, question, decision and rationale. Mark the ones that changed a contract. The user did not see these during the run, so make this list complete.
+- `## Coverage`: test coverage per child or repo, if a tester or extension reported it. Leave the heading out when there is no coverage data.
+- `## Assumptions`: every `assumption` event, as a list of child, question, decision and rationale. Mark the ones that changed a contract. The user did not see these during the run, so make this list complete.
 - **Baselines:** for each child with a baseline, the test files, the command and the results (from `baseline.passed`), and which baseline files changed and why (`npx openfleet baseline <project> <child> --check`).
 - **Local files:** copied files per child, and any `copyFiles` that were missing (from `worktree.created`).
 - The contracts, and any contract changes during the run.
 - The questions asked and how they were answered, including questions escalated by repo coordinators (`question.escalated`) and the decisions.
 - Merge conflicts and integration failures per repo (`merge.conflict`, integration tester findings).
 - Extension reports, including `extension.skipped` and `extension.failed` events.
-- **Follow-ups:** every entry in `children.<id>.followUps` (per child, grouped by extension) and the project-level `followUps`. People must act on these after the run, so list them all.
+- `## Follow-ups`: every entry in `children.<id>.followUps` (per child, grouped by extension) and the project-level `followUps`. People must act on these after the run, so list them all.
+- `## Lessons`: what slowed the run down or would help the next one (for example, plans sent back, retries, flaky tests, missing setup). Keep it short; leave the heading out when there is nothing to say.
 
 ## 3. Completion mode
 
@@ -62,9 +64,12 @@ If a push or PR command fails, record the error in `summary.md` and in the final
 
 ## 4. Done
 
-Log `run.completed` with the mode and per-child outcome. Patch `{"status":"done"}`. Then end the run with a final report to the user:
+Log `run.completed` with the mode and per-child outcome. Patch `{"status":"done"}`. Then run `npx openfleet report <project>`: it writes `projects/<project>/report.html`, a self-contained HTML report of the run (timeline, plans, agents, changes, tests, tokens). Add a line `Report: [report.html](report.html)` near the top of `summary.md`. If the command fails, record the error in `summary.md` and go on.
+
+End the run with a final report to the user:
 
 - where to review (worktrees or PR links),
+- the path to `report.html`,
 - every assumption you made (child, question, decision),
 - every extension follow-up, per child,
 - failed and blocked children with their findings and worktree paths,

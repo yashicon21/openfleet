@@ -12,11 +12,28 @@ export interface WorkspaceConfig {
   maxParallel: number;
   /** Agent host new projects launch in (`--host` overrides it for one run). */
   host: Host;
+  /** Optional token prices per model, used only by `openfleet report`. Edit openfleet.json to set it. */
+  pricing?: Pricing;
 }
+
+/** USD per million tokens. Cache writes: `cacheWrite5m`/`cacheWrite1h` where the host tells them apart, else `cacheWrite`. */
+export interface ModelPrice {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite?: number;
+  cacheWrite5m?: number;
+  cacheWrite1h?: number;
+}
+export type Pricing = Record<string, ModelPrice>;
 
 export const DEFAULT_MAX_PARALLEL = 6;
 export const DEFAULT_CONFIG: WorkspaceConfig = { maxParallel: DEFAULT_MAX_PARALLEL, host: DEFAULT_HOST };
 const KEYS = Object.keys(DEFAULT_CONFIG) as (keyof WorkspaceConfig)[];
+/** Settings with no default, set by editing openfleet.json (not `config set`). */
+const OPTIONAL_KEYS = ["pricing"];
+const PRICE_FIELDS = ["input", "output", "cacheRead", "cacheWrite", "cacheWrite5m", "cacheWrite1h"];
+const REQUIRED_PRICE_FIELDS = ["input", "output", "cacheRead"];
 
 /** Non-setting keys openfleet.json may hold. */
 const META_KEYS = ["version"];
@@ -42,9 +59,27 @@ export function parseHost(value: unknown): Host {
   throw new UserError(`host must be one of ${HOSTS.join(", ")} (got ${JSON.stringify(value)}).`);
 }
 
-const PARSERS: { [K in keyof WorkspaceConfig]: (value: unknown) => WorkspaceConfig[K] } = {
+export function parsePricing(value: unknown): Pricing {
+  const bad = (why: string) => new UserError(`pricing ${why}`);
+  if (!isPlainObject(value)) throw bad("must be an object keyed by model name.");
+  const out: Pricing = {};
+  for (const [model, raw] of Object.entries(value)) {
+    if (!isPlainObject(raw)) throw bad(`.${model} must be an object of USD-per-million-token prices.`);
+    for (const [k, v] of Object.entries(raw)) {
+      if (!PRICE_FIELDS.includes(k))
+        throw bad(`.${model}: unknown field ${k}. Known fields: ${PRICE_FIELDS.join(", ")}.`);
+      if (typeof v !== "number" || !Number.isFinite(v) || v < 0) throw bad(`.${model}.${k} must be a number >= 0.`);
+    }
+    for (const k of REQUIRED_PRICE_FIELDS) if (raw[k] === undefined) throw bad(`.${model} needs ${k}.`);
+    out[model] = raw as unknown as ModelPrice;
+  }
+  return out;
+}
+
+const PARSERS: { [K in keyof WorkspaceConfig]-?: (value: unknown) => WorkspaceConfig[K] } = {
   maxParallel: parseMaxParallel,
   host: parseHost,
+  pricing: parsePricing,
 };
 
 function validate(raw: unknown, file: string): Partial<WorkspaceConfig> {
@@ -52,12 +87,21 @@ function validate(raw: unknown, file: string): Partial<WorkspaceConfig> {
   if (raw.version !== undefined && typeof raw.version !== "string") {
     throw new UserError(`${file}: version must be a string.`);
   }
-  const unknown = Object.keys(raw).filter((k) => !(KEYS as string[]).includes(k) && !META_KEYS.includes(k));
+  const known = [...KEYS, ...OPTIONAL_KEYS];
+  const unknown = Object.keys(raw).filter((k) => !known.includes(k) && !META_KEYS.includes(k));
   if (unknown.length) {
-    throw new UserError(`${file}: unknown key(s) ${unknown.join(", ")}. Known keys: ${KEYS.join(", ")}.`);
+    throw new UserError(`${file}: unknown key(s) ${unknown.join(", ")}. Known keys: ${known.join(", ")}.`);
   }
   const out: Record<string, unknown> = {};
-  for (const key of KEYS) if (raw[key] !== undefined) out[key] = PARSERS[key](raw[key]);
+  for (const key of known as (keyof WorkspaceConfig)[]) {
+    if (raw[key] === undefined) continue;
+    try {
+      out[key] = PARSERS[key](raw[key]);
+    } catch (err) {
+      if (err instanceof UserError && key === "pricing") throw new UserError(`${file}: ${err.message}`);
+      throw err;
+    }
+  }
   return out;
 }
 
@@ -70,6 +114,9 @@ export function readConfig(ws: Workspace): WorkspaceConfig {
 
 /** Validate and write one key under a workspace lock. Returns the new effective config. */
 export function setConfig(ws: Workspace, key: string, value: string): WorkspaceConfig {
+  if (OPTIONAL_KEYS.includes(key)) {
+    throw new UserError(`Set "${key}" by editing ${configFile(ws)} (see the CLI README).`);
+  }
   if (!(KEYS as string[]).includes(key)) {
     throw new UserError(`Unknown config key "${key}". Known keys: ${KEYS.join(", ")}.`);
   }
