@@ -20,7 +20,7 @@ This package provides the `openfleet` command and the Copilot plugin it installs
 4. **Baseline** (optional, per child). Tests for today's behaviour are written and pass on the unchanged code.
 5. **Implement → test.** These run in `dependsOn` order, with at most `maxParallel` agents working across the workspace, and failures are retried.
 6. **Integrate.** A repo with several children merges them into its integration branch and runs the full build and tests there.
-7. **Finalize.** Changes are staged in each worktree, or opened as cross-linked draft PRs. `summary.md` lists assumptions, failures and follow-ups.
+7. **Finalize.** Changes are staged in each worktree, or opened as cross-linked draft PRs. `summary.md` lists assumptions, failures and follow-ups, and `report.html` shows the whole run (see [Run report](#run-report)).
 
 See the [flow diagram](https://github.com/yashicon21/openfleet/blob/main/docs/flow.png) for the details.
 
@@ -84,6 +84,7 @@ my-workspace/
   repos/<key>/           # repos cloned from a `url` in repos.json (gitignored)
   projects/<name>/
     spec.md  state.json  events.jsonl  contracts/  plans/
+    summary.md  report.html  # written when the run finishes
     patches/<seq>.patch  # gitignored
     worktrees/<child>/   # gitignored; one per child (web:ui/button → web__ui__button),
                          # plus one integration worktree per repo with several children
@@ -117,24 +118,25 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 
 ## Commands
 
-| Command                                                       | What it does                                                                        |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `npx openfleet init`                                          | Create the workspace in the current directory and install core                      |
-| `npx openfleet update`                                        | Replace `core` with the installed CLI version; disable incompatible extensions      |
-| `npx openfleet config`                                        | Show workspace settings (`openfleet.json`)                                          |
-| `npx openfleet config set maxParallel <n>`                    | Cap working agents across all projects (default 6)                                  |
-| `npx openfleet config set host <copilot\|claude>`             | Agent host for new projects (default `copilot`; `claude` is experimental)           |
-| `npx openfleet new <name> ["<request>"] [--ask] [--host <h>]` | Create a project and launch the coordinator (`--host` overrides the workspace host) |
-| `npx openfleet resume <name> [--fresh] [--ask]`               | Continue a project in its host session (`--fresh`, or a missing session: a new one) |
-| `npx openfleet status [name] [--json]`                        | Children grouped by repo, phases, retries and open questions                        |
-| `npx openfleet list`                                          | All projects                                                                        |
-| `npx openfleet clean <name> [--branches] [--force]`           | Remove the project's child and integration worktrees (and branches)                 |
-| `npx openfleet add <git-url[#ref]\|path>`                     | Install or update an extension and print its permissions                            |
-| `npx openfleet remove <name>`                                 | Uninstall an extension                                                              |
-| `npx openfleet extensions`                                    | List installed extensions                                                           |
-| `npx openfleet ext settings [--unset]`                        | List extension settings (`--unset`: only those without a workspace value)           |
-| `npx openfleet ext settings set <ext> <key> <val>`            | Set a workspace-level extension setting in `extensions.config.json`                 |
-| `npx openfleet <ext-command> [--ask]`                         | Run a command declared by an extension                                              |
+| Command                                                             | What it does                                                                        |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `npx openfleet init`                                                | Create the workspace in the current directory and install core                      |
+| `npx openfleet update`                                              | Replace `core` with the installed CLI version; disable incompatible extensions      |
+| `npx openfleet config`                                              | Show workspace settings (`openfleet.json`)                                          |
+| `npx openfleet config set maxParallel <n>`                          | Cap working agents across all projects (default 6)                                  |
+| `npx openfleet config set host <copilot\|claude>`                   | Agent host for new projects (default `copilot`; `claude` is experimental)           |
+| `npx openfleet new <name> ["<request>"] [--ask] [--host <h>]`       | Create a project and launch the coordinator (`--host` overrides the workspace host) |
+| `npx openfleet resume <name> [--fresh] [--ask]`                     | Continue a project in its host session (`--fresh`, or a missing session: a new one) |
+| `npx openfleet status [name] [--json]`                              | Children grouped by repo, phases, retries and open questions                        |
+| `npx openfleet list`                                                | All projects                                                                        |
+| `npx openfleet clean <name> [--branches] [--force]`                 | Remove the project's child and integration worktrees (and branches)                 |
+| `npx openfleet report <name> [--out <file>] [--open] [--gap <min>]` | Write an HTML report of the run (see [Run report](#run-report))                     |
+| `npx openfleet add <git-url[#ref]\|path>`                           | Install or update an extension and print its permissions                            |
+| `npx openfleet remove <name>`                                       | Uninstall an extension                                                              |
+| `npx openfleet extensions`                                          | List installed extensions                                                           |
+| `npx openfleet ext settings [--unset]`                              | List extension settings (`--unset`: only those without a workspace value)           |
+| `npx openfleet ext settings set <ext> <key> <val>`                  | Set a workspace-level extension setting in `extensions.config.json`                 |
+| `npx openfleet <ext-command> [--ask]`                               | Run a command declared by an extension                                              |
 
 Arguments after `--` go to the host CLI (`copilot` or `claude`) unchanged, for example `npx openfleet new x -- --model claude-sonnet-5.5`.
 
@@ -179,6 +181,33 @@ Likely causes of `EPERM`, in order:
 3. **A managed OS policy** on the device. Ask your administrator.
 
 macOS Full Disk Access does not fix this. `EACCES` ("Permission denied") is a plain file-permissions problem: check the owner and mode of the path.
+
+## Run report
+
+`npx openfleet report <name>` writes `projects/<name>/report.html`: one self-contained HTML file (no scripts, fonts or network requests) that shows what the run did. The coordinator runs it at the end of every run and links it from `summary.md`; you can also run it at any time, on a finished run or one still in progress.
+
+It is built only from the project's files (`events.jsonl`, `state.json`, `spec.md`, `summary.md`) and git, with no agent involved:
+
+- active time and wall-clock time, children, agent spawns, agents at once, test runs, lines changed;
+- the ask (the spec's `## Goal`), how the work was split, and a timeline of every child's phases;
+- the plan gate (plans submitted, validated and sent back), agents running at once and spawns by role;
+- lines changed and test runs per child;
+- the **Coverage**, **Assumptions**, **Follow-ups** and **Lessons** sections of `summary.md`, when it has them (assumptions fall back to the `assumption` events);
+- tokens by role and model, read from the host's transcripts on this machine (Claude Code: `~/.claude/projects/`; Copilot CLI: `~/.copilot/session-state/`). Each API message is counted once, even when sessions were forked. Without transcripts the section says "not available".
+
+Pauses longer than 15 minutes (`--gap <min>`) are collapsed into hatched bands on the timeline. `--out <file>` writes elsewhere and `--open` opens the report in the browser.
+
+Cost is shown only when `openfleet.json` has a `pricing` table. Prices are USD per million tokens, per model name as the host reports it (`.`/`-` and case differences are ignored). `input`, `output` and `cacheRead` are required; cache writes use `cacheWrite`, or `cacheWrite5m` and `cacheWrite1h` where the host tells them apart. OpenFleet ships no prices: copy them from your provider.
+
+```json
+{
+  "version": "0.5.0",
+  "maxParallel": 6,
+  "pricing": {
+    "claude-opus-5.5": { "input": 4, "output": 20, "cacheWrite5m": 5, "cacheWrite1h": 8, "cacheRead": 0.2 }
+  }
+}
+```
 
 ## Events
 
