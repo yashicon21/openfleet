@@ -108,7 +108,7 @@ Everything is flat in the workspace root (the folder `npm create` ran in), next 
 - Full patches in `patches/<seq>.patch`; messages logged in full with secret redaction.
 - Capture: hooks (`subagentStart/Stop`, `postToolUse`; attribution cwd→worktree→repo, role via agentName/state.json) + git diff snapshot per worktree on agent stop (ground truth) + coordinator logs messages.
 - Hooks no-op unless cwd is under an OpenFleet workspace.
-- No live viewer; `npx openfleet report` renders a finished or running project as a static HTML report (see Run report).
+- No live viewer; `npx openfleet report` renders a finished or running project as a static HTML report (see Run report), and `npx openfleet replay` as an animated 3D replay (see Replay).
 
 ## Run report
 
@@ -120,6 +120,15 @@ Everything is flat in the workspace root (the folder `npm create` ran in), next 
 - `summary.md` sections `## Coverage`, `## Assumptions`, `## Follow-ups`, `## Lessons` are rendered when present (finalize writes them); the report's markdown renderer is a safe subset and escapes everything else.
 - Tokens: session ids from `session.started`/`session.replaced`/`project.created` and `state.sessionId`. Claude Code: `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<workspace root, non-alphanumerics → '-'>/<id>.jsonl` (coordinator) + `<id>/subagents/*.jsonl` (role from `*.meta.json` `agentType`). Copilot CLI: `<COPILOT_HOME or ~/.copilot>/session-state/<id>/events.jsonl` `session.usage_record` (role via `subagent.started` agent ids, best effort). Messages are de-duplicated by id (forked sessions and streamed lines repeat them; the largest count of each field wins); `<synthetic>` messages are dropped.
 - Cost only with `pricing` in `openfleet.json` (USD per million tokens per model; `input`, `output`, `cacheRead` required; `cacheWrite`, `cacheWrite5m`, `cacheWrite1h` optional). No built-in prices. Models without a usable price are listed and left out of the total. `config set` refuses `pricing`; edit the file.
+
+## Replay
+
+- `npx openfleet replay <name> [--out <file>] [--open] [--gap <min>]` → `projects/<name>/replay.html` (default). Deterministic, no agent. The CLI builds the report's run model (children, gaps, inferred agent stops) and hands it with the events to `@openfleet-tools/ui`, which it imports lazily so other commands do not load it.
+- `@openfleet-tools/ui` has two layers. `src/model` is pure (no DOM): `buildReplayData` slims the events (drops patches, local paths, agent output and file lists; truncates long strings) and adds an `agent.stopped` for each inferred stop; `reduce(state, event)` is a copy-on-write reducer from events to a `WorldState` (children with a build stage, agents, tests, diffs); `buildTimeline` maps events to replay seconds and collapses the run model's gaps into fixed 20-second pauses. The live dashboard is meant to reuse the same reducer over `events.jsonl`.
+- `src/world` + `src/app` are the browser side, bundled with Three.js by esbuild into `dist/renderer.js` (~600 KB minified) and inlined with the JSON data into one HTML file. No network, fonts or external assets.
+- Stage per child phase: `pending` plot, `planning`/`plan-review`/`planned`/`baseline` foundation, `implementing` scaffold, `testing`/`post-test` testing, `done` finished. `plan.rejected` → rubble until the next `plan.submitted` or a phase past planning. `failed`/`blocked` keep the stage and add a beacon. Robot role from the actor's last segment (`repo-coordinator`, `planner`, `implementer`, `tester`; `baseline` counts as tester).
+- Every object comes from a named slot (`tile`, `hub`, `tower.integration`, `building.planning|implementing|testing|merged`, `rubble`, `beacon.failed`, `robot.coordinator|planner|implementer|tester`, `prop.solar|crates|rocks|plant|antenna`) in a `SlotRegistry`. The procedural low-poly models are the defaults; a theme can register its own factory per slot. Model conventions: Y up, 1 unit = one hex tile width, origin at the base centre, facing +Z. Animated objects expose `userData.tick(t, night)`.
+- Scrubbing keeps one state per event (cheap with structural sharing) and jumps to it; playback syncs the scene with the state at the current replay second. Time of day follows the run's local clock, and pauses are night, unless the user moves the sun slider.
 
 ## Extensions (instruction-only)
 

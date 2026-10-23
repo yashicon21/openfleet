@@ -138,6 +138,7 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 | `npx openfleet list`                                                | All projects                                                                        |
 | `npx openfleet clean <name> [--branches] [--force]`                 | Remove the project's child and integration worktrees (and branches)                 |
 | `npx openfleet report <name> [--out <file>] [--open] [--gap <min>]` | Write an HTML report of the run (see [Run report](#run-report))                     |
+| `npx openfleet replay <name> [--out <file>] [--open] [--gap <min>]` | Write a 3D replay of the run (see [Replay](#replay))                                |
 | `npx openfleet add <git-url[#ref]\|path>`                           | Install or update an extension and print its permissions                            |
 | `npx openfleet remove <name>`                                       | Uninstall an extension                                                              |
 | `npx openfleet extensions`                                          | List installed extensions                                                           |
@@ -216,6 +217,17 @@ Cost is shown only when `openfleet.json` has a `pricing` table. Prices are USD p
 }
 ```
 
+## Replay
+
+`npx openfleet replay <name>` writes `projects/<name>/replay.html`: the same run as a small animated world you can play back. It is one offline HTML file (the 3D renderer is inlined, about 750 KB), built from the same run model as the report, with no agent involved.
+
+- Each repo is a hex island in a lagoon; the coordinator's hub sits in the middle. A grouped repo's integration child is the tower at the island's centre, and its other children get one tile each.
+- A child's building grows with its phase: a staked-out plot (pending), a foundation (planning), scaffolding (implementing), a building under scan (testing) and a finished dome (done). A rejected plan knocks the building down to rubble until a new plan is submitted. A failed or blocked child gets a red beacon and smoke.
+- Robots are agents, coloured by role (repo coordinator, planner, implementer, tester). They fly from the hub to the child they work on and back when they stop.
+- The sky follows the run's real clock. Pauses longer than `--gap` minutes (default 15) are collapsed on the timeline and shown as night.
+
+Controls: play/pause (space), speed 1×–600×, a scrubbable timeline (←/→), a time-of-day slider (Auto follows the run), drag to orbit and scroll to zoom, R to reset the camera. Click a building or a sidebar entry for its card: phase, plan summary, lines changed, plan rejections, tests and the agents on site. `--out <file>` writes elsewhere and `--open` opens it in the browser. It needs a browser with WebGL.
+
 ## Events
 
 Each project has an append-only `events.jsonl`. Hooks capture subagent starts and stops, file changes (with full patches) and a git diff snapshot of each worktree when an agent stops. The coordinator logs messages, questions, plans, test runs, contract changes, the assumptions it made on its own (`assumption`), failed children (`child.failed`), plan-gate results, baselines, extension results, escalated questions (`question.escalated`) and merges into integration branches (`child.merged`, `merge.conflict`). Secrets are redacted.
@@ -244,6 +256,7 @@ Packages:
 
 - `packages/cli` is `@openfleet-tools/cli`: the `openfleet` binary, plus `core/` (Copilot plugin: agents, skills, hooks).
 - `packages/create` is `@openfleet-tools/create`: the `npm create @openfleet-tools` initializer.
+- `packages/ui` is `@openfleet-tools/ui`: the replay world (event reducer, Three.js renderer and controls), bundled into `dist/renderer.js` and inlined by `openfleet replay`.
 
 To try a local build, run `node packages/create/dist/index.js ../my-fleet --cli file:$PWD/packages/cli`. Set `OPENFLEET_COPILOT_BIN` to use a different `copilot` binary.
 
@@ -253,21 +266,21 @@ The website ([openfleet.tools](https://openfleet.tools)) is a single static page
 
 ## Releasing
 
-Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli` and `@openfleet-tools/create` are a `fixed` group, so they always share a version. `@openfleet-tools/create` installs `@openfleet-tools/cli@^<its own version>` by default.
+Releases use [Changesets](https://changesets.dev). `@openfleet-tools/cli`, `@openfleet-tools/create` and `@openfleet-tools/ui` are a `fixed` group, so they always share a version. `@openfleet-tools/create` installs `@openfleet-tools/cli@^<its own version>` by default.
 
 1. In a PR that changes a package, run `pnpm changeset` and commit the generated file. CI warns (without failing) when a PR has no changeset; use `pnpm changeset --empty` for changes that need no release.
 2. On every push to `main`, [`release.yml`](.github/workflows/release.yml) opens or updates a **Version Packages** PR that bumps the versions and writes the `CHANGELOG.md` files.
-3. Merging that PR publishes both packages to npm with [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, provenance, no `NPM_TOKEN`) and creates GitHub Releases.
+3. Merging that PR publishes the packages to npm with [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, provenance, no `NPM_TOKEN`) and creates GitHub Releases.
 
 ### One-time setup
 
-Trusted publishing can only be configured for a package that already exists on npm. So each package needs one manual placeholder publish at `0.0.0` before the first CI release. The repo is at `0.0.0` with an initial `minor` changeset, so the first Version Packages PR releases `0.1.0`.
+Trusted publishing can only be configured for a package that already exists on npm. So each package needs one manual placeholder publish at `0.0.0` before the first CI release (and so does a package added later, such as `@openfleet-tools/ui`). The repo is at `0.0.0` with an initial `minor` changeset, so the first Version Packages PR releases `0.1.0`.
 
 1. Publish placeholders from an empty directory, signed in with `npm login` as a member of the `openfleet-tools` npm org:
 
    ```sh
    cd "$(mktemp -d)"
-   for name in @openfleet-tools/cli @openfleet-tools/create; do
+   for name in @openfleet-tools/cli @openfleet-tools/create @openfleet-tools/ui; do
      printf '{"name":"%s","version":"0.0.0","description":"Placeholder. See https://openfleet.tools","repository":{"type":"git","url":"git+https://github.com/yashicon21/openfleet.git"}}\n' "$name" > package.json
      npm publish --access public
    done

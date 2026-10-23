@@ -9,7 +9,7 @@ import { out, warn } from "./output.js";
 
 const USAGE = "Usage: npx openfleet report <project> [--out <file>] [--open] [--gap <minutes>]";
 
-function parseGap(value: string | undefined): number {
+export function parseGap(value: string | undefined): number {
   if (value === undefined) return DEFAULT_GAP_MINUTES;
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0)
@@ -17,7 +17,7 @@ function parseGap(value: string | undefined): number {
   return n;
 }
 
-function openInBrowser(file: string): void {
+export function openInBrowser(file: string): void {
   const [cmd, args] =
     process.platform === "darwin"
       ? ["open", [file]]

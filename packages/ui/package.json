@@ -1,0 +1,45 @@
+{
+  "name": "@openfleet-tools/ui",
+  "version": "0.0.0",
+  "description": "Replay an OpenFleet run as an animated 3D world: event reducer, Three.js renderer and controls.",
+  "license": "MIT",
+  "homepage": "https://openfleet.tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yashicon21/openfleet.git",
+    "directory": "packages/ui"
+  },
+  "bugs": {
+    "url": "https://github.com/yashicon21/openfleet/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "openfleet",
+    "replay",
+    "three",
+    "visualization"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

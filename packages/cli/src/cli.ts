@@ -5,6 +5,7 @@ import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
+import { cmdReplay } from "./commands/replay.js";
 import { cmdReport } from "./commands/report.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
@@ -38,6 +39,9 @@ Projects
   report <name> [--out <file>] [--open] [--gap <min>]
                                Write an HTML report of the run (default projects/<name>/report.html).
                                Pauses longer than --gap minutes (default 15) are collapsed
+  replay <name> [--out <file>] [--open] [--gap <min>]
+                               Write a 3D replay of the run as one offline HTML file
+                               (default projects/<name>/replay.html)
 
 Extensions
   add <git-url[#ref]|path>     Install or update an extension
@@ -90,7 +94,7 @@ function parse<T extends Record<string, { type: "string" | "boolean"; short?: st
   return parseArgs({ args, options, allowPositionals: true, strict: true });
 }
 
-export function run(argv: string[]): number {
+export function run(argv: string[]): number | Promise<number> {
   const [args, passthrough] = splitPassthrough(argv);
   const [command, ...rest] = args;
   switch (command) {
@@ -140,6 +144,14 @@ export function run(argv: string[]): number {
         gap: { type: "string" },
       });
       return cmdReport(positionals, values);
+    }
+    case "replay": {
+      const { values, positionals } = parse(rest, {
+        out: { type: "string" },
+        open: { type: "boolean" },
+        gap: { type: "string" },
+      });
+      return cmdReplay(positionals, values);
     }
     case "add":
       return cmdAdd(parse(rest, {}).positionals);
@@ -238,9 +250,9 @@ export function errorMessage(err: unknown): string {
   return e.stack ?? String(err);
 }
 
-export function main(argv = process.argv.slice(2)): void {
+export async function main(argv = process.argv.slice(2)): Promise<void> {
   try {
-    process.exitCode = run(argv);
+    process.exitCode = await run(argv);
   } catch (err) {
     process.stderr.write(`openfleet: ${errorMessage(err)}\n`);
     process.exitCode = 1;

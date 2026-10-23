@@ -3,10 +3,15 @@
   "baseBranch": "main",
   "access": "public",
   "format": "auto",
-  "changelog": ["@changesets/changelog-github", { "repo": "yashicon21/openfleet" }],
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "yashicon21/openfleet"
+    }
+  ],
   "commit": false,
   "ignore": [],
-  "fixed": [["@openfleet-tools/cli", "@openfleet-tools/create"]],
+  "fixed": [["@openfleet-tools/cli", "@openfleet-tools/create", "@openfleet-tools/ui"]],
   "linked": [],
   "updateInternalDependencies": "patch"
 }

@@ -131,6 +131,7 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 | `npx openfleet list`                                                | All projects                                                                        |
 | `npx openfleet clean <name> [--branches] [--force]`                 | Remove the project's child and integration worktrees (and branches)                 |
 | `npx openfleet report <name> [--out <file>] [--open] [--gap <min>]` | Write an HTML report of the run (see [Run report](#run-report))                     |
+| `npx openfleet replay <name> [--out <file>] [--open] [--gap <min>]` | Write a 3D replay of the run (see [Replay](#replay))                                |
 | `npx openfleet add <git-url[#ref]\|path>`                           | Install or update an extension and print its permissions                            |
 | `npx openfleet remove <name>`                                       | Uninstall an extension                                                              |
 | `npx openfleet extensions`                                          | List installed extensions                                                           |
@@ -208,6 +209,17 @@ Cost is shown only when `openfleet.json` has a `pricing` table. Prices are USD p
   }
 }
 ```
+
+## Replay
+
+`npx openfleet replay <name>` writes `projects/<name>/replay.html`: the same run as a small animated world you can play back. It is one offline HTML file (the 3D renderer is inlined, about 750 KB), built from the same run model as the report, with no agent involved.
+
+- Each repo is a hex island in a lagoon; the coordinator's hub sits in the middle. A grouped repo's integration child is the tower at the island's centre, and its other children get one tile each.
+- A child's building grows with its phase: a staked-out plot (pending), a foundation (planning), scaffolding (implementing), a building under scan (testing) and a finished dome (done). A rejected plan knocks the building down to rubble until a new plan is submitted. A failed or blocked child gets a red beacon and smoke.
+- Robots are agents, coloured by role (repo coordinator, planner, implementer, tester). They fly from the hub to the child they work on and back when they stop.
+- The sky follows the run's real clock. Pauses longer than `--gap` minutes (default 15) are collapsed on the timeline and shown as night.
+
+Controls: play/pause (space), speed 1×–600×, a scrubbable timeline (←/→), a time-of-day slider (Auto follows the run), drag to orbit and scroll to zoom, R to reset the camera. Click a building or a sidebar entry for its card: phase, plan summary, lines changed, plan rejections, tests and the agents on site. `--out <file>` writes elsewhere and `--open` opens it in the browser. It needs a browser with WebGL.
 
 ## Events
 
