@@ -21,26 +21,26 @@ export const HEX_R = 1 / Math.sqrt(3);
 export const TILE_H = 0.32;
 
 export const PALETTE = {
-  sand: 0xe9d4a4,
+  sand: 0xeedfb8,
   grass: 0x93c47d,
-  cliff: 0xa88a64,
-  concrete: 0xd8d2c4,
-  shell: 0xf4efe4,
-  metal: 0x9aa8b2,
-  dark: 0x37424c,
-  glass: 0x83d6dc,
-  warm: 0xffd27a,
-  blueprint: 0x58b7ff,
+  cliff: 0x5f5754,
+  concrete: 0xdfe2e6,
+  shell: 0xf4f4f6,
+  metal: 0xa8a6af,
+  dark: 0x2b1e1b,
+  glass: 0x6bb8f2,
+  warm: 0xfff1cc,
+  blueprint: 0x48a6ee,
   beacon: 0xff4d3d,
   leaf: 0x4f9a5a,
   crate: 0xc28b4e,
 };
 
 export const ROLE_COLOR = {
-  coordinator: 0xff9f43,
-  planner: 0x4aa3ff,
-  implementer: 0xffd23f,
-  tester: 0xb07cff,
+  coordinator: 0xf2a93b,
+  planner: 0x48a6ee,
+  implementer: 0xee5ad6,
+  tester: 0xedeb3c,
 } as const;
 
 const mats = new Map<string, MeshStandardMaterial>();

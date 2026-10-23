@@ -25,11 +25,11 @@ function el<K extends keyof HTMLElementTagNameMap>(
 }
 
 const STAGE_COLOR: Record<ChildView["stage"], string> = {
-  plot: "#6c7c88",
+  plot: "#5f5754",
   foundation: hex(ROLE_COLOR.planner),
   scaffold: hex(ROLE_COLOR.implementer),
   testing: hex(ROLE_COLOR.tester),
-  finished: "#5ad19a",
+  finished: "#f4f4f6",
   rubble: "#ff6b5e",
 };
 
@@ -147,7 +147,7 @@ function boot(): void {
       "div",
       {
         style:
-          "position:absolute;transform:translate(-50%,0);padding:2px 10px;border-radius:99px;background:rgba(10,20,30,.7);font-size:12px;font-weight:600;white-space:nowrap",
+          "position:absolute;transform:translate(-50%,0);padding:2px 10px;border-radius:6px;background:rgba(28,27,33,.85);border:1px solid #2e2d35;font:12px 'Russo One','Arial Black',sans-serif;letter-spacing:.04em;white-space:nowrap",
       },
       esc(l.repo),
     );
@@ -285,6 +285,9 @@ function boot(): void {
     <div class="clock" id="hudclock"></div><div class="stats" id="hudstats"></div>`;
   const hudClock = $<HTMLElement>("hudclock");
   const hudStats = $<HTMLElement>("hudstats");
+  // The HUD height depends on the title length, so keep the sidebar just below it.
+  const placeSidebar = () => (sidebar.style.top = `${hud.getBoundingClientRect().bottom + 10}px`);
+  new ResizeObserver(placeSidebar).observe(hud);
 
   function group(c: ChildView): string {
     if (c.alarm) return "Needs attention";

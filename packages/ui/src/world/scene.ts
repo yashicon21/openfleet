@@ -7,8 +7,10 @@ import {
   DirectionalLight,
   Fog,
   Group,
+  AdditiveBlending,
   HemisphereLight,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   OrthographicCamera,
@@ -17,6 +19,7 @@ import {
   Points,
   PointsMaterial,
   Raycaster,
+  RingGeometry,
   Scene,
   TorusGeometry,
   Vector2,
@@ -77,13 +80,20 @@ const smooth = (a: number, b: number, x: number) => {
   return k * k * (3 - 2 * k);
 };
 
+// Matches the website palette: near-black night, its blues for sky and sea, a pink dawn.
 const SKY = {
-  night: new Color(0x0b1430),
-  dawn: new Color(0xf2a07b),
-  day: new Color(0x9fd3ea),
-  seaNight: new Color(0x0d2238),
-  seaDay: new Color(0x2f8fa3),
+  night: new Color(0x0e0e10),
+  dawn: new Color(0xee8fcf),
+  day: new Color(0x8cc4f0),
+  seaNight: new Color(0x0c1a46),
+  seaDay: new Color(0x2a86d6),
 };
+
+const FOAM_PER_ISLAND = 3;
+const FOAM_PERIOD = 4.5;
+const SPARKLES = 260;
+
+const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export interface WorldViewOptions {
   container: HTMLElement;
@@ -103,6 +113,10 @@ export class WorldView {
   private ambient = new AmbientLight(0xffffff, 0.15);
   private sea: Mesh<PlaneGeometry, MeshStandardMaterial>;
   private stars: Points<BufferGeometry, PointsMaterial>;
+  private sparkles: Points<BufferGeometry, PointsMaterial>;
+  private foam: { ring: Mesh<RingGeometry, MeshBasicMaterial>; island: Group; radius: number; phase: number }[] = [];
+  private foamMaterial = new MeshBasicMaterial({ color: 0xf4f4f6, transparent: true, depthWrite: false });
+  private calm = reducedMotion();
   private sites = new Map<string, Site>();
   private islands = new Map<string, { group: Group; layout: IslandLayout; shown: boolean }>();
   private hubPos = new Vector3();
@@ -145,6 +159,7 @@ export class WorldView {
     this.setupLights();
     this.sea = this.makeSea();
     this.stars = this.makeStars();
+    this.sparkles = this.makeSparkles();
     this.selection = new Mesh(
       new TorusGeometry(0.5, 0.025, 4, 6),
       new MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.8 }),
@@ -182,8 +197,11 @@ export class WorldView {
   private makeSea(): Mesh<PlaneGeometry, MeshStandardMaterial> {
     const size = this.extent * 8 + 60;
     const geo = new PlaneGeometry(size, size, 72, 72).toNonIndexed() as unknown as PlaneGeometry;
+    const shade = new Float32Array((geo.getAttribute("position") as BufferAttribute).count * 3).fill(1);
+    geo.setAttribute("color", new BufferAttribute(shade, 3));
     const material = new MeshStandardMaterial({
       color: SKY.seaDay.clone(),
+      vertexColors: true,
       flatShading: true,
       roughness: 0.35,
       metalness: 0.1,
@@ -197,6 +215,48 @@ export class WorldView {
     geo.userData.base = Float32Array.from((geo.getAttribute("position") as BufferAttribute).array);
     this.scene.add(sea);
     return sea;
+  }
+
+  /** Glints on the water: additive points whose colour (and so brightness) twinkles per frame. */
+  private makeSparkles(): Points<BufferGeometry, PointsMaterial> {
+    const pos = new Float32Array(SPARKLES * 3);
+    const span = this.extent * 2 + 8;
+    for (let i = 0; i < SPARKLES; i++) {
+      pos.set([(Math.random() - 0.5) * span * 2, 0.26, (Math.random() - 0.5) * span * 2], i * 3);
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute("position", new BufferAttribute(pos, 3));
+    geo.setAttribute("color", new BufferAttribute(new Float32Array(SPARKLES * 3), 3));
+    geo.userData.seed = Float32Array.from({ length: SPARKLES }, () => Math.random() * 100);
+    const pts = new Points(
+      geo,
+      new PointsMaterial({
+        size: 3,
+        sizeAttenuation: false,
+        vertexColors: true,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    pts.visible = !this.calm;
+    pts.renderOrder = 2;
+    this.scene.add(pts);
+    return pts;
+  }
+
+  /** Hexagonal surf rings that roll out from an island's shore. */
+  private addFoam(island: Group, radius: number): void {
+    for (let k = 0; k < FOAM_PER_ISLAND; k++) {
+      const ring = new Mesh(new RingGeometry(1, 1.06, 6), this.foamMaterial.clone());
+      ring.rotation.x = -Math.PI / 2;
+      ring.rotation.z = Math.PI / 6;
+      ring.position.set(island.position.x, 0.25, island.position.z);
+      ring.visible = false;
+      ring.renderOrder = 1; // after the transparent sea, which would otherwise paint over it
+      this.scene.add(ring);
+      this.foam.push({ ring, island, radius, phase: k / FOAM_PER_ISLAND });
+    }
   }
 
   private makeStars(): Points<BufferGeometry, PointsMaterial> {
@@ -252,6 +312,7 @@ export class WorldView {
       group.position.y = -1.5;
     }
     this.islands.set(isHub ? "" : layout.repo, { group, layout, shown: isHub });
+    this.addFoam(group, layout.radius);
   }
 
   private buildTile(island: Group, layout: IslandLayout, spot: TileSpot, hub: boolean): void {
@@ -383,6 +444,7 @@ export class WorldView {
     this.hemi.intensity = 0.25 + 0.55 * d;
     this.ambient.intensity = 0.12 + 0.1 * (1 - d);
     this.sea.material.color.copy(SKY.seaNight).lerp(SKY.seaDay, d);
+    this.foamMaterial.opacity = 0.35 + 0.4 * d;
     this.stars.material.opacity = Math.max(0, 1 - d * 1.6);
     windowMaterial.emissiveIntensity = (1 - d) * 1.6;
   }
@@ -694,13 +756,43 @@ export class WorldView {
   private animateSea(): void {
     const geo = this.sea.geometry;
     const pos = geo.getAttribute("position") as BufferAttribute;
+    const shade = geo.getAttribute("color") as BufferAttribute;
     const base = geo.userData.base as Float32Array;
-    const t = this.clock;
+    const t = this.calm ? 0 : this.clock;
     for (let i = 0; i < pos.count; i++) {
       const x = base[i * 3]!;
       const y = base[i * 3 + 1]!;
-      pos.setZ(i, Math.sin(x * 0.45 + t * 0.9) * 0.05 + Math.cos(y * 0.38 + t * 0.7) * 0.05);
+      // Two crossing swells plus a short chop; crests are lightened so the motion reads from far away.
+      const h =
+        Math.sin(x * 0.42 + y * 0.18 + t * 1.1) * 0.5 +
+        Math.cos(y * 0.36 - x * 0.12 + t * 0.8) * 0.35 +
+        Math.sin((x + y) * 1.3 + t * 2.2) * 0.15;
+      pos.setZ(i, h * 0.11);
+      const k = 0.82 + 0.38 * Math.max(0, h);
+      shade.setXYZ(i, k, k, k);
     }
     pos.needsUpdate = true;
+    shade.needsUpdate = true;
+
+    for (const f of this.foam) {
+      f.ring.visible = f.island.visible && f.island.position.y > -0.2;
+      if (!f.ring.visible) continue;
+      const k = this.calm ? f.phase : (this.clock / FOAM_PERIOD + f.phase) % 1;
+      const r = f.radius * 0.93 + k * 1.1;
+      f.ring.scale.set(r, r, 1);
+      f.ring.material.opacity =
+        this.foamMaterial.opacity * (this.calm ? 0.6 : Math.sin(Math.PI * Math.min(1, k * 1.4)));
+    }
+
+    if (this.calm) return;
+    const glint = 0.35 + 0.65 * this.daylight;
+    const col = this.sparkles.geometry.getAttribute("color") as BufferAttribute;
+    const seed = this.sparkles.geometry.userData.seed as Float32Array;
+    for (let i = 0; i < SPARKLES; i++) {
+      const s = seed[i]!;
+      const v = Math.max(0, Math.sin(this.clock * (1.5 + (s % 1.7)) + s)) ** 12 * glint;
+      col.setXYZ(i, v, v, v * 0.95);
+    }
+    col.needsUpdate = true;
   }
 }
