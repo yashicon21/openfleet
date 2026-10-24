@@ -79,7 +79,7 @@ export function greenfieldViolations(
   const problems: string[] = [];
   const children = Object.entries(state.children).filter(([, c]) => !c.integration);
   const unkinded = children.filter(([, c]) => !c.kind).map(([id]) => id);
-  if (unkinded.length) {
+  if (state.greenfield && unkinded.length) {
     problems.push(
       `Every greenfield child needs a kind (setup, contracts, service, frontend or system). Missing: ${unkinded.join(", ")}.`,
     );
@@ -118,4 +118,10 @@ export function greenfieldViolations(
     problems.push("spec.md's ## Follow-ups section is empty. List everything cut from this MVP slice there.");
   }
   return problems;
+}
+
+/** Raw body of the spec's `## <heading>` section (trimmed), or undefined if it is missing. */
+export function specSection(md: string, heading: string): string | undefined {
+  const body = sections(md.split("\n"), "##").get(heading.toLowerCase());
+  return body?.join("\n").trim();
 }

@@ -1,7 +1,9 @@
-// `npx openfleet repo create`: a new, empty repo for a greenfield project.
+// `npx openfleet repo create | confirm`: new, empty repos for greenfield projects, and the
+// commands their setup child confirmed.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { checkCopyPath } from "../copyfiles.js";
 import { appendEvent } from "../events.js";
 import { git, tryGit } from "../git.js";
 import { readRepos, validateRepoKey, writeRepos } from "../repos.js";
@@ -9,10 +11,27 @@ import { readState, updateState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName } from "../workspace.js";
 import { out } from "./output.js";
 
-export const REPO_USAGE = `Usage: openfleet repo create <key> [--github <owner/name>] [--project <name>]
+export const REPO_USAGE = `Usage:
+  openfleet repo create <key> [--github <owner/name>] [--project <name>]
   Creates repos/<key> with an empty initial commit on main and registers it in repos.json (greenfield).
   --github  also create a private GitHub repo with gh and push the initial commit
-  --project mark that project as greenfield and log repo.created to it`;
+  --project mark that project as greenfield and log repo.created to it
+
+  openfleet repo confirm <key> [--package <name> [--path <dir>]] [--build <cmd>] [--test <cmd>] [--e2e <cmd>]
+                         [--copy-file <file>]…
+  Records confirmed build/test/e2e commands (and local copyFiles) in repos.json and sets confirmed: true.
+  --package targets a monorepo package; --path registers a new one (relative to the repo root)`;
+
+export interface RepoFlags {
+  github?: string;
+  project?: string;
+  package?: string;
+  path?: string;
+  build?: string;
+  test?: string;
+  e2e?: string;
+  "copy-file"?: string[];
+}
 
 const GITHUB_REPO = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
 
@@ -37,10 +56,14 @@ function isEmptyDir(dir: string): boolean {
   return fs.readdirSync(dir).length === 0;
 }
 
-export function cmdRepo(args: string[], flags: { github?: string; project?: string }): number {
+export function cmdRepo(args: string[], flags: RepoFlags): number {
   const [sub, rawKey] = args;
+  if (sub === "confirm") return repoConfirm(validateRepoKey(rawKey), flags);
   if (sub !== "create") throw new UserError(REPO_USAGE);
-  const key = validateRepoKey(rawKey);
+  return repoCreate(validateRepoKey(rawKey), flags);
+}
+
+function repoCreate(key: string, flags: RepoFlags): number {
   const ws = requireWorkspace();
   const p = flags.project !== undefined ? projectPaths(ws, validateProjectName(flags.project)) : undefined;
   if (p) readState(p);
@@ -94,5 +117,40 @@ export function cmdRepo(args: string[], flags: { github?: string; project?: stri
     });
   }
   out(JSON.stringify({ key, ...repos.repos[key] }, null, 2));
+  return 0;
+}
+
+function repoConfirm(key: string, flags: RepoFlags): number {
+  const ws = requireWorkspace();
+  const repos = readRepos(ws);
+  const entry = repos.repos[key];
+  if (!entry) throw new UserError(`Repo "${key}" is not in repos.json.`);
+  const commands = { build: flags.build, test: flags.test, e2e: flags.e2e };
+  const set: Record<string, string> = {};
+  for (const [name, cmd] of Object.entries(commands)) {
+    if (cmd === undefined) continue;
+    if (!cmd.trim()) throw new UserError(`--${name} must not be empty.`);
+    set[name] = cmd;
+  }
+  const copyFiles = (flags["copy-file"] ?? []).map((raw) => {
+    const c = checkCopyPath(raw);
+    if ("error" in c) throw new UserError(`--copy-file "${raw}" ${c.error}.`);
+    return c.rel;
+  });
+  if (flags.path !== undefined && flags.package === undefined) throw new UserError("--path needs --package.");
+  if (flags.package !== undefined) {
+    const existing = entry.packages?.[flags.package];
+    const raw = flags.path ?? existing?.path;
+    if (!raw) throw new UserError(`Package "${flags.package}" is new: pass --path <dir> (relative to the repo root).`);
+    const c = checkCopyPath(raw);
+    if ("error" in c) throw new UserError(`--path "${raw}" ${c.error}.`);
+    entry.packages = { ...entry.packages, [flags.package]: { ...existing, ...set, path: c.rel } };
+  } else {
+    Object.assign(entry, set);
+  }
+  if (copyFiles.length) entry.copyFiles = [...new Set([...(entry.copyFiles ?? []), ...copyFiles])];
+  entry.confirmed = true;
+  writeRepos(ws, repos);
+  out(JSON.stringify({ key, ...entry }, null, 2));
   return 0;
 }

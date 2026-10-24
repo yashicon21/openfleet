@@ -9,7 +9,17 @@ Use this skill when the project `status` is `running`. Use `openfleet-records` f
 
 **This loop is hands-off.** The user is not watching. Never ask the user anything and never use <!--host:copilot-->`ask_user`. Do not end your turn while any child is still pending or in progress: keep waiting with `read_agent` and acting on reports until every child is `done`, `failed` or `blocked`, then go to completion.<!--host:claude-->`AskUserQuestion`. Spawn agents with the `Agent` tool in the background, then end your turn: each finished agent arrives as a completion notification that starts your next turn. On every notification, act on the report, run `npx openfleet next <project>` and spawn what it returns. Never block waiting on one child. Keep going until every child is `done`, `failed` or `blocked`, then go to completion.<!--/host-->
 
-## 0. Preflight
+## 0. Greenfield repos
+
+For a greenfield project (`state.greenfield`), first create every repo from the spec's **Layout** that is not in `repos.json` yet, before preflight and before any worktree:
+
+```sh
+npx openfleet repo create <key> --project <project> [--github <owner>/<name>]
+```
+
+Pass `--github` only if the user opted into a GitHub remote in the grill. It makes an empty initial commit on `main` and registers the repo with `greenfield: true`. If it fails, report its message to the user as it is and stop. Never create a repo by hand, and never re-run it for a key that is already in `repos.json`.
+
+## 0b. Preflight
 
 At the start of the run, and first thing after `resume`, run `npx openfleet preflight <project>`. It checks that git can write in every repo (ref locks, worktree admin dirs) and that the worktrees dir is writable. Until it passes, `next` returns only `{"action":"preflight"}` and `claim` refuses every spawn. If it fails, do not create worktrees or spawn anything: report its message to the user as it is and stop. `EPERM` means a sandbox blocks the writes (most likely OpenFleet was started from a sandboxed shell; see the README's "Sandbox" section). Never blame or suggest macOS Full Disk Access.
 
@@ -55,7 +65,7 @@ Every action has an `owner`: `top` (you) or a repo key. `next <project>` returns
 | `{"action":"implement","child":id}`            | Run the child's `pre-implement` slot, then spawn its implementer ("Implement" below).       |
 | `{"action":"block","child":id,"dependency":d}` | A dependency failed: patch the child `{"phase":"blocked","notes":"dependency <d> failed"}`. |
 | `{"action":"finalize"}`                        | Every child is finished: go to section 5.                                                   |
-| `{"action":"preflight","reason":…}`            | Run `npx openfleet preflight <project>` (section 0); stop and report if it fails.           |
+| `{"action":"preflight","reason":…}`            | Run `npx openfleet preflight <project>` (section 0b); stop and report if it fails.          |
 
 Repo coordinators also get `check-repo-consistency`, `merge`, `resolve-conflict` and `integrate` (section 2a).
 
@@ -144,6 +154,14 @@ Only for children whose spec section has **Baseline: yes** (`baseline: true` in 
 
 6. When the implementer reports `done`, claim `tester` and spawn `openfleet:openfleet-tester`: "Verify child `<id>` of project `<project>`."
 7. **Pass** (`status: "done"`): patch `{"phase":"post-test"}` and run the `post-test` slot for the child (see "Extension slots" below). Patch `{"phase":"done"}` only after every `post-test` entry has finished. If a blocking entry failed twice, the child is already `failed`; do not mark it `done`.
+   **Greenfield `setup` and `system` children:** before patching `done`, record the commands from the tester's report `commands` (the ones it ran and saw pass) in `repos.json`, per package where they differ, and update the spec's build/test/e2e lines to match (log `spec.written`). For the system child, add `.env.local` as a local file:
+
+   ```sh
+   npx openfleet repo confirm <repo> [--package <name> --path <dir>] [--build '<cmd>'] [--test '<cmd>'] [--e2e '<cmd>'] [--copy-file .env.local]
+   ```
+
+   Never edit `repos.json` by hand.
+
 8. **Fail**: increment `retries`.
    - If `retries < 3`: patch `{"retries":n}`, claim `implementer` and spawn a **new** implementer with the findings (step 5).
    - If `retries` reaches 3: **guided attempt.** Do not ask the user. Review the problem yourself:
@@ -198,7 +216,7 @@ When every child is `done`, `failed` or `blocked` (not counting children waiting
 
 ## Resuming
 
-On resume, run `npx openfleet preflight <project>` first (section 0): `resume` marks the last result stale, and nothing can be claimed until it passes. Then read `state.json` and answer any `open` questions. For each child:
+On resume, run `npx openfleet preflight <project>` first (section 0b): `resume` marks the last result stale, and nothing can be claimed until it passes. Then read `state.json` and answer any `open` questions. For each child:
 
 - `planning`, `baseline`, `implementing` or `testing` with a recorded agent id: <!--host:copilot-->try `read_agent` on that id. If the agent is gone,<!--host:claude-->send it a `SendMessage` ("Continue.") on that id. If the agent cannot be found,<!--/host--> re-spawn that role. Implementers and baseline testers continue from the worktree's current contents.
 - `plan-review`: re-validate the saved plan.

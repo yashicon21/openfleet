@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
 # Set up a throwaway OpenFleet demo: two toy repos (api + web) and a workspace
-# that uses this checkout's local build.
-# Usage: examples/demo/setup.sh [--host copilot|claude] [dir]
+# that uses this checkout's local build. With --greenfield: no repos, just the
+# workspace and the invoice tracker prompt (OpenFleet creates the repos itself).
+# Usage: examples/demo/setup.sh [--host copilot|claude] [--greenfield] [dir]
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"
 TMP_BASE="${TMPDIR:-/tmp}"
 HOST="copilot"
-if [ "${1:-}" = "--host" ]; then
-  HOST="${2:?--host needs copilot or claude}"
-  shift 2
-fi
+GREENFIELD=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) HOST="${2:?--host needs copilot or claude}"; shift 2 ;;
+    --greenfield) GREENFIELD=1; shift ;;
+    *) break ;;
+  esac
+done
 case "$HOST" in copilot | claude) ;; *) echo "error: --host must be copilot or claude" >&2; exit 1 ;; esac
-DEMO_DIR="${1:-${TMP_BASE%/}/openfleet-demo}"
+PROMPT="$(cat "$HERE/greenfield/prompt.txt")"
+if [ "${OPENFLEET_DEMO_PRINT_PROMPT:-}" = 1 ]; then
+  # Used by the tests: print what the greenfield demo would launch and stop.
+  [ "$GREENFIELD" = 1 ] && printf '%s\n' "$PROMPT"
+  exit 0
+fi
+DEFAULT_NAME="openfleet-demo"
+[ "$GREENFIELD" = 1 ] && DEFAULT_NAME="openfleet-greenfield-demo"
+DEMO_DIR="${1:-${TMP_BASE%/}/$DEFAULT_NAME}"
 DEMO_DIR="${DEMO_DIR%/}"
 MARKER=".openfleet-demo"
 
@@ -51,9 +64,11 @@ make_repo() {
   echo "  $name: initial commit on main, tests pass"
 }
 
-step "Creating toy repos"
-make_repo api
-make_repo web
+if [ "$GREENFIELD" = 0 ]; then
+  step "Creating toy repos"
+  make_repo api
+  make_repo web
+fi
 
 step "Scaffolding OpenFleet workspace (local build)"
 WS="$DEMO_DIR/fleet"
@@ -61,6 +76,26 @@ WS="$DEMO_DIR/fleet"
 # would treat the demo dir as part of this pnpm workspace.
 npm_config_user_agent="npm/10" node "$REPO_ROOT/packages/create/dist/index.js" "$WS" --cli "file:$REPO_ROOT/packages/cli" --host "$HOST" \
   >"$DEMO_DIR/setup.log" 2>&1 || { cat "$DEMO_DIR/setup.log" >&2; exit 1; }
+
+if [ "$GREENFIELD" = 1 ]; then
+  cat <<EOF
+
+$(printf '\033[1m')Greenfield demo ready.$(printf '\033[0m')
+
+  Workspace: $WS   (repos.json is empty: OpenFleet creates the repos in repos/)
+  Host: $HOST   Needs node, git and docker; the grill asks which other toolchains the stack uses.
+
+  1. Start the run (answer the grill: layout, stack, MVP slice; then it runs hands-off):
+       cd "$WS" && npx openfleet new invoices "$PROMPT"
+
+  2. Watch it from another terminal:
+       cd "$WS" && npx openfleet status invoices
+
+  3. Afterwards: the system is on main in $WS/repos/<key> (or in one draft PR), the run report in
+     projects/invoices/report.html, and the next slice starts with: npx openfleet continue invoices
+EOF
+  exit 0
+fi
 
 cat >"$WS/repos.json" <<'JSON'
 {

@@ -47,6 +47,7 @@ export const EVENT_TYPES = [
   "preflight.passed",
   "preflight.failed",
   "repo.created",
+  "project.continued",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];

@@ -43,3 +43,20 @@ git -C projects/greeting-lang/worktrees/web diff --cached
 The spec, plans and contracts are in `projects/greeting-lang/`, and full patches are in its `patches/`.
 
 Requirements: Node.js 20+, git, pnpm and a signed-in [Copilot CLI](https://github.com/github/copilot-cli). Running the project uses Copilot requests. With `--host claude`, you need a signed-in [Claude Code](https://code.claude.com) 2.1.219 or later instead (see [Hosts](../../README.md#hosts)).
+
+## Greenfield: build a system from scratch
+
+```sh
+pnpm demo --greenfield                 # or: examples/demo/setup.sh --greenfield [dir]
+pnpm demo --host claude --greenfield
+```
+
+This variant creates no toy repos. It scaffolds an empty workspace (default `${TMPDIR:-/tmp}/openfleet-greenfield-demo/fleet`) and prints the command that starts the invoice and payment tracker from [`greenfield/prompt.txt`](greenfield/prompt.txt):
+
+```sh
+npx openfleet new invoices "Create an invoice and payment tracking website with microservices and a frontend. …"
+```
+
+The grill proposes the services, a monorepo and the stack, cuts the request to an MVP slice with one end-to-end flow (create invoice → record payment → invoice shows paid) and lists the rest as Follow-ups. After you approve, OpenFleet creates the repo in `repos/`, scaffolds it, writes the contracts, builds the services and the frontend, and proves the flow with docker-compose. The result lands on the new repo's `main` (or in one draft PR, if you chose a GitHub remote). `npx openfleet continue invoices` starts the next slice.
+
+Requirements: the ones above plus Docker (with the compose plugin) and the toolchains of the stack you pick; preflight checks them before the run starts. See [Greenfield projects](../../README.md#greenfield-projects).

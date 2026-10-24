@@ -73,12 +73,48 @@ Only for repos with more than one child, if not `openfleet/<project>`: `app: ope
 
 ## Completion mode
 
-`staged` | `draft-pr`
+`staged` | `draft-pr` (greenfield: `main` | `draft-pr`)
 
 ## Out of scope
 
 - …
 ```
+
+## Greenfield specs
+
+A greenfield project (`state.greenfield`, see `openfleet-grill` step 1b) adds these sections, after **Goal**:
+
+```markdown
+## Layout
+
+Monorepo `invoices` (`repos/invoices`, local only | GitHub `<owner>/invoices`): `packages/contracts`, `services/invoice`, `services/payment`, `apps/web`.
+
+## Stack
+
+| Part                  | Choice                                  |
+| --------------------- | --------------------------------------- |
+| Services              | TypeScript, NestJS 11, pnpm workspaces  |
+| Frontend              | Next.js 16 (App Router)                 |
+| Database              | PostgreSQL 17, one schema per service   |
+| Service communication | REST, OpenAPI 3.1, generated TS clients |
+| Auth                  | Dev-only stub login                     |
+| Local run             | docker-compose                          |
+
+## End-to-end flow
+
+Create invoice → record payment → invoice shows paid.
+```
+
+and, after **Out of scope**, a mandatory **Follow-ups** section with everything cut from this MVP slice (one item per line; `npx openfleet spec-check` refuses an empty one):
+
+```markdown
+## Follow-ups
+
+- Recurring invoices
+- Multi-currency
+```
+
+In **Children**, add a **Kind** column (`setup`, `contracts`, `service`, `frontend`, `system`) and register each child with `"kind"` in `state.json`. Every greenfield child has **Baseline: no**. **Shared approach** repeats the Stack choices that every child must follow (versions, package manager, lint and test tools, env var naming). The system child's acceptance criteria include the end-to-end flow, and its section lists the **E2E** command and `.env.local` under local files.
 
 ## Rules
 
@@ -93,7 +129,7 @@ Only for repos with more than one child, if not `openfleet/<project>`: `app: ope
 
 The spec review is part of the grill, not a separate gate. The project stays `specifying` until the user answers.
 
-1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"`, its `dependsOn`, and, for children with a baseline, `"baseline": true` and `"baselineCover": "<what to cover>"`. Path-scoped children also get `paths` and `allowPaths`, and setup children `"setup": true`. Set the project `completionMode` (see `openfleet-records`). `maxParallel` is a workspace setting (`npx openfleet config`), not part of the spec. For a repo with several children, register its integration branch on the integration child (`{"children":{"app":{"branch":"…"}}}`) after the children, if it differs from the default. Keep `status: "specifying"`.
+1. Log `spec.written`. Register every child in `state.json` with `phase: "pending"`, its `dependsOn`, and, for children with a baseline, `"baseline": true` and `"baselineCover": "<what to cover>"`. Path-scoped children also get `paths` and `allowPaths`, and setup children `"setup": true`. Greenfield children get their `"kind"`; run `npx openfleet spec-check <project>` and fix every problem it lists before step 2. Set the project `completionMode` (see `openfleet-records`). `maxParallel` is a workspace setting (`npx openfleet config`), not part of the spec. For a repo with several children, register its integration branch on the integration child (`{"children":{"app":{"branch":"…"}}}`) after the children, if it differs from the default. Keep `status: "specifying"`.
 2. Ask the final grill question. Show a short summary (children, contracts, ordering, completion mode, out of scope), give the path to the full spec, and ask: **"Anything to change before I start?"**
 3. The user's answer ends the grill:
    - If they asked for changes, apply them to `spec.md` and `contracts/` and log `spec.written` again. Do not ask them to confirm the result. Only if a requested change is too unclear to apply, ask one short follow-up, then apply it.

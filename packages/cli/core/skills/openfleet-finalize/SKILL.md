@@ -62,6 +62,17 @@ When all PRs exist (including PRs opened mid-run), edit each PR body (`gh pr edi
 
 If a push or PR command fails, record the error in `summary.md` and in the final report. Do not retry destructively, and do not stop the other children.
 
+### Greenfield repos (`state.greenfield`)
+
+A new repo has no base to stage against, so `staged` does not apply. Each greenfield repo is finalized once, from its result: the integration child (monorepo) or its only child. The work sits on that branch, which starts at the empty initial commit on `main`.
+
+1. **The end-to-end flow decides.** Only when every `system` child is `done` (its e2e flow passed) does the repo's work land. Otherwise land nothing: leave every branch and worktree as it is, say in `summary.md` and the final report that the MVP is not proven yet and why (the system child's findings), and that `npx openfleet resume <project>` continues. Then go to "Done".
+2. Commit what is left on the branch: `cd <worktree> && git add -A`, check for copied files as above, and `git commit -m "feat: <Subject>"` if anything is staged.
+3. **`main` (no GitHub remote):** fast-forward the new repo's `main` to the branch: `git -C <repo path> merge --ff-only <branch>`. The repo's main checkout (`repos/<key>`) then holds the whole system.
+4. **`draft-pr` (GitHub remote from `repo create --github`):** `git push -u origin <branch>`, then open **one** draft PR into `main` with everything after the initial commit: `gh pr create --draft --base main --head <branch> --title "feat: <Subject>" --body-file <tmp>`. The body has the goal, the stack, the services and the frontend, the end-to-end flow and its result, a link to `summary.md` and the **Follow-ups**. Record `prUrl` on the child.
+
+In `summary.md`, list the spec's **Follow-ups** under `## Follow-ups` (before any extension follow-ups), and say that `npx openfleet continue <project>` starts the next slice from them.
+
 ## 4. Done
 
 Log `run.completed` with the mode and per-child outcome. Patch `{"status":"done"}`. Then run `npx openfleet report <project>`: it writes `projects/<project>/report.html`, a self-contained HTML report of the run (timeline, plans, agents, changes, tests, tokens). Add a line `Report: [report.html](report.html)` near the top of `summary.md`. If the command fails, record the error in `summary.md` and go on.
@@ -75,3 +86,4 @@ End the run with a final report to the user:
 - failed and blocked children with their findings and worktree paths,
 - `npx openfleet clean <project>` removes the child and integration worktrees after merging (`--branches` also deletes the local branches),
 - `npx openfleet resume <project>` continues with failed children or review feedback; or they can start a new project.
+- for a greenfield project: the spec's Follow-ups, and that `npx openfleet continue <project>` starts the next slice from them.

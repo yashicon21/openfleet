@@ -68,6 +68,8 @@ export interface ReportModel {
   status: string;
   host: Host;
   completionMode?: string;
+  /** `greenfield`, or `continues <project>` for a later slice. */
+  origin?: string;
   version?: string;
   generatedAt: number;
   t0: number;
@@ -324,6 +326,11 @@ export function deriveModel(input: ModelInput): ReportModel {
     status: state.status,
     host: state.host ?? DEFAULT_HOST,
     completionMode: state.completionMode,
+    ...(state.continuedFrom
+      ? { origin: `continues ${state.continuedFrom}` }
+      : state.greenfield
+        ? { origin: "greenfield" }
+        : {}),
     version: opts.version,
     generatedAt: opts.now ?? Date.now(),
     t0,

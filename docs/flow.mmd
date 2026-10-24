@@ -15,12 +15,12 @@ flowchart LR
   subgraph S1["1 · Specify (grill)"]
     direction TB
     H1["<b>1A · Start project</b><br/>npx openfleet new &lt;name&gt;<br/>+ free-text prompt"]
-    C1["<b>1B · Grill session</b><br/>question rounds · suggest repos<br/>split into units (pages, modules)<br/>discover build/test cmds<br/>unset extension settings<br/>workspace maxParallel"]
+    C1["<b>1B · Grill session</b><br/>question rounds · suggest repos<br/>split into units (pages, modules)<br/>discover build/test cmds<br/>unset extension settings<br/>workspace maxParallel<br/><i>greenfield: layout · stack ·<br/>MVP slice + Follow-ups</i>"]
     HA["Answer questions"]
     X0["ext: pre-spec"]
     C2["<b>1C · Write spec</b><br/>goal · children + paths · contracts<br/>order · shared approach · baselines<br/>acceptance · branches · done-mode"]
     F1["spec.md · contracts/<br/>repos.json (updated)"]
-    HR["<b>Final grill question</b><br/>preflight passes first<br/>spec summary:<br/>anything to change?"]
+    HR["<b>Final grill question</b><br/>preflight passes first<br/>greenfield: spec-check caps<br/>spec summary:<br/>anything to change?"]
     CA["<b>1D · Apply answer</b><br/>update spec · spec.approved<br/>status: running"]
     H1 --> C1
     C1 <--> HA
@@ -29,6 +29,7 @@ flowchart LR
 
   subgraph S2["2 · Plan everything (all children at once, hands-off)"]
     direction TB
+    GR["<b>Greenfield only</b><br/>repo create: empty main<br/>setup → contracts →<br/>services ∥ frontend → system"]
     C3["<b>2A · Create worktrees<br/>+ branches</b><br/>copy local env files · ports"]
     F2["worktrees/&lt;child&gt;/<br/>state.json"]
     RC["<b>Repo coordinator</b><br/>per repo with several children<br/>(single-child repos stay with<br/>the top coordinator)"]
@@ -88,7 +89,7 @@ flowchart LR
     DA{"All children done<br/>or failed?"}
     X3["<b>ext: post-run</b><br/>pattern-extractor · audit"]
     FX["pattern report<br/>audit summary"]
-    C5["<b>4A · Finalize</b><br/>staged changes or<br/>cross-linked draft PRs<br/>(one per repo / integration branch)<br/>summary: assumptions · failures · follow-ups"]
+    C5["<b>4A · Finalize</b><br/>staged changes or<br/>cross-linked draft PRs<br/>(one per repo / integration branch)<br/>greenfield: lands on main / one PR<br/>only if the e2e flow passed<br/>summary: assumptions · failures · follow-ups"]
     HF["<b>4B · Review</b><br/>diffs / PRs"]
     DP{"Pass?"}
     HC["<b>Done</b><br/>npx openfleet clean &lt;name&gt;"]
@@ -101,12 +102,14 @@ flowchart LR
 
   F0b --> H1
   CA --> C3
+  CA -. greenfield .-> GR --> C3
   X4 -- "dependsOn order" --> B --> X5 --> I
   DM -- No --> DA
   IT --> DA
   CF --> DA
   DP -- "No: resume / new project" --> H1
   FX -. "make it a project" .-> H1
+  HC -. "greenfield: npx openfleet continue<br/>(next slice from Follow-ups)" .-> H1
 
   classDef human fill:#c9d4ee,stroke:#5b6fa8,color:#000
   classDef loop fill:#f6d5dc,stroke:#b0707f,color:#000
@@ -117,7 +120,7 @@ flowchart LR
   classDef dec fill:#222,stroke:#000,color:#fff
   class H0,H0b,H1,HC human
   class HA,HR,HF loop
-  class C0,C1,C2,CA,C3,CD,CB,CE,CG,CF,C5,P,B,I,T,RC,CL,M,IT ai
+  class C0,C1,C2,CA,C3,GR,CD,CB,CE,CG,CF,C5,P,B,I,T,RC,CL,M,IT ai
   class F0,F1,F2 file
   class F0b,FX,EV cond
   class X0,X1,XA,X2,X3,X4,X5 ext
