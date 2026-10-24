@@ -8,7 +8,7 @@ import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/re
 import { cmdRepo } from "./commands/repos.js";
 import { cmdReport } from "./commands/report.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
-import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
+import { cmdClean, cmdContinue, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
 import { hintFor } from "./sandbox.js";
 import { UserError } from "./workspace.js";
@@ -35,6 +35,9 @@ Projects
   resume <name> [--fresh] [--ask] [--host <host>]
                                Continue a project in its host session (--fresh starts a new one).
                                A project keeps the host it was created with
+  continue <project> [name] [--ask] [--host <host>]
+                               Start the next slice of a finished greenfield project (default name <project>-2):
+                               its spec draft holds the previous Follow-ups, Layout and Stack; repos are reused
   status [name] [--json]       Show a project's children (grouped by repo), phases and open questions
   list                         List projects
   clean <name> [--branches] [--force]
@@ -139,6 +142,10 @@ export function run(argv: string[]): number {
         host: { type: "string" },
       });
       return cmdResume(positionals, passthrough, { fresh: values.fresh, ask: values.ask, host: values.host });
+    }
+    case "continue": {
+      const { values, positionals } = parse(rest, { ask: { type: "boolean" }, host: { type: "string" } });
+      return cmdContinue(positionals, passthrough, { ask: values.ask, host: values.host });
     }
     case "status": {
       const { values, positionals } = parse(rest, { json: { type: "boolean" } });

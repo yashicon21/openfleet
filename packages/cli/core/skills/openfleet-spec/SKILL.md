@@ -73,7 +73,7 @@ Only for repos with more than one child, if not `openfleet/<project>`: `app: ope
 
 ## Completion mode
 
-`staged` | `draft-pr`
+`staged` | `draft-pr` (greenfield: `main` | `draft-pr`)
 
 ## Out of scope
 

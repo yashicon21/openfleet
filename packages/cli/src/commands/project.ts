@@ -7,6 +7,8 @@ import { groupOf, membersOf } from "../groups.js";
 import { parseHost, readConfig } from "../config.js";
 import { DEFAULT_HOST, HOST_LABEL, type Host } from "../hosts.js";
 import { launch, sessionExists } from "../launcher.js";
+import { specFollowUps, specSection } from "../greenfield.js";
+import { readRepos, writeRepos } from "../repos.js";
 import { newState, readState, updateState, type ProjectState } from "../state.js";
 import { writeJson } from "../fsutil.js";
 import {
@@ -174,6 +176,104 @@ export function cmdResume(
       .join("\n"),
     sessionId: state.sessionId,
     newSession,
+    name: `openfleet: ${name}`,
+    project: name,
+    passthrough,
+    ask: opts.ask,
+    host,
+  });
+}
+
+/** First free `<base>-<n>` project name (n ≥ 2). */
+function nextSliceName(ws: Workspace, base: string): string {
+  const taken = new Set(listProjectNames(ws));
+  const stem = base.replace(/-\d+$/, "").slice(0, 58);
+  for (let n = 2; ; n++) if (!taken.has(`${stem}-${n}`)) return `${stem}-${n}`;
+}
+
+/** Draft spec for the next slice: the previous Layout, Stack and Shared approach, and its Follow-ups as the backlog. */
+export function continuationSpec(from: string, previous: string, followUps: string[]): string {
+  const keep = ["Layout", "Stack", "Shared approach"].flatMap((h) => {
+    const body = specSection(previous, h);
+    return body ? [`## ${h}`, "", body, ""] : [];
+  });
+  return [
+    `# Next slice of ${from}`,
+    "",
+    `Draft seeded by \`npx openfleet continue\` from projects/${from}/spec.md. The grill picks the next MVP slice from the backlog below and rewrites this file with \`openfleet-spec\`.`,
+    "",
+    ...keep,
+    `## Backlog (Follow-ups of ${from})`,
+    "",
+    ...followUps.map((f) => `- ${f}`),
+    "",
+  ].join("\n");
+}
+
+/**
+ * `npx openfleet continue <project> [name]`: a new project for the next slice of a finished
+ * greenfield project. Its spec draft holds the previous Follow-ups, Layout and Stack; the repos are
+ * reused (no longer greenfield), and the same scope caps apply.
+ */
+export function cmdContinue(
+  args: string[],
+  passthrough: string[],
+  opts: { ask?: boolean; host?: string } = {},
+): number {
+  const ws = requireWorkspace();
+  const from = validateProjectName(args[0]);
+  const prev = projectPaths(ws, from);
+  const source = readState(prev);
+  if (!source.greenfield && !source.continuedFrom) {
+    throw new UserError(`Project "${from}" is not a greenfield project; start a new one with \`npx openfleet new\`.`);
+  }
+  if (source.status !== "done") {
+    throw new UserError(
+      `Project "${from}" is "${source.status}", not "done". Finish it first (\`npx openfleet resume ${from}\`).`,
+    );
+  }
+  const previous = fs.existsSync(prev.spec) ? fs.readFileSync(prev.spec, "utf8") : "";
+  const followUps = specFollowUps(previous) ?? [];
+  if (!followUps.length) throw new UserError(`projects/${from}/spec.md lists no Follow-ups to continue with.`);
+  const name = args[1] !== undefined ? validateProjectName(args[1]) : nextSliceName(ws, from);
+  const host = opts.host !== undefined ? parseHost(opts.host) : (source.host ?? readConfig(ws).host);
+  syncExtensions(ws, warn);
+
+  const created = createProject(ws, name, host);
+  const p = projectPaths(ws, name);
+  fs.writeFileSync(p.spec, continuationSpec(from, previous, followUps));
+  if (fs.existsSync(prev.contracts)) fs.cpSync(prev.contracts, p.contracts, { recursive: true });
+  const repoKeys = [...childRepos(source)].filter(Boolean).sort();
+  const state = updateState(
+    p,
+    (s) => {
+      s.continuedFrom = from;
+      if (source.toolchains?.length) s.toolchains = [...source.toolchains];
+    },
+    "cli",
+  );
+  // The repos exist now: the next slice changes them like any other repo.
+  const repos = readRepos(ws);
+  for (const key of repoKeys) if (repos.repos[key]?.greenfield) repos.repos[key].greenfield = false;
+  writeRepos(ws, repos);
+  appendEvent(p, {
+    actor: "cli",
+    type: "project.continued",
+    target: null,
+    payload: { from, repos: repoKeys, followUps: followUps.length },
+  });
+
+  out(`Created project ${name}, continuing ${from} (${followUps.length} follow-ups). Launching the coordinator…`);
+  return launch({
+    ws,
+    agent: "openfleet-coordinator",
+    prompt: [
+      `Start OpenFleet project \`${name}\` (projects/${name}/), the next slice of \`${from}\`.`,
+      `projects/${name}/spec.md is a draft with the previous Layout, Stack and the Follow-ups backlog; contracts/ holds ${from}'s contracts.`,
+      `Begin the grill session (skill openfleet-grill, "Continuing a greenfield project"): reuse the repos (${repoKeys.join(", ")}) and the stack without asking about them again, and pick the next MVP slice under the same caps.`,
+    ].join("\n"),
+    sessionId: created.sessionId ?? state.sessionId,
+    newSession: true,
     name: `openfleet: ${name}`,
     project: name,
     passthrough,

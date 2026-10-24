@@ -24,7 +24,8 @@ If the user asks for something new ("create", "build a new …", "from scratch")
 1. **Services and contracts.** Propose the services (each owns its data), the frontend and the contracts between them, from the user's description. Keep it small.
 2. **Layout.** Recommend **one monorepo** (one package per service, one for the frontend and one shared contracts package). Several repos are possible if the user wants them. Pick the repo key(s) (for example the project name).
 3. **Stack**, one question per item, each with a recommendation: language and framework per service; frontend framework; database; service communication (REST/OpenAPI, gRPC or events); auth (recommend a dev-only stub login for the MVP); local run (recommend docker-compose). The answers go into the spec's **Stack** and **Shared approach** sections.
-4. **GitHub remote (opt-in).** Ask whether to create a private GitHub repo per repo (`<owner>/<name>`). Default: local only.
+   Record the toolchains the stack needs besides `node`, `git` and `docker` (for example `pnpm`, `python3`, `uv`, `go`): patch `{"toolchains":["pnpm"]}`. Preflight checks that each one is on PATH and that their package registries are reachable, and fails with an install hint.
+4. **GitHub remote (opt-in).** Ask whether to create a private GitHub repo per repo (`<owner>/<name>`). Default: local only. The completion mode follows from it: `main` without a remote (the result is committed on the new repo's `main`), `draft-pr` with one (one PR into `main` with everything after the initial commit). Do not ask about `staged`; it does not apply to a new repo.
 5. **MVP slice.** Run `npx openfleet config` and show the greenfield caps (`greenfield.maxServices`, default 5; `greenfield.maxChildren`, 12; `greenfield.maxCriteriaPerChild`, 8). Propose a slice of the core flows that fits them (about 3–5 services plus the frontend), and **one end-to-end flow** that proves it (for an invoice tracker: create invoice → record payment → invoice shows paid). Move everything else into **Follow-ups** and show that list to the user, so they see what was cut. The user may raise a cap with `npx openfleet config set greenfield.<key> <n>`; never raise one yourself.
 6. **Children.** One child per unit of work, each with a `kind`:
    - `setup` per repo (`<repo>/setup`): scaffolds with the official generators, adds lint/test/build and a sample test.
@@ -37,6 +38,14 @@ If the user asks for something new ("create", "build a new …", "from scratch")
 7. **Env and secrets.** There are no real secrets: databases get dev-only credentials that the system child generates into a git-ignored `.env.local`, and third-party services (payments, email) are stubbed behind an interface with a mock provider. Record `.env.local` under the repo's local files in the spec.
 
 Do **not** create any repo during the grill. The repos are created after the user approves the spec (see `openfleet-orchestrate`, section 0).
+
+## 1c. Continuing a greenfield project
+
+A project started with `npx openfleet continue <previous>` has `continuedFrom` in `state.json`. Its `spec.md` is a draft with the previous **Layout**, **Stack** and **Shared approach** and a **Backlog** of the previous Follow-ups; `contracts/` holds the previous contracts. It is a normal change to existing repos (they are in `repos.json` now, no longer greenfield), so steps 2–6b apply as usual, except:
+
+- Do not ask the stack or layout questions again; keep the Stack and Layout sections.
+- Show the backlog and the caps (`npx openfleet config`), and agree on the next MVP slice with the user. Everything in the backlog that is not in this slice goes to this spec's `## Follow-ups`: the same caps and the same Follow-ups rule apply, and `npx openfleet spec-check <project>` checks them.
+- The backlog section is not part of the final spec: replace it with Children, Per-child requirements and Follow-ups as `openfleet-spec` describes.
 
 ## 2. Repos and packages
 

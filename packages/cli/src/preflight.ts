@@ -12,7 +12,8 @@ import { isFile } from "./fsutil.js";
 import { tryGit } from "./git.js";
 import { readRepos, type RepoEntry } from "./repos.js";
 import { hintFor } from "./sandbox.js";
-import { readState, updateState } from "./state.js";
+import { readState, updateState, type ProjectState } from "./state.js";
+import { installHint, onPath, probeUrl, registriesFor, toolchainsFor, type UrlProbe } from "./toolchains.js";
 import { projectPaths, type Workspace } from "./workspace.js";
 
 /** File system operations the probes use; injectable for tests. */
@@ -36,7 +37,15 @@ export const realProbeFs: ProbeFs = {
 };
 
 export type PreflightCheck =
-  "repo" | "ref-lock" | "worktree-admin" | "info-exclude" | "copy-file" | "worktrees-dir" | "clone-dir";
+  | "repo"
+  | "ref-lock"
+  | "worktree-admin"
+  | "info-exclude"
+  | "copy-file"
+  | "worktrees-dir"
+  | "clone-dir"
+  | "toolchain"
+  | "registry";
 
 export interface CheckResult {
   repo: string | null;
@@ -134,6 +143,9 @@ function checkRepo(ws: Workspace, key: string, entry: RepoEntry, io: ProbeFs): C
 }
 
 function overallHint(failed: CheckResult[]): string | undefined {
+  if (failed.length && failed.every((c) => c.check === "toolchain" || c.check === "registry")) {
+    return "Install the missing tools and check the network or registry mirror (see each check), then run preflight again.";
+  }
   for (const code of ["EPERM", "EACCES"]) {
     if (failed.some((c) => c.code === code || c.error?.includes(code))) return hintFor(code);
   }
@@ -182,10 +194,57 @@ export function deniedChecks(checks: readonly CheckResult[]): CheckResult[] {
   return checks.filter((c) => !c.ok && (c.code === "EPERM" || c.code === "EACCES" || c.code === "EROFS"));
 }
 
-export function preflight(ws: Workspace, project: string, io: ProbeFs = realProbeFs): PreflightReport {
+export interface EnvChecks {
+  env?: NodeJS.ProcessEnv;
+  probe?: UrlProbe;
+}
+
+/** Greenfield projects: every toolchain on PATH and every package registry reachable. */
+export function greenfieldChecks(
+  state: ProjectState,
+  { env = process.env, probe = probeUrl }: EnvChecks = {},
+): CheckResult[] {
+  if (!state.greenfield) return [];
+  const tools = toolchainsFor(state.toolchains);
+  const checks: CheckResult[] = tools.map((cmd) =>
+    onPath(cmd, env)
+      ? { repo: null, check: "toolchain", path: cmd, ok: true }
+      : {
+          repo: null,
+          check: "toolchain",
+          path: cmd,
+          ok: false,
+          code: "ENOENT",
+          error: `not found on PATH. ${installHint(cmd)}`,
+        },
+  );
+  for (const url of registriesFor(tools, env)) {
+    const r = probe(url);
+    checks.push(
+      r.ok
+        ? { repo: null, check: "registry", path: url, ok: true }
+        : {
+            repo: null,
+            check: "registry",
+            path: url,
+            ok: false,
+            code: "UNREACHABLE",
+            error: `not reachable (${r.error ?? "no response"}). Check the network, a proxy or the registry mirror setting.`,
+          },
+    );
+  }
+  return checks;
+}
+
+export function preflight(
+  ws: Workspace,
+  project: string,
+  io: ProbeFs = realProbeFs,
+  envChecks: EnvChecks = {},
+): PreflightReport {
   const p = projectPaths(ws, project);
   const keys = projectRepos(ws, project);
-  const checks = runChecks(ws, project, io);
+  const checks = [...runChecks(ws, project, io), ...greenfieldChecks(readState(p), envChecks)];
   const failed = checks.filter((c) => !c.ok);
   const hint = overallHint(failed);
   const report: PreflightReport = { ok: !failed.length, project, repos: keys, checks, ...(hint ? { hint } : {}) };
@@ -211,6 +270,10 @@ export function preflight(ws: Workspace, project: string, io: ProbeFs = realProb
 export function formatFailure(report: PreflightReport): string {
   const lines = report.checks
     .filter((c) => !c.ok)
-    .map((c) => `  - ${c.repo ?? "workspace"}: ${c.check} ${c.path}${c.code ? ` (${c.code})` : ""}`);
+    .map(
+      (c) =>
+        `  - ${c.repo ?? "workspace"}: ${c.check} ${c.path}${c.code ? ` (${c.code})` : ""}` +
+        (c.check === "toolchain" || c.check === "registry" ? `: ${c.error}` : ""),
+    );
   return [`Preflight failed for project ${report.project}:`, ...lines, "", report.hint ?? ""].join("\n").trimEnd();
 }
