@@ -318,7 +318,7 @@ export const SETTINGS_FILE = "extensions.config.json";
 export type ExtensionsConfig = Record<string, Record<string, string>>;
 
 export function readExtensionsConfig(ws: Workspace): ExtensionsConfig {
-  const file = path.join(ws.dir, SETTINGS_FILE);
+  const file = path.join(ws.root, SETTINGS_FILE);
   if (!isFile(file)) return {};
   let raw: unknown;
   try {

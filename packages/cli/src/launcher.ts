@@ -119,7 +119,7 @@ export function allowedDirs(ws: Workspace, project?: string): string[] {
   };
   add(ws.root);
   if (project) add(projectPaths(ws, project).worktrees);
-  add(path.join(ws.dir, "repos"));
+  add(ws.repos);
   for (const repo of Object.values(readRepos(ws).repos)) {
     if (repo.path) add(path.resolve(ws.root, repo.path));
   }

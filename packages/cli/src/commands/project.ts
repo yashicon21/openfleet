@@ -73,14 +73,14 @@ export function cmdNew(args: string[], passthrough: string[], opts: { ask?: bool
   const ws = requireWorkspace();
   const [rawName, ...promptParts] = args;
   const name = validateProjectName(rawName);
-  // Re-sync so edits to openfleet/extensions.config.json reach the generated agents.
+  // Re-sync so edits to extensions.config.json reach the generated agents.
   const host = opts.host !== undefined ? parseHost(opts.host) : readConfig(ws).host;
   syncExtensions(ws, warn);
   const state = createProject(ws, name, host);
   const request = promptParts.join(" ").trim();
   out(`Created project ${name} at ${projectPaths(ws, name).dir}. Launching the coordinator…`);
   const prompt = [
-    `Start OpenFleet project \`${name}\` (openfleet/projects/${name}/).`,
+    `Start OpenFleet project \`${name}\` (projects/${name}/).`,
     request ? `The user's request: ${request}` : "Ask the user what they want to change.",
     "Begin the grill session (skill openfleet-grill).",
   ].join("\n");
@@ -164,7 +164,7 @@ export function cmdResume(
     ws,
     agent: "openfleet-coordinator",
     prompt: [
-      `Resume OpenFleet project \`${name}\`. Read openfleet/projects/${name}/state.json and continue from where it left off.`,
+      `Resume OpenFleet project \`${name}\`. Read projects/${name}/state.json and continue from where it left off.`,
       `First run \`npx openfleet preflight ${name}\`; spawn nothing until it passes.`,
       repoCoordinators.length
         ? `Start the repo coordinators again (\`npx openfleet next ${name}\` lists them): ${repoCoordinators.join(", ")}.`

@@ -96,7 +96,6 @@ export function onSessionStart(ctx: HookContext, payload: HookPayload): HookOutp
   const index = readCoreIndex(ctx.ws);
   const lines = [
     `OpenFleet workspace root: ${ctx.ws.root}`,
-    `OpenFleet data dir: ${ctx.ws.dir}`,
     p ? `Active OpenFleet project: ${p.name} (${p.dir})` : "No OpenFleet project is active in this session.",
   ];
   if (index) {

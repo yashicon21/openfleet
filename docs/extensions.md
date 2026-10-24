@@ -91,7 +91,7 @@ becomes
 
 ## How phases run
 
-`openfleet/core/extensions.json` lists every phase entry per slot, in lock-file order and then manifest order, with its `agent`, `blocking`, `when` and `timeoutMinutes`. At each slot the coordinator:
+`core/extensions.json` lists every phase entry per slot, in lock-file order and then manifest order, with its `agent`, `blocking`, `when` and `timeoutMinutes`. At each slot the coordinator:
 
 1. Runs `npx openfleet ext plan <project> <slot> [--child <id>]`. It prints the entries to run and logs `extension.skipped` for entries whose `when.files` do not exist.
 2. Spawns each entry's agent in order, with the project name and (for per-child slots) the child id and worktree.
@@ -167,7 +167,7 @@ An extension declares settings with string defaults:
 "settings": { "label": { "default": "preview", "description": "Label that triggers the preview workflow" } }
 ```
 
-A workspace overrides them in `openfleet/extensions.config.json`:
+A workspace overrides them in `extensions.config.json`:
 
 ```json
 { "publish": { "label": "nightly" } }
@@ -210,4 +210,4 @@ npx openfleet add https://github.com/acme/audit.git#v1  # git URL, optional #ref
 npx openfleet remove audit
 ```
 
-Git sources are pinned to a commit SHA in `extensions.lock.json`. Running `add` again with the same name updates the extension. Commit `openfleet/extensions/`, `openfleet/extensions.lock.json` and `openfleet/extensions.config.json`.
+Git sources are pinned to a commit SHA in `extensions.lock.json`. Running `add` again with the same name updates the extension. Commit `extensions/`, `extensions.lock.json` and `extensions.config.json`.

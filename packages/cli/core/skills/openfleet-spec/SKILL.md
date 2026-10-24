@@ -5,7 +5,7 @@ description: Format of an OpenFleet project spec.md (the single source of truth 
 
 # spec.md
 
-Write the spec to `openfleet/projects/<project>/spec.md` with exactly these sections. Children read only this file and `contracts/`, so they must not need to guess anything.
+Write the spec to `projects/<project>/spec.md` with exactly these sections. Children read only this file and `contracts/`, so they must not need to guess anything.
 
 ```markdown
 # <Project title>

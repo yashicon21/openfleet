@@ -1230,10 +1230,9 @@
         <section class="col prose" aria-labelledby="repos-h">
           <h2 id="repos-h"><small>03 · YOUR REPOS</small>Tell it where your code lives</h2>
           <p>
-            <code>openfleet/repos.json</code> lists the repos and packages a change can touch, with their build and test
-            commands. A repo can be a local <code>path</code> or a git <code>url</code> that OpenFleet clones for you.
-            You don’t have to write it by hand: the grill suggests repos, finds their commands and confirms them with
-            you.
+            <code>repos.json</code> lists the repos and packages a change can touch, with their build and test commands.
+            A repo can be a local <code>path</code> or a git <code>url</code> that OpenFleet clones for you. You don’t
+            have to write it by hand: the grill suggests repos, finds their commands and confirms them with you.
           </p>
         </section>
         <pre class="col codeblock" tabindex="0" role="region" aria-label="Example repos.json">
@@ -1344,9 +1343,10 @@
           <h2 id="ws-h"><small>07 · THE WORKSPACE</small>Where everything lives</h2>
           <p>Commit the settings and the repo list. Worktrees and patches stay out of git.</p>
         </section>
-        <pre class="col codeblock" tabindex="0" role="region" aria-label="Workspace layout">openfleet/
+        <pre class="col codeblock" tabindex="0" role="region" aria-label="Workspace layout">my-workspace/
+  package.json  node_modules/
+  <b>openfleet.json</b>          <i># workspace marker and settings</i>
   <b>repos.json</b>              <i># repos, packages, build and test commands</i>
-  <b>config.json</b>             <i># workspace settings</i>
   <b>extensions/</b>             <i># installed extensions</i>
   <b>projects/&lt;name&gt;/</b>
     spec.md  state.json  events.jsonl  summary.md

@@ -7,7 +7,7 @@ import { cliSpec } from "../../create/src/index.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
-import { gitRepo, publishFixture, tmpDir, writeExtension } from "./helpers.js";
+import { gitRepo, publishFixture, sh, tmpDir, writeExtension } from "./helpers.js";
 
 type Launch = { args: string[]; ws: string; project: string };
 
@@ -55,6 +55,7 @@ describe("openfleet CLI", () => {
       "repos.json",
       "extensions.lock.json",
       ".gitignore",
+      "openfleet.json",
       "projects",
       "extensions",
       "core/plugin.json",
@@ -64,11 +65,76 @@ describe("openfleet CLI", () => {
       "core/skills/openfleet-grill/SKILL.md",
       "core/VERSION",
     ]) {
-      expect(fs.existsSync(path.join(root, "openfleet", rel)), rel).toBe(true);
+      expect(fs.existsSync(path.join(root, rel)), rel).toBe(true);
     }
-    fs.writeFileSync(path.join(root, "openfleet/repos.json"), JSON.stringify({ v: 1, repos: { keep: { path: "." } } }));
+    fs.writeFileSync(path.join(root, "repos.json"), JSON.stringify({ v: 1, repos: { keep: { path: "." } } }));
     expect(cli(root, ["init"]).stdout).toContain("Refreshed");
-    expect(readJson<{ repos: object }>(path.join(root, "openfleet/repos.json")).repos).toHaveProperty("keep");
+    expect(readJson<{ repos: object }>(path.join(root, "repos.json")).repos).toHaveProperty("keep");
+  });
+
+  it("init writes openfleet.json in the root, and commands find it from subfolders", () => {
+    const root = tmpDir();
+    fs.writeFileSync(path.join(root, "package.json"), "{}\n");
+    fs.mkdirSync(path.join(root, "node_modules"));
+    expect(cli(root, ["init"]).code).toBe(0);
+    expect(fs.existsSync(path.join(root, "openfleet"))).toBe(false);
+    expect(readJson(path.join(root, "openfleet.json"))).toMatchObject({ maxParallel: 6, host: "copilot" });
+    const sub = path.join(root, "projects", "deep");
+    fs.mkdirSync(sub, { recursive: true });
+    const r = cli(sub, ["list"]);
+    expect(r.stderr).toBe("");
+    expect(r.code).toBe(0);
+    fs.rmSync(path.join(root, "openfleet.json"));
+    expect(cli(root, ["list"]).stderr).toMatch(/No OpenFleet workspace found/);
+  });
+
+  it("init refuses a folder that already holds files it would create", () => {
+    const root = tmpDir();
+    fs.mkdirSync(path.join(root, "projects"));
+    fs.writeFileSync(path.join(root, "repos.json"), "{}");
+    const r = cli(root, ["init"]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toContain("projects, repos.json");
+    expect(r.stderr).toMatch(/empty folder or a new subfolder/);
+    expect(fs.existsSync(path.join(root, "openfleet.json"))).toBe(false);
+    expect(fs.existsSync(path.join(root, "core"))).toBe(false);
+  });
+
+  it("init writes .gitignore only when missing, else prints the lines it lacks", () => {
+    const fresh = tmpDir();
+    expect(cli(fresh, ["init"]).stdout).not.toContain("Consider adding");
+    const written = fs.readFileSync(path.join(fresh, ".gitignore"), "utf8");
+    for (const line of ["node_modules/", "repos/", "projects/*/worktrees/"]) expect(written).toContain(line);
+    expect(cli(fresh, ["init"]).stdout).not.toContain("Consider adding");
+
+    const root = tmpDir();
+    fs.writeFileSync(path.join(root, ".gitignore"), "node_modules/\n.env\n");
+    const r = cli(root, ["init"]);
+    expect(r.code).toBe(0);
+    expect(fs.readFileSync(path.join(root, ".gitignore"), "utf8")).toBe("node_modules/\n.env\n");
+    expect(r.stdout).toContain("Consider adding");
+    expect(r.stdout).toContain("  repos/");
+    expect(r.stdout).toContain("  projects/*/worktrees/");
+    expect(r.stdout).not.toContain("  node_modules/");
+  });
+
+  it("clones url repos into repos/<key> at the workspace root", () => {
+    const tmp = tmpDir();
+    const remote = gitRepo(path.join(tmp, "remote"));
+    const root = path.join(tmp, "ws");
+    fs.mkdirSync(root);
+    cli(root, ["init"]);
+    fs.writeFileSync(
+      path.join(root, "repos.json"),
+      JSON.stringify({ v: 1, repos: { api: { url: remote, defaultBranch: "main" } } }),
+    );
+    const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
+    expect(cli(root, ["new", "p", "Do", "it"], env).code).toBe(0);
+    const wt = cli(root, ["worktree", "p", "api", "--repo", "api", "--branch", "openfleet/p"]);
+    expect(wt.stderr).toBe("");
+    expect(wt.code).toBe(0);
+    expect(fs.existsSync(path.join(root, "repos", "api", ".git"))).toBe(true);
+    expect(sh(path.join(root, "repos", "api"), "git", ["branch", "--list", "openfleet/p"])).toContain("openfleet/p");
   });
 
   it("commands outside a workspace fail with a friendly error", () => {
@@ -85,7 +151,7 @@ describe("openfleet CLI", () => {
     fs.mkdirSync(root);
     cli(root, ["init"]);
     fs.writeFileSync(
-      path.join(root, "openfleet/repos.json"),
+      path.join(root, "repos.json"),
       JSON.stringify({ v: 1, repos: { web: { path: "../web", defaultBranch: "main" } } }),
     );
     const out = path.join(tmp, "launch.json");
@@ -95,7 +161,7 @@ describe("openfleet CLI", () => {
     expect(r.stderr).toBe("");
     expect(r.code).toBe(0);
     const launch = readJson<Launch>(out);
-    const state = readJson<ProjectState>(path.join(root, "openfleet/projects/dark-mode/state.json"));
+    const state = readJson<ProjectState>(path.join(root, "projects/dark-mode/state.json"));
     expect(launch.args).toEqual(
       expect.arrayContaining([
         "--agent",
@@ -108,7 +174,7 @@ describe("openfleet CLI", () => {
         "x",
       ]),
     );
-    expect(launch.args[launch.args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "openfleet/core"));
+    expect(launch.args[launch.args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "core"));
     expect(launch.args[launch.args.indexOf("-i") + 1]).toContain("Add dark mode");
     expect(launch).toMatchObject({ ws: root, project: "dark-mode" });
     expect(launch.args).toEqual(
@@ -117,7 +183,7 @@ describe("openfleet CLI", () => {
         "--add-dir",
         root,
         "--add-dir",
-        path.join(root, "openfleet/projects/dark-mode/worktrees"),
+        path.join(root, "projects/dark-mode/worktrees"),
       ]),
     );
     expect(launch.args).not.toContain("--allow-all-paths");
@@ -148,13 +214,11 @@ describe("openfleet CLI", () => {
     expect(gone.code).toBe(0);
     expect(gone.stderr).toContain(`Copilot session ${freshId} no longer exists`);
     const replacedArgs = readJson<Launch>(out).args;
-    const newId = readJson<ProjectState>(path.join(root, "openfleet/projects/dark-mode/state.json")).sessionId;
+    const newId = readJson<ProjectState>(path.join(root, "projects/dark-mode/state.json")).sessionId;
     expect(newId).not.toBe(freshId);
     expect(replacedArgs[replacedArgs.indexOf("--session-id") + 1]).toBe(newId);
     expect(replacedArgs).toContain("--name");
-    expect(
-      readEvents({ events: path.join(root, "openfleet/projects/dark-mode/events.jsonl") } as never).at(-1),
-    ).toMatchObject({
+    expect(readEvents({ events: path.join(root, "projects/dark-mode/events.jsonl") } as never).at(-1)).toMatchObject({
       type: "session.replaced",
       payload: { previous: freshId, sessionId: newId, reason: "missing" },
     });
@@ -209,7 +273,7 @@ describe("openfleet CLI", () => {
     expect(status.stdout).toMatch(/web\s+planning/);
     expect(cli(root, ["list"]).stdout).toContain("dark-mode");
 
-    const projectDir = path.join(root, "openfleet/projects/dark-mode");
+    const projectDir = path.join(root, "projects/dark-mode");
     const types = readEvents({ events: path.join(projectDir, "events.jsonl") } as never).map((e) => e.type);
     expect(types).toEqual([
       "project.created",
@@ -234,7 +298,7 @@ describe("openfleet CLI", () => {
     const root = tmpDir();
     cli(root, ["init"]);
     for (const name of ["one", "two"]) {
-      const dir = path.join(root, "openfleet/projects", name);
+      const dir = path.join(root, "projects", name);
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(
         path.join(dir, "state.json"),
@@ -319,7 +383,7 @@ describe("openfleet CLI", () => {
     const web = gitRepo(path.join(tmp, "web"), { "package.json": "{}\n" });
     cli(root, ["init"]);
     fs.writeFileSync(
-      path.join(root, "openfleet/repos.json"),
+      path.join(root, "repos.json"),
       JSON.stringify({ v: 1, repos: { lib: { path: lib }, web: { path: web } } }),
     );
     expect(cli(root, ["add", publishFixture(path.join(tmp, "publish"))]).stdout).toContain(
@@ -376,8 +440,7 @@ describe("openfleet CLI", () => {
       JSON.stringify(report),
     ]);
     expect(r.code).toBe(0);
-    const state = () =>
-      readJson<ProjectState & { followUps?: object }>(path.join(root, "openfleet/projects/pin/state.json"));
+    const state = () => readJson<ProjectState & { followUps?: object }>(path.join(root, "projects/pin/state.json"));
     expect(state().children.lib).toMatchObject({
       prUrl: "https://example.test/lib/pull/7",
       outputs: { publish: report.outputs },
@@ -430,7 +493,7 @@ describe("openfleet CLI", () => {
     expect(after.children.web).toMatchObject({ phase: "blocked", notes: "dependency lib failed" });
     expect(after.children.app!.phase).toBe("blocked");
 
-    const events = readEvents({ events: path.join(root, "openfleet/projects/pin/events.jsonl") } as never);
+    const events = readEvents({ events: path.join(root, "projects/pin/events.jsonl") } as never);
     const ofType = (t: string) => events.filter((e) => e.type === t);
     expect(ofType("extension.skipped")).toHaveLength(1);
     expect(ofType("extension.ran").map((e) => e.payload.status)).toEqual(["done", "done"]);
@@ -454,7 +517,7 @@ describe("openfleet CLI", () => {
     fs.writeFileSync(path.join(app, ".env.local"), "AUTH_CLIENT_SECRET=local-client-secret-1\n");
     cli(root, ["init"]);
     fs.writeFileSync(
-      path.join(root, "openfleet/repos.json"),
+      path.join(root, "repos.json"),
       JSON.stringify({
         v: 1,
         repos: {
@@ -465,7 +528,7 @@ describe("openfleet CLI", () => {
     );
     const env = { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: path.join(tmp, "launch.json") };
     expect(cli(root, ["new", "auth"], env).code).toBe(0);
-    const state = () => readJson<ProjectState>(path.join(root, "openfleet/projects/auth/state.json"));
+    const state = () => readJson<ProjectState>(path.join(root, "projects/auth/state.json"));
     const next = () =>
       JSON.parse(cli(root, ["next", "auth"]).stdout) as { gate: string; actions: { action: string; child?: string }[] };
 
@@ -542,7 +605,7 @@ describe("openfleet CLI", () => {
     expect(Object.values(state().children).map((c) => c.phase)).toEqual(["blocked", "blocked"]);
     expect(next().actions).toEqual([{ owner: "top", action: "finalize" }]);
 
-    const events = readEvents({ events: path.join(root, "openfleet/projects/auth/events.jsonl") } as never);
+    const events = readEvents({ events: path.join(root, "projects/auth/events.jsonl") } as never);
     expect(events.find((e) => e.type === "worktree.created" && e.target === "app")!.payload).toMatchObject({
       copiedFiles: [".env.local"],
       missingCopyFiles: ["nope.env"],
@@ -557,7 +620,7 @@ describe("openfleet CLI", () => {
       payload: { files: ["e2e/login.spec.ts"], command: "pnpm test:e2e" },
     });
     expect(events.find((e) => e.type === "extension.failed")).toMatchObject({ payload: { slot: "plans-ready" } });
-    expect(fs.readFileSync(path.join(root, "openfleet/projects/auth/events.jsonl"), "utf8")).not.toContain(
+    expect(fs.readFileSync(path.join(root, "projects/auth/events.jsonl"), "utf8")).not.toContain(
       "local-client-secret-1",
     );
   });
@@ -583,11 +646,11 @@ describe("openfleet CLI", () => {
     expect(r.stderr).toBe("");
     expect(r.code).toBe(0);
     const index = readJson<Record<string, { agent: string; blocking: boolean }[]>>(
-      path.join(root, "openfleet/core/extensions.json"),
+      path.join(root, "core/extensions.json"),
     );
     expect(JSON.stringify(index)).toContain("openfleet:openfleet-ext-gate-plans-ready");
     expect(JSON.stringify(index)).toContain("openfleet:openfleet-ext-gate-pre-implement");
-    expect(fs.readFileSync(path.join(root, "openfleet/core/agents/openfleet-baseline.agent.md"), "utf8")).toContain(
+    expect(fs.readFileSync(path.join(root, "core/agents/openfleet-baseline.agent.md"), "utf8")).toContain(
       "## Extension: gate",
     );
     const bad = writeExtension(path.join(tmp, "bad"), {
@@ -604,10 +667,10 @@ describe("openfleet CLI", () => {
   it("update reinstalls core and keeps user data", () => {
     const root = tmpDir();
     cli(root, ["init"]);
-    fs.writeFileSync(path.join(root, "openfleet/core/agents/junk.agent.md"), "x");
+    fs.writeFileSync(path.join(root, "core/agents/junk.agent.md"), "x");
     expect(cli(root, ["update"]).code).toBe(0);
-    expect(fs.existsSync(path.join(root, "openfleet/core/agents/junk.agent.md"))).toBe(false);
-    expect(fs.existsSync(path.join(root, "openfleet/repos.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "core/agents/junk.agent.md"))).toBe(false);
+    expect(fs.existsSync(path.join(root, "repos.json"))).toBe(true);
   });
 });
 
@@ -644,7 +707,7 @@ describe("@openfleet-tools/create", () => {
     });
     expect(r.stderr).not.toMatch(/ERR!/);
     expect(r.status).toBe(0);
-    expect(fs.existsSync(path.join(dir, "openfleet/core/plugin.json"))).toBe(true);
+    expect(fs.existsSync(path.join(dir, "core/plugin.json"))).toBe(true);
   }, 120_000);
 });
 
@@ -662,7 +725,7 @@ describe("hosts", () => {
       CLAUDE_CONFIG_DIR: path.join(tmp, "claude-home"),
     };
     const launch = () => readJson<Launch & { host?: string }>(out);
-    const state = (name: string) => readJson<ProjectState>(path.join(root, `openfleet/projects/${name}/state.json`));
+    const state = (name: string) => readJson<ProjectState>(path.join(root, `projects/${name}/state.json`));
     return { tmp, root, env, launch, state };
   }
 
@@ -674,10 +737,10 @@ describe("hosts", () => {
     expect(state("p").host).toBe("claude");
     const args = launch().args;
     expect(args[0]).toContain("Do it");
-    expect(args[args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "openfleet/core/claude"));
+    expect(args[args.indexOf("--plugin-dir") + 1]).toBe(path.join(root, "core/claude"));
     expect(args).toEqual(expect.arrayContaining(["--session-id", state("p").sessionId, "--name", "openfleet: p"]));
     expect(launch().host).toBe("claude");
-    const events = fs.readFileSync(path.join(root, "openfleet/projects/p/events.jsonl"), "utf8");
+    const events = fs.readFileSync(path.join(root, "projects/p/events.jsonl"), "utf8");
     expect(events).toContain('"host":"claude"');
   });
 

@@ -2,14 +2,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { isDir, isFile, realish } from "./fsutil.js";
 
-export const DIR = "openfleet";
+export const MARKER = "openfleet.json";
 const PROJECT_NAME = /^[a-z0-9][a-z0-9-]{0,62}$/;
 
 export interface Workspace {
-  /** Directory containing the `openfleet/` folder. */
+  /** Workspace root: holds `openfleet.json` and everything OpenFleet manages. */
   root: string;
-  /** `<root>/openfleet` */
-  dir: string;
+  /** `<root>/openfleet.json`: workspace marker, core version and settings. */
+  marker: string;
+  /** `<root>/repos`: repositories OpenFleet clones. */
+  repos: string;
   core: string;
   extensions: string;
   projects: string;
@@ -18,20 +20,20 @@ export interface Workspace {
 }
 
 export function workspaceAt(root: string): Workspace {
-  const dir = path.join(root, DIR);
   return {
     root,
-    dir,
-    core: path.join(dir, "core"),
-    extensions: path.join(dir, "extensions"),
-    projects: path.join(dir, "projects"),
-    reposFile: path.join(dir, "repos.json"),
-    lockFile: path.join(dir, "extensions.lock.json"),
+    marker: path.join(root, MARKER),
+    repos: path.join(root, "repos"),
+    core: path.join(root, "core"),
+    extensions: path.join(root, "extensions"),
+    projects: path.join(root, "projects"),
+    reposFile: path.join(root, "repos.json"),
+    lockFile: path.join(root, "extensions.lock.json"),
   };
 }
 
 function isWorkspaceRoot(root: string): boolean {
-  return isFile(path.join(root, DIR, "repos.json"));
+  return isFile(path.join(root, MARKER));
 }
 
 /** Walk up from `start` to find the nearest OpenFleet workspace. */

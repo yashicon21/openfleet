@@ -27,7 +27,7 @@ function main(): void {
       const ctx = resolveContext(payload);
       if (ctx) {
         fs.appendFileSync(
-          path.join(ctx.ws.dir, ".hook-errors.log"),
+          path.join(ctx.ws.root, ".hook-errors.log"),
           `${new Date().toISOString()} ${event}: ${(err as Error).stack ?? String(err)}\n`,
         );
       }

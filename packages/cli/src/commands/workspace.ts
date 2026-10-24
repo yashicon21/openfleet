@@ -1,14 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { installCore, installedCoreVersion, packageVersion } from "../core.js";
-import { disableIncompatible, emptyLock } from "../extensions.js";
-import { configFile, DEFAULT_CONFIG, readConfig, setConfig } from "../config.js";
+import { disableIncompatible, emptyLock, SETTINGS_FILE } from "../extensions.js";
+import { readConfig, setConfig, writeWorkspaceVersion } from "../config.js";
 import { realish, writeJson } from "../fsutil.js";
 import { emptyRepos } from "../repos.js";
-import { findWorkspace, requireWorkspace, UserError, workspaceAt, type Workspace } from "../workspace.js";
+import { findWorkspace, MARKER, requireWorkspace, UserError, workspaceAt, type Workspace } from "../workspace.js";
 import { out, warn } from "./output.js";
 
 export const WORKSPACE_GITIGNORE = `# Managed by OpenFleet
+node_modules/
 core/
 repos/
 projects/*/worktrees/
@@ -17,6 +18,33 @@ projects/*/.events.seq
 projects/*/.*.lock
 .hook-errors.log
 `;
+
+/** Entries `init` creates in the workspace root; any of them in a folder without openfleet.json is a clash. */
+const MANAGED_ENTRIES = [
+  "core",
+  "extensions",
+  "projects",
+  "repos",
+  "repos.json",
+  "extensions.lock.json",
+  SETTINGS_FILE,
+  `${MARKER}.lock`,
+];
+
+function clashes(root: string): string[] {
+  return MANAGED_ENTRIES.filter((name) => fs.existsSync(path.join(root, name)));
+}
+
+/** Lines of WORKSPACE_GITIGNORE that an existing .gitignore does not contain. */
+export function missingGitignoreLines(file: string): string[] {
+  const have = new Set(
+    fs
+      .readFileSync(file, "utf8")
+      .split(/\r?\n/)
+      .map((l) => l.trim()),
+  );
+  return WORKSPACE_GITIGNORE.split("\n").filter((l) => l && !l.startsWith("#") && !have.has(l));
+}
 
 function ensureFile(file: string, write: () => void): boolean {
   if (fs.existsSync(file)) return false;
@@ -27,13 +55,24 @@ function ensureFile(file: string, write: () => void): boolean {
 export interface InitResult {
   ws: Workspace;
   created: boolean;
+  /** True when init wrote `.gitignore`; false when one already existed (the suggested lines are printed instead). */
+  gitignoreWritten: boolean;
 }
 
-/** Scaffold `<root>/openfleet/` (idempotent) and install core. */
+/** Scaffold an OpenFleet workspace in `root` (idempotent) and install core. */
 export function initWorkspace(root: string): InitResult {
   const existing = findWorkspace(root);
   if (existing && existing.root !== realish(root)) {
     warn(`Already inside the OpenFleet workspace at ${existing.root}; initializing there.`);
+  }
+  if (!existing) {
+    const found = clashes(root);
+    if (found.length) {
+      throw new UserError(
+        `Cannot create an OpenFleet workspace in ${realish(root)}: it already contains ${found.join(", ")}.\n` +
+          "Run it in an empty folder or a new subfolder instead.",
+      );
+    }
   }
   const ws = existing ?? workspaceAt(realish(root));
   const created = !existing;
@@ -44,17 +83,22 @@ export function initWorkspace(root: string): InitResult {
   }
   ensureFile(ws.reposFile, () => writeJson(ws.reposFile, emptyRepos()));
   ensureFile(ws.lockFile, () => writeJson(ws.lockFile, emptyLock()));
-  const config = configFile(ws);
-  ensureFile(config, () => writeJson(config, DEFAULT_CONFIG));
-  const gi = path.join(ws.dir, ".gitignore");
-  ensureFile(gi, () => fs.writeFileSync(gi, WORKSPACE_GITIGNORE));
+  writeWorkspaceVersion(ws, packageVersion());
+  const gi = path.join(ws.root, ".gitignore");
+  const gitignoreWritten = ensureFile(gi, () => fs.writeFileSync(gi, WORKSPACE_GITIGNORE));
   installCore(ws, warn);
-  return { ws, created };
+  return { ws, created, gitignoreWritten };
 }
 
 export function cmdInit(): number {
-  const { ws, created } = initWorkspace(process.cwd());
-  out(`${created ? "Created" : "Refreshed"} OpenFleet workspace at ${ws.dir} (core ${packageVersion()}).`);
+  const { ws, created, gitignoreWritten } = initWorkspace(process.cwd());
+  out(`${created ? "Created" : "Refreshed"} OpenFleet workspace at ${ws.root} (core ${packageVersion()}).`);
+  const missing = gitignoreWritten ? [] : missingGitignoreLines(path.join(ws.root, ".gitignore"));
+  if (missing.length) {
+    out("");
+    out(`${path.join(ws.root, ".gitignore")} already exists; OpenFleet left it unchanged. Consider adding:`);
+    for (const line of missing) out(`  ${line}`);
+  }
   out("");
   out("Next:");
   out('  npx openfleet new <project-name> "<what you want to change>"');
@@ -72,6 +116,7 @@ export function cmdUpdate(): number {
     );
   }
   installCore(ws, warn);
+  writeWorkspaceVersion(ws, version);
   out(`Updated OpenFleet core ${before ?? "(none)"} → ${version}.`);
   return 0;
 }

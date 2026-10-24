@@ -280,15 +280,15 @@ export function listSettings(ws: Workspace): SettingInfo[] {
   return rows;
 }
 
-/** Write one workspace-level override to openfleet/extensions.config.json, validated like core does. */
+/** Write one workspace-level override to extensions.config.json, validated like core does. */
 export function setSetting(ws: Workspace, ext: string, key: string, value: string): void {
   const m = loadExtensions(ws, warn).find((e) => e.manifest.name === ext)?.manifest;
   if (!m) throw new UserError(`Extension "${ext}" is not installed (or is disabled).`);
-  withLock(path.join(ws.dir, `${SETTINGS_FILE}.lock`), () => {
+  withLock(path.join(ws.root, `${SETTINGS_FILE}.lock`), () => {
     const config = readExtensionsConfig(ws);
     const next = { ...config, [ext]: { ...config[ext], [key]: value } };
     resolveSettings(m, next);
-    writeJson(path.join(ws.dir, SETTINGS_FILE), next);
+    writeJson(path.join(ws.root, SETTINGS_FILE), next);
   });
   // Generated agents embed the resolved settings.
   syncExtensions(ws, warn);

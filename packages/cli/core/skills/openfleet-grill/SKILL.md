@@ -9,9 +9,9 @@ The goal is to collect everything that `openfleet-spec` needs, so that no child 
 
 ## 0. Setup
 
-- Read `openfleet/repos.json` (known repos and packages, with confirmed build/test commands).
+- Read `repos.json` (known repos and packages, with confirmed build/test commands).
 - Read the project's `state.json`. If `spec.md` already exists, you are refining it. Start from it.
-- If `openfleet/core/extensions.json` lists `pre-spec` agents, run that slot after step 4 with `npx openfleet ext plan <project> pre-spec` (see the coordinator rules).
+- If `core/extensions.json` lists `pre-spec` agents, run that slot after step 4 with `npx openfleet ext plan <project> pre-spec` (see the coordinator rules).
 
 ## 1. Goal
 
@@ -37,7 +37,7 @@ A repo with more than one child (units or several packages) gets a **repo coordi
 
 ## 3. Build and test commands
 
-For each repo or package, discover the commands from `package.json` scripts, `Makefile`, `pyproject.toml`, `Cargo.toml`, `go.mod`, CI workflows, and similar files. Present what you found. Ask the user to confirm or correct it. Record the confirmed commands in `openfleet/repos.json` (set `"confirmed": true`). Add new repos with `path` or `url`, and with `defaultBranch`. Keep the existing entries unchanged except for corrections that the user confirmed.
+For each repo or package, discover the commands from `package.json` scripts, `Makefile`, `pyproject.toml`, `Cargo.toml`, `go.mod`, CI workflows, and similar files. Present what you found. Ask the user to confirm or correct it. Record the confirmed commands in `repos.json` (set `"confirmed": true`). Add new repos with `path` or `url`, and with `defaultBranch`. Keep the existing entries unchanged except for corrections that the user confirmed.
 
 ## 3b. Running the apps: e2e, env and local files
 
@@ -73,14 +73,14 @@ For each child, decide whether it needs a **baseline**: tests (usually e2e) that
 ## 6. Branches, completion mode, scope
 
 - **Branch names:** propose `openfleet/<project>` for each repo (for a repo with several children, this is its integration branch and the PR branch; each child's own branch defaults to `openfleet/<project>--<child slug>`). Ask the user to confirm or override.
-- **Parallel agents:** run `npx openfleet config` and show the current `maxParallel`: how many planners, baseline testers, implementers and testers may run at once. Say it is a workspace setting shared by every project (not part of this spec), and offer to keep it or change it. Suggest fewer on a small machine or when apps start heavy dev servers. To change it, run `npx openfleet config set maxParallel <n>`; never edit `openfleet/config.json` by hand.
+- **Parallel agents:** run `npx openfleet config` and show the current `maxParallel`: how many planners, baseline testers, implementers and testers may run at once. Say it is a workspace setting shared by every project (not part of this spec), and offer to keep it or change it. Suggest fewer on a small machine or when apps start heavy dev servers. To change it, run `npx openfleet config set maxParallel <n>`; never edit `openfleet.json` by hand.
 - **Host:** the project runs in the host recorded as `host` in `state.json` (missing means `copilot`; `claude` is Claude Code, experimental). Mention it in the spec summary. It cannot change mid-project; to use another host, the user starts a new project with `npx openfleet new <name> --host <host>`.
 - **Completion mode:** `staged` (default: changes are left staged in each worktree for review) or `draft-pr` (commit, push, and open draft PRs that link to each other and include a run summary).
 - **Out of scope:** list explicitly what this project must NOT change.
 
 ## 6b. Extension settings
 
-Run `npx openfleet ext settings --unset`. It prints, as JSON, every setting that an installed extension declares and that has no value yet in `openfleet/extensions.config.json`. If the list is empty, skip this step. Settings that are already set are never asked again.
+Run `npx openfleet ext settings --unset`. It prints, as JSON, every setting that an installed extension declares and that has no value yet in `extensions.config.json`. If the list is empty, skip this step. Settings that are already set are never asked again.
 
 Otherwise ask about each unset setting (group them per extension, at most 4 per round). Show its extension, key, description and default, and say that the value applies to the **whole workspace** (every project), not just this one. Offer "Keep the default (`<default>`)" as the recommended choice; the user can also type a value. For every answer, including "keep the default", write it with:
 

@@ -66,7 +66,7 @@ describe("buildCopilotArgs", () => {
     });
     const worktrees = projectPaths(ws, "demo").worktrees;
     fs.mkdirSync(worktrees, { recursive: true });
-    const clones = path.join(ws.dir, "repos");
+    const clones = ws.repos;
     fs.mkdirSync(path.join(clones, "remote"), { recursive: true });
 
     const dirs = addDirs(buildCopilotArgs({ ws, agent: "openfleet-coordinator", project: "demo" }));

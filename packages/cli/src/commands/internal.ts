@@ -7,7 +7,7 @@ import { addWorktree, git, headSha, isGitRepo } from "../git.js";
 import { defaultBranch, requireChildId } from "../groups.js";
 import { readRepos } from "../repos.js";
 import { patchState, readState, updateState } from "../state.js";
-import { projectPaths, requireWorkspace, UserError, validateProjectName } from "../workspace.js";
+import { projectPaths, requireWorkspace, UserError, validateProjectName, type Workspace } from "../workspace.js";
 import { out, warn } from "./output.js";
 
 function parseJson(raw: string | undefined, what: string): unknown {
@@ -66,18 +66,18 @@ export interface WorktreeFlags {
   base?: string;
 }
 
-/** Resolve a repos.json entry to a local checkout, cloning `url` into `openfleet/repos/<key>` if needed. */
-function resolveRepoPath(wsRoot: string, wsDir: string, key: string, entry: { path?: string; url?: string }): string {
+/** Resolve a repos.json entry to a local checkout, cloning `url` into `repos/<key>` if needed. */
+function resolveRepoPath(ws: Workspace, key: string, entry: { path?: string; url?: string }): string {
   if (entry.path) {
-    const abs = path.resolve(wsRoot, entry.path);
+    const abs = path.resolve(ws.root, entry.path);
     if (!isGitRepo(abs)) throw new UserError(`repos.json "${key}".path is not a git repository: ${abs}`);
     return abs;
   }
   if (!entry.url) throw new UserError(`repos.json "${key}" needs a "path" or "url".`);
-  const dest = path.join(wsDir, "repos", key);
+  const dest = path.join(ws.repos, key);
   if (!isGitRepo(dest)) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
-    git(wsRoot, ["clone", "--quiet", entry.url, dest]);
+    git(ws.root, ["clone", "--quiet", entry.url, dest]);
   }
   return dest;
 }
@@ -93,7 +93,7 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
   const state = readState(p);
   const repoKey = flags.repo ?? state.children[childId]?.repo ?? parts.repo;
   const entry = readRepos(ws).repos[repoKey];
-  if (!entry) throw new UserError(`Repo "${repoKey}" is not in openfleet/repos.json.`);
+  if (!entry) throw new UserError(`Repo "${repoKey}" is not in repos.json.`);
   const integration = state.children[repoKey]?.integration ? state.children[repoKey] : undefined;
   const branch = flags.branch ?? state.children[childId]?.branch ?? defaultBranch(name, childId, integration?.branch);
   if (integration && childId !== repoKey) {
@@ -104,7 +104,7 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
       );
     }
   }
-  const repoPath = resolveRepoPath(ws.root, ws.dir, repoKey, entry);
+  const repoPath = resolveRepoPath(ws, repoKey, entry);
   const worktree = path.join(p.worktrees, childId.replace(/[:/]/g, "__"));
   const base = flags.base ?? entry.defaultBranch;
   const existed = fs.existsSync(worktree);
