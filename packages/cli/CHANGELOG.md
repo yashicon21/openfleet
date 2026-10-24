@@ -1,5 +1,15 @@
 # @openfleet-tools/cli
 
+## 0.6.0
+
+### Minor Changes
+
+- [#35](https://github.com/yashicon21/openfleet/pull/35) [`bece92d`](https://github.com/yashicon21/openfleet/commit/bece92d5181c2ef0d47e11497801e3d1e9b6b553) Thanks [@yashicon21](https://github.com/yashicon21)! - Claude Code is now a fully supported host alongside GitHub Copilot CLI.
+  
+  - `npx openfleet init` asks which host the workspace uses (Copilot CLI or Claude Code) and saves it as `host` in `openfleet.json`. Pass `--host <copilot|claude>` to skip the question; without a terminal (or in CI) the host is `copilot`. Re-running `init` keeps the saved host unless `--host` is given.
+  - Launching Claude Code no longer prints a warning. Docs, help text and the grill skill describe both hosts equally.
+  - New parity tests run the same scenarios against both hosts: launch args, generated plugins, hook payloads and the host binary and version checks.
+
 ## 0.5.0
 
 ### Minor Changes
