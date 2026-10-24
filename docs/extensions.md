@@ -193,12 +193,12 @@ Each `commands` entry becomes a skill. `npx openfleet <command> [args]` launches
 
 Permissions are mapped to each host's tool names in the generated agents' `tools` allow-list:
 
-| Permission | Copilot tools    | Claude Code tools (experimental) |
-| ---------- | ---------------- | -------------------------------- |
-| `read`     | `read`, `search` | `Read`, `Grep`, `Glob`           |
-| `write`    | `edit`           | `Edit`, `Write`                  |
-| `shell`    | `execute`        | `Bash`                           |
-| `web`      | `web`            | `WebFetch`, `WebSearch`          |
+| Permission | Copilot tools    | Claude Code tools       |
+| ---------- | ---------------- | ----------------------- |
+| `read`     | `read`, `search` | `Read`, `Grep`, `Glob`  |
+| `write`    | `edit`           | `Edit`, `Write`         |
+| `shell`    | `execute`        | `Bash`                  |
+| `web`      | `web`            | `WebFetch`, `WebSearch` |
 
 `npx openfleet add` prints the declared permissions, phases, augments and settings so you can review them.
 

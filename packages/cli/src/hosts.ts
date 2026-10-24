@@ -1,4 +1,4 @@
-// Agent hosts OpenFleet can run in. Copilot CLI is the default; Claude Code is experimental.
+// Agent hosts OpenFleet can run in: Copilot CLI and Claude Code. New workspaces pick one at init.
 // One `core/` source is rendered per host: shared text plus host-only blocks, and per-host
 // plugin layouts and tool names.
 import path from "node:path";

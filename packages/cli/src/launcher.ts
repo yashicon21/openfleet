@@ -103,9 +103,6 @@ export function checkClaudeVersion(output: string): void {
   }
 }
 
-export const CLAUDE_EXPERIMENTAL_NOTE =
-  "Claude Code support is experimental. Copilot CLI is the default host; report issues you hit.";
-
 /**
  * Directories the session's agents work in, passed as `--add-dir` so path verification stays on
  * without prompting: the workspace root, the project's worktrees, cloned repos and known local repos.
@@ -202,7 +199,6 @@ function notFound(host: Host, bin: string): UserError {
 
 /** Checks Claude Code's version and that the workspace has its generated plugin. */
 function prepareClaude(ws: Workspace, bin: string): void {
-  warn(CLAUDE_EXPERIMENTAL_NOTE);
   const res = spawnSync(bin, ["--version"], { encoding: "utf8" });
   if (res.error && (res.error as NodeJS.ErrnoException).code === "ENOENT") throw notFound("claude", bin);
   checkClaudeVersion(`${res.stdout ?? ""}`);

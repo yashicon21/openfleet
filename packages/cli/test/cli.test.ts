@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { cliSpec } from "../../create/src/index.js";
+import { cliSpec, initArgs } from "../../create/src/index.js";
 import { readEvents } from "../src/events.js";
 import { readJson } from "../src/fsutil.js";
 import type { ProjectState } from "../src/state.js";
@@ -698,16 +698,34 @@ describe("@openfleet-tools/create", () => {
     });
   });
 
+  it("forwards --host to openfleet init and rejects unknown hosts", () => {
+    expect(initArgs()).toEqual(["init"]);
+    expect(initArgs("claude")).toEqual(["init", "--host", "claude"]);
+    expect(() => initArgs("codex")).toThrow(/--host must be one of copilot, claude/);
+    const dir = path.join(tmpDir(), "my-fleet");
+    const r = spawnSync(process.execPath, [CREATE, dir, "--skip-install", "--host", "claude"], { encoding: "utf8" });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("npx openfleet init --host claude");
+    const bad = spawnSync(process.execPath, [CREATE, path.join(tmpDir(), "x"), "--host", "codex"], {
+      encoding: "utf8",
+    });
+    expect(bad.status).toBe(1);
+    expect(bad.stderr).toMatch(/--host must be one of/);
+    const help = spawnSync(process.execPath, [CREATE, "--help"], { encoding: "utf8" });
+    expect(help.stdout).toContain("--host <host>");
+  });
+
   it("installs a local CLI build and runs init", () => {
     const dir = path.join(tmpDir(), "fleet");
     const cliPkg = fileURLToPath(new URL("..", import.meta.url));
-    const r = spawnSync(process.execPath, [CREATE, dir, "--cli", `file:${cliPkg}`], {
+    const r = spawnSync(process.execPath, [CREATE, dir, "--cli", `file:${cliPkg}`, "--host", "claude"], {
       encoding: "utf8",
       env: { ...process.env, npm_config_user_agent: "npm/10" },
     });
     expect(r.stderr).not.toMatch(/ERR!/);
     expect(r.status).toBe(0);
     expect(fs.existsSync(path.join(dir, "core/plugin.json"))).toBe(true);
+    expect(readJson<{ host: string }>(path.join(dir, "openfleet.json")).host).toBe("claude");
   }, 120_000);
 });
 
@@ -733,7 +751,7 @@ describe("hosts", () => {
     const { root, env, launch, state } = setup();
     const r = cli(root, ["new", "p", "Do", "it", "--host", "claude"], env);
     expect(r.code).toBe(0);
-    expect(r.stderr).toMatch(/experimental/);
+    expect(r.stderr).toBe("");
     expect(state("p").host).toBe("claude");
     const args = launch().args;
     expect(args[0]).toContain("Do it");
