@@ -20,7 +20,7 @@ This package provides the `openfleet` command and the Copilot plugin it installs
 4. **Baseline** (optional, per child). Tests for today's behaviour are written and pass on the unchanged code.
 5. **Implement → test.** These run in `dependsOn` order, with at most `maxParallel` agents working across the workspace, and failures are retried.
 6. **Integrate.** A repo with several children merges them into its integration branch and runs the full build and tests there.
-7. **Finalize.** Changes are staged in each worktree, or opened as cross-linked draft PRs. `summary.md` lists assumptions, failures and follow-ups, and `report.html` shows the whole run (see [Run report](#run-report)).
+7. **Finalize.** Changes are staged in each worktree, or opened as cross-linked draft PRs. On GitHub, a repo with several children can open as a stack of smaller PRs instead, one per child ([stacked pull requests](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands), via `gh stack`; the grill asks). `summary.md` lists assumptions, failures and follow-ups, and `report.html` shows the whole run (see [Run report](#run-report)).
 
 See the [flow diagram](https://github.com/yashicon21/openfleet/blob/main/docs/flow.png) for the details.
 

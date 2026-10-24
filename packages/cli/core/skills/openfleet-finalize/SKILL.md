@@ -62,6 +62,18 @@ When all PRs exist (including PRs opened mid-run), edit each PR body (`gh pr edi
 
 If a push or PR command fails, record the error in `summary.md` and in the final report. Do not retry destructively, and do not stop the other children.
 
+### Stacked PRs (`prStack`)
+
+With `prStack: true`, a `done` repo with two or more merged children (its integration child) opens as a **stack** of draft PRs instead of one PR, using GitHub stacked pull requests. Single-child repos and repos that already have a `prUrl` are handled as above.
+
+1. Commit what is left in the integration worktree (step 1 of `draft-pr`, with the copied-files check).
+2. Create the layers: `npx openfleet stack <project> <repo>`. It makes one branch per merged child, in merge order (setup first), each pointing at the integration branch right after that child's merge; the top layer is the integration branch itself, so it also holds the integration fixes. It prints the layers and the commands to run.
+3. In the integration worktree, run the printed commands: `gh stack init --base <default branch> <layer branches…>` (bottom to top), then `gh stack submit --auto`, which pushes every layer and opens each as a draft PR based on the one below it.
+4. Run `gh stack view --json` to get each layer's PR URL. Edit each PR body (`gh pr edit <url> --body-file <tmp>`): that child's summary, its acceptance criteria and results, a link to `summary.md`, and the **Follow-ups**; the top PR also lists the integration result. Record the top layer's URL as the integration child's `prUrl` and list every layer's URL in `summary.md`.
+5. Include every layer in the **Related PRs** lists of the other repos' PRs.
+
+If `gh stack` is missing or fails, record the error, fall back to one draft PR for the repo (as in `draft-pr`), and say so in the summary. Never force-push over a stack someone has started reviewing.
+
 ### Greenfield repos (`state.greenfield`)
 
 A new repo has no base to stage against, so `staged` does not apply. Each greenfield repo is finalized once, from its result: the integration child (monorepo) or its only child. The work sits on that branch, which starts at the empty initial commit on `main`.
@@ -69,7 +81,7 @@ A new repo has no base to stage against, so `staged` does not apply. Each greenf
 1. **The end-to-end flow decides.** Only when every `system` child is `done` (its e2e flow passed) does the repo's work land. Otherwise land nothing: leave every branch and worktree as it is, say in `summary.md` and the final report that the MVP is not proven yet and why (the system child's findings), and that `npx openfleet resume <project>` continues. Then go to "Done".
 2. Commit what is left on the branch: `cd <worktree> && git add -A`, check for copied files as above, and `git commit -m "feat: <Subject>"` if anything is staged.
 3. **`main` (no GitHub remote):** fast-forward the new repo's `main` to the branch: `git -C <repo path> merge --ff-only <branch>`. The repo's main checkout (`repos/<key>`) then holds the whole system.
-4. **`draft-pr` (GitHub remote from `repo create --github`):** `git push -u origin <branch>`, then open **one** draft PR into `main` with everything after the initial commit: `gh pr create --draft --base main --head <branch> --title "feat: <Subject>" --body-file <tmp>`. The body has the goal, the stack, the services and the frontend, the end-to-end flow and its result, a link to `summary.md` and the **Follow-ups**. Record `prUrl` on the child.
+4. **`draft-pr` (GitHub remote from `repo create --github`):** `git push -u origin <branch>`, then open **one** draft PR into `main` with everything after the initial commit: `gh pr create --draft --base main --head <branch> --title "feat: <Subject>" --body-file <tmp>`. The body has the goal, the stack, the services and the frontend, the end-to-end flow and its result, a link to `summary.md` and the **Follow-ups**. Record `prUrl` on the child. With `prStack` (and two or more children in the repo), open it as stacked PRs instead, as "Stacked PRs" below describes; the layers then go setup → contracts → services and frontend → system.
 
 In `summary.md`, list the spec's **Follow-ups** under `## Follow-ups` (before any extension follow-ups), and say that `npx openfleet continue <project>` starts the next slice from them.
 

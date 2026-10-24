@@ -109,6 +109,8 @@ export interface ChildState {
   dependsOn: string[];
   agentIds: Partial<Record<Role, string>>;
   plan?: string;
+  /** Integration child split into stacked PRs (`npx openfleet stack`): one layer per merged child, bottom first. */
+  stack?: { child: string; branch: string; sha: string }[];
   /** Set by finalize, or mid-run by an extension output named `prUrl`. Finalize then updates this PR. */
   prUrl?: string;
   /** Extension outputs, keyed by extension name. Injected into dependents' prompts by the spawn hook. */
@@ -155,6 +157,8 @@ export interface ProjectState {
   /** Agent host the project runs in, recorded at `new`. Missing means Copilot CLI. */
   host?: Host;
   completionMode?: CompletionMode;
+  /** `draft-pr` on GitHub: open a repo with several children as stacked PRs (`gh stack`), one per child. */
+  prStack?: boolean;
   /** The project creates its repos from scratch (`npx openfleet repo create`) instead of changing existing code. */
   greenfield?: boolean;
   specApproved?: boolean;

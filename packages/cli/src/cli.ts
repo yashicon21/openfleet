@@ -7,6 +7,7 @@ import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
 import { cmdRepo } from "./commands/repos.js";
 import { cmdReport } from "./commands/report.js";
+import { cmdStack } from "./commands/stack.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdContinue, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
@@ -84,6 +85,7 @@ Agent helpers (used by OpenFleet agents)
   scope <project> <child> --check
                                List changed files outside a path-scoped child's paths
   merge <project> <child>      Merge a done child into its repo's integration branch
+  stack <project> <repo>       Split a grouped repo into stacked draft PRs: one branch per merged child, in order
   escalate <project> <child> --question <text> | --resolve --decision <text>
                                Block a child on a cross-repo question, or resolve it
 
@@ -237,6 +239,8 @@ export function run(argv: string[]): number {
       const { values, positionals } = parse(rest, { check: { type: "boolean" } });
       return cmdScope(positionals, values);
     }
+    case "stack":
+      return cmdStack(parse(rest, {}).positionals);
     case "merge":
       return cmdMerge(parse(rest, {}).positionals);
     case "escalate": {

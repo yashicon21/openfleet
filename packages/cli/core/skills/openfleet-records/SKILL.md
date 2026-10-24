@@ -19,6 +19,8 @@ Useful patches:
 ```sh
 # project status: specifying | running | finalizing | done | cancelled  (unknown values are rejected)
 npx openfleet state p --patch '{"status":"running","specApproved":true,"completionMode":"staged"}'
+# draft PRs as GitHub stacked PRs for repos with several children (chosen in the grill)
+npx openfleet state p --patch '{"completionMode":"draft-pr","prStack":true}'
 
 # register a child (child id = "<repo>", "<repo>:<package>" or "<repo>[:<package>]/<unit>")
 npx openfleet state p --patch '{"children":{"api":{"repo":"api","phase":"pending","dependsOn":[],"retries":0,"agentIds":{}}}}'
