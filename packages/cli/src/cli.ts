@@ -5,6 +5,7 @@ import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
+import { cmdReport } from "./commands/report.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
 import { cmdConfig, cmdInit, cmdUpdate } from "./commands/workspace.js";
@@ -34,6 +35,9 @@ Projects
   list                         List projects
   clean <name> [--branches] [--force]
                                Remove the project's child and integration worktrees (and branches)
+  report <name> [--out <file>] [--open] [--gap <min>]
+                               Write an HTML report of the run (default projects/<name>/report.html).
+                               Pauses longer than --gap minutes (default 15) are collapsed
 
 Extensions
   add <git-url[#ref]|path>     Install or update an extension
@@ -128,6 +132,14 @@ export function run(argv: string[]): number {
     case "clean": {
       const { values, positionals } = parse(rest, { branches: { type: "boolean" }, force: { type: "boolean" } });
       return cmdClean(positionals, values);
+    }
+    case "report": {
+      const { values, positionals } = parse(rest, {
+        out: { type: "string" },
+        open: { type: "boolean" },
+        gap: { type: "string" },
+      });
+      return cmdReport(positionals, values);
     }
     case "add":
       return cmdAdd(parse(rest, {}).positionals);

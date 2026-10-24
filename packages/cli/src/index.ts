@@ -10,3 +10,4 @@ export { snapshotWorktree } from "./git.js";
 export { initWorkspace } from "./commands/workspace.js";
 export { createProject, findOverlaps } from "./commands/project.js";
 export { run } from "./cli.js";
+export { generateReport, defaultReportPath, buildModel, renderReport } from "./report/index.js";
