@@ -1,5 +1,11 @@
 # @openfleet-tools/create
 
+## 0.6.0
+
+### Minor Changes
+
+- [#35](https://github.com/yashicon21/openfleet/pull/35) [`bece92d`](https://github.com/yashicon21/openfleet/commit/bece92d5181c2ef0d47e11497801e3d1e9b6b553) Thanks [@yashicon21](https://github.com/yashicon21)! - Add `--host <copilot|claude>`, forwarded to `openfleet init`. Without it, `init` asks which agent host the workspace uses (Copilot CLI or Claude Code); without a terminal (or in CI) the host is `copilot`.
+
 ## 0.5.0
 
 ### Minor Changes
