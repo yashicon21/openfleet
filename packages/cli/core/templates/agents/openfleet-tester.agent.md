@@ -18,6 +18,7 @@ Your assignment block (injected above) names your child, worktree and ports; to 
 4. **Baseline tests.** If your prompt has a `## Baseline tests (protected)` section, run `npx openfleet baseline <project> <child id> --check` from the workspace root. For every changed file, read the diff. A change is allowed only if it follows a behaviour change that the spec explicitly lists for this child. Any other change (including a weakened or deleted assertion or a deleted file) is a failure. Then run the baseline tests with the e2e command from the spec; they must pass.
 5. **Scope.** If your prompt has a `## Scope` section, run `npx openfleet scope <project> <child id> --check` from the workspace root. Any file in `outside` is a failure: list it as a finding.
 6. Check each acceptance criterion for this child in `spec.md`. Use code reading or targeted commands.
+   **Greenfield projects** (the spec has a `## Follow-ups` section): also look for endpoints, pages or database tables that neither the contracts nor this child's acceptance criteria call for, and for anything listed under `## Follow-ups`. Each one is a failing finding ("out of scope: …"); the implementer removes it.
 7. Record each command you run:
 
    ```sh
@@ -45,6 +46,6 @@ End with:
 ```
 ````
 
-Use `status: "done"` only when build, tests, contract tests and baseline tests pass, baseline tests have no unlisted edits, the scope check (if any) lists no outside files, and every acceptance criterion is met.
+Use `status: "done"` only when build, tests, contract tests and baseline tests pass, baseline tests have no unlisted edits, the scope check (if any) lists no outside files, nothing is out of scope for a greenfield project, and every acceptance criterion is met.
 
 If your prompt has a `## Integration` section, you test the repo's merged integration branch: run the repo's full build and full test suite (not one child's commands) and report.

@@ -3,6 +3,7 @@
 // openfleet.json also records the core `version` the workspace was last initialized or updated with.
 import fs from "node:fs";
 import { readJson, writeJson } from "./fsutil.js";
+import { DEFAULT_GREENFIELD_LIMITS, GREENFIELD_LIMIT_KEYS, type GreenfieldLimits } from "./greenfield.js";
 import { DEFAULT_HOST, HOSTS, isHost, type Host } from "./hosts.js";
 import { withLock } from "./lock.js";
 import { UserError, type Workspace } from "./workspace.js";
@@ -14,6 +15,8 @@ export interface WorkspaceConfig {
   host: Host;
   /** Optional token prices per model, used only by `openfleet report`. Edit openfleet.json to set it. */
   pricing?: Pricing;
+  /** Scope caps for greenfield projects, checked before the spec is approved (`config set greenfield.<key> <n>`). */
+  greenfield?: Partial<GreenfieldLimits>;
 }
 
 /** USD per million tokens. Cache writes: `cacheWrite5m`/`cacheWrite1h` where the host tells them apart, else `cacheWrite`. */
@@ -30,8 +33,8 @@ export type Pricing = Record<string, ModelPrice>;
 export const DEFAULT_MAX_PARALLEL = 6;
 export const DEFAULT_CONFIG: WorkspaceConfig = { maxParallel: DEFAULT_MAX_PARALLEL, host: DEFAULT_HOST };
 const KEYS = Object.keys(DEFAULT_CONFIG) as (keyof WorkspaceConfig)[];
-/** Settings with no default, set by editing openfleet.json (not `config set`). */
-const OPTIONAL_KEYS = ["pricing"];
+/** Settings with no default: `pricing` is set by editing openfleet.json, `greenfield` with `config set greenfield.<key>`. */
+const OPTIONAL_KEYS = ["pricing", "greenfield"];
 const PRICE_FIELDS = ["input", "output", "cacheRead", "cacheWrite", "cacheWrite5m", "cacheWrite1h"];
 const REQUIRED_PRICE_FIELDS = ["input", "output", "cacheRead"];
 
@@ -76,10 +79,36 @@ export function parsePricing(value: unknown): Pricing {
   return out;
 }
 
+function parseLimit(key: string, value: unknown): number {
+  const n = typeof value === "string" && /^\d+$/.test(value.trim()) ? Number(value) : value;
+  if (typeof n !== "number" || !Number.isInteger(n) || n < 1) {
+    throw new UserError(`greenfield.${key} must be a positive integer (got ${JSON.stringify(value)}).`);
+  }
+  return n;
+}
+
+export function parseGreenfield(value: unknown): Partial<GreenfieldLimits> {
+  if (!isPlainObject(value)) throw new UserError("greenfield must be an object of limits.");
+  const out: Partial<GreenfieldLimits> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (!(GREENFIELD_LIMIT_KEYS as string[]).includes(k)) {
+      throw new UserError(`Unknown greenfield setting "${k}". Known: ${GREENFIELD_LIMIT_KEYS.join(", ")}.`);
+    }
+    out[k as keyof GreenfieldLimits] = parseLimit(k, v);
+  }
+  return out;
+}
+
+/** Effective greenfield caps: openfleet.json `greenfield` over the defaults. */
+export function greenfieldLimits(config: WorkspaceConfig): GreenfieldLimits {
+  return { ...DEFAULT_GREENFIELD_LIMITS, ...config.greenfield };
+}
+
 const PARSERS: { [K in keyof WorkspaceConfig]-?: (value: unknown) => WorkspaceConfig[K] } = {
   maxParallel: parseMaxParallel,
   host: parseHost,
   pricing: parsePricing,
+  greenfield: parseGreenfield,
 };
 
 function validate(raw: unknown, file: string): Partial<WorkspaceConfig> {
@@ -98,7 +127,8 @@ function validate(raw: unknown, file: string): Partial<WorkspaceConfig> {
     try {
       out[key] = PARSERS[key](raw[key]);
     } catch (err) {
-      if (err instanceof UserError && key === "pricing") throw new UserError(`${file}: ${err.message}`);
+      if (err instanceof UserError && (key === "pricing" || key === "greenfield"))
+        throw new UserError(`${file}: ${err.message}`);
       throw err;
     }
   }
@@ -114,8 +144,21 @@ export function readConfig(ws: Workspace): WorkspaceConfig {
 
 /** Validate and write one key under a workspace lock. Returns the new effective config. */
 export function setConfig(ws: Workspace, key: string, value: string): WorkspaceConfig {
+  if (key.startsWith("greenfield.")) {
+    const sub = key.slice("greenfield.".length);
+    const parsed = parseGreenfield({ [sub]: value });
+    const next = updateMarker(ws, (current) => ({
+      ...current,
+      greenfield: { ...(isPlainObject(current.greenfield) ? current.greenfield : {}), ...parsed },
+    }));
+    return { ...DEFAULT_CONFIG, ...validate(next, configFile(ws)) };
+  }
   if (OPTIONAL_KEYS.includes(key)) {
-    throw new UserError(`Set "${key}" by editing ${configFile(ws)} (see the CLI README).`);
+    throw new UserError(
+      key === "greenfield"
+        ? `Set one greenfield limit at a time: npx openfleet config set greenfield.<${GREENFIELD_LIMIT_KEYS.join("|")}> <n>`
+        : `Set "${key}" by editing ${configFile(ws)} (see the CLI README).`,
+    );
   }
   if (!(KEYS as string[]).includes(key)) {
     throw new UserError(`Unknown config key "${key}". Known keys: ${KEYS.join(", ")}.`);
