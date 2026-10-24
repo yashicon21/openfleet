@@ -9,11 +9,24 @@ import { readJson, writeJson } from "../src/fsutil.js";
 import { specCriteria, specFollowUps } from "../src/greenfield.js";
 import { isSetup } from "../src/groups.js";
 import { childContext } from "../src/hooks/handlers.js";
-import { preflight } from "../src/preflight.js";
+import { formatFailure, greenfieldChecks, preflight } from "../src/preflight.js";
+import { buildModel } from "../src/report/model.js";
+import { onPath, registriesFor, toolchainsFor } from "../src/toolchains.js";
 import type { ReposFile } from "../src/repos.js";
 import { newState, patchState, readState, type ProjectState } from "../src/state.js";
 import { projectPaths, type Workspace } from "../src/workspace.js";
 import { sh, tmpDir, workspace } from "./helpers.js";
+
+/** A PATH with fake executables and a registry probe that always answers. */
+function fakeBin(names: string[]): string {
+  const dir = tmpDir();
+  for (const n of names) {
+    fs.writeFileSync(path.join(dir, n), "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(path.join(dir, n), 0o755);
+  }
+  return dir;
+}
+const okEnv = () => ({ env: { PATH: fakeBin(["node", "git", "docker"]) }, probe: () => ({ ok: true }) });
 
 const BIN = fileURLToPath(new URL("../dist/bin.js", import.meta.url));
 
@@ -422,7 +435,7 @@ describe("greenfield prompts and helpers", () => {
     const ws = workspace();
     const p = project(ws);
     patchState(p, { greenfield: true, children: { "app/setup": { kind: "setup" } } });
-    const report = preflight(ws, "invoices");
+    const report = preflight(ws, "invoices", undefined, okEnv());
     expect(report.ok).toBe(true);
     expect(report.checks.find((c) => c.repo === "app")).toMatchObject({ check: "clone-dir", ok: true });
     patchState(p, { greenfield: null });
@@ -468,5 +481,128 @@ describe("greenfield prompts and helpers", () => {
     expect(childContext(p, state, "app/system", "planner")).not.toMatch(/Commands: e2e/);
     const brown = patchState(p, { greenfield: null });
     expect(childContext(p, brown, "app/setup", "implementer")).not.toContain("## Greenfield");
+  });
+});
+
+describe("greenfield preflight toolchains", () => {
+  it("knows toolchains, PATH lookups and registries", () => {
+    expect(toolchainsFor(["pnpm", "node", "bad name"])).toEqual(["node", "git", "docker", "pnpm"]);
+    const bin = fakeBin(["uv"]);
+    fs.writeFileSync(path.join(bin, "notexec"), "");
+    expect(onPath("uv", { PATH: bin })).toBe(true);
+    expect(onPath("notexec", { PATH: bin })).toBe(false);
+    expect(onPath("go", { PATH: bin })).toBe(false);
+    expect(registriesFor(["node", "uv", "go"], {})).toEqual([
+      "https://registry.npmjs.org/",
+      "https://pypi.org/simple/",
+      "https://proxy.golang.org/",
+    ]);
+    expect(
+      registriesFor(["pnpm", "python3", "go"], {
+        npm_config_registry: "http://mirror.local/npm/",
+        PIP_INDEX_URL: "http://mirror.local/pypi/",
+        GOPROXY: "off",
+      }),
+    ).toEqual(["http://mirror.local/npm/", "http://mirror.local/pypi/"]);
+  });
+
+  it("fails greenfield preflight on a missing toolchain or an unreachable registry, with hints", () => {
+    const ws = workspace();
+    const p = project(ws);
+    patchState(p, { greenfield: true, toolchains: ["uv"], children: { "app/setup": { kind: "setup" } } });
+    const probed: string[] = [];
+    const report = preflight(ws, "invoices", undefined, {
+      env: { PATH: fakeBin(["node", "git"]) },
+      probe: (url) => (probed.push(url), url.includes("pypi") ? { ok: false, error: "ENOTFOUND" } : { ok: true }),
+    });
+    expect(report.ok).toBe(false);
+    expect(probed).toEqual(["https://registry.npmjs.org/", "https://pypi.org/simple/"]);
+    const text = formatFailure(report);
+    expect(text).toMatch(/toolchain docker \(ENOENT\): not found on PATH\. Install docker: .*docs\.docker\.com/);
+    expect(text).toMatch(/toolchain uv \(ENOENT\): .*astral\.sh/);
+    expect(text).toMatch(/registry https:\/\/pypi\.org\/simple\/ \(UNREACHABLE\): not reachable \(ENOTFOUND\)/);
+    expect(report.hint).toMatch(/Install the missing tools/);
+    expect(readState(p).preflight?.ok).toBe(false);
+    expect(() => patchState(p, { specApproved: true })).toThrow(/Preflight failed/);
+    expect(greenfieldChecks({ ...readState(p), greenfield: false })).toEqual([]);
+  });
+});
+
+describe("continue", () => {
+  function finished(): { ws: Workspace; out: string; env: Record<string, string> } {
+    const ws = workspace();
+    const p = project(ws);
+    expect(cli(ws.root, ["repo", "create", "app", "--project", "invoices"]).code).toBe(0);
+    const spec = MVP_SPEC().replace(
+      "## Per-child requirements",
+      "## Layout\n\nMonorepo `app`.\n\n## Stack\n\n| Part | Choice |\n| --- | --- |\n| Services | NestJS |\n\n## Per-child requirements",
+    );
+    fs.writeFileSync(p.spec, spec);
+    fs.mkdirSync(p.contracts, { recursive: true });
+    fs.writeFileSync(path.join(p.contracts, "invoices.yaml"), "openapi: 3.1.0\n");
+    patchState(p, {
+      toolchains: ["pnpm"],
+      children: {
+        "app/setup": { kind: "setup" },
+        "app:invoices": { kind: "service" },
+        "app/system": { kind: "system" },
+      },
+    });
+    patchState(p, { status: "done", completionMode: "main" });
+    const dir = tmpDir();
+    const out = path.join(dir, "launch.json");
+    const bin = path.join(dir, "fake-copilot.mjs");
+    fs.writeFileSync(
+      bin,
+      `#!/usr/bin/env node\nimport fs from "node:fs";\nfs.writeFileSync(process.env.FAKE_OUT, JSON.stringify({ args: process.argv.slice(2) }));\n`,
+    );
+    fs.chmodSync(bin, 0o755);
+    return { ws, out, env: { OPENFLEET_COPILOT_BIN: bin, FAKE_OUT: out } };
+  }
+
+  it("starts the next slice seeded from the Follow-ups, reusing repos and stack", () => {
+    const { ws, out, env } = finished();
+    const r = cli(ws.root, ["continue", "invoices"], env);
+    expect(r.stderr).toBe("");
+    expect(r.code).toBe(0);
+    const next = projectPaths(ws, "invoices-2");
+    const state = readState(next);
+    expect(state).toMatchObject({ continuedFrom: "invoices", toolchains: ["pnpm"], status: "specifying" });
+    expect(state.greenfield).toBeUndefined();
+    const spec = fs.readFileSync(next.spec, "utf8");
+    expect(spec).toMatch(/## Layout\n\nMonorepo `app`\./);
+    expect(spec).toMatch(/## Stack\n\n\| Part/);
+    expect(spec).toMatch(/## Backlog \(Follow-ups of invoices\)\n\n- Recurring invoices\n- Multi-currency/);
+    expect(fs.readFileSync(path.join(next.contracts, "invoices.yaml"), "utf8")).toContain("openapi");
+    expect(readJson<ReposFile>(ws.reposFile).repos.app?.greenfield).toBe(false);
+    expect(readEvents(next).find((e) => e.type === "project.continued")?.payload).toEqual({
+      from: "invoices",
+      repos: ["app"],
+      followUps: 2,
+    });
+    const prompt = readJson<{ args: string[] }>(out).args.join(" ");
+    expect(prompt).toMatch(
+      /next slice of `invoices`[\s\S]*Continuing a greenfield project[\s\S]*reuse the repos \(app\)/,
+    );
+    // The next slice is under the same caps.
+    expect(cli(ws.root, ["spec-check", "invoices-2"]).code).toBe(1);
+    expect(cli(ws.root, ["continue", "invoices"], env).code).toBe(0);
+    expect(readState(projectPaths(ws, "invoices-3")).continuedFrom).toBe("invoices");
+    expect(cli(ws.root, ["continue", "invoices", "billing"], env).code).toBe(0);
+    expect(buildModel(ws, "invoices-2").origin).toBe("continues invoices");
+    expect(buildModel(ws, "invoices").origin).toBe("greenfield");
+  });
+
+  it("refuses unfinished, brownfield or Follow-ups-free projects", () => {
+    const { ws, env } = finished();
+    const p = projectPaths(ws, "invoices");
+    patchState(p, { status: "running" });
+    expect(cli(ws.root, ["continue", "invoices"], env).stderr).toMatch(/is "running", not "done"/);
+    patchState(p, { status: "done" });
+    fs.writeFileSync(p.spec, MVP_SPEC(2, "None\n"));
+    expect(cli(ws.root, ["continue", "invoices"], env).stderr).toMatch(/lists no Follow-ups/);
+    patchState(p, { greenfield: null });
+    expect(cli(ws.root, ["continue", "invoices"], env).stderr).toMatch(/not a greenfield project/);
+    expect(fs.existsSync(projectPaths(ws, "invoices-2").state)).toBe(false);
   });
 });

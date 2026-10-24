@@ -166,7 +166,7 @@ export function cmdSpecCheck(args: string[]): number {
   const ws = requireWorkspace();
   const p = projectPaths(ws, validateProjectName(args[0]));
   const state = readState(p);
-  const problems = state.greenfield ? greenfieldProblems(p, state) : [];
+  const problems = state.greenfield || state.continuedFrom ? greenfieldProblems(p, state) : [];
   const limits = greenfieldLimits(readConfig(ws));
   out(JSON.stringify({ ok: !problems.length, greenfield: state.greenfield === true, limits, problems }, null, 2));
   return problems.length ? 1 : 0;

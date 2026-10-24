@@ -565,6 +565,7 @@ function topSection(m: ReportModel): string {
   const meta = [
     m.status,
     m.host === "claude" ? "Claude Code" : "Copilot CLI",
+    m.origin,
     m.completionMode,
     `${fmtDate(m.t0)} → ${clock(m.t1)}`,
   ]

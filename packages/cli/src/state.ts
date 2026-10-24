@@ -44,7 +44,8 @@ export type Role = WorkRole | "repo-coordinator";
 export const PORT_BASE = 4100;
 export const PORT_STEP = 10;
 
-export type CompletionMode = "staged" | "draft-pr";
+/** `main`: greenfield repos only, commit the result on the new repo's `main` (no remote). */
+export type CompletionMode = "staged" | "draft-pr" | "main";
 
 /**
  * What a greenfield child builds. `setup` scaffolds a repo, `contracts` writes the shared
@@ -164,6 +165,10 @@ export interface ProjectState {
   followUps?: Record<string, string[]>;
   /** The `plans-ready` gate is open: every plan was validated and checked for consistency, and the slot ran. */
   plansReady?: boolean;
+  /** Greenfield: toolchains the chosen stack needs besides node, git and docker (for example `pnpm`, `uv`, `go`). Preflight checks them. */
+  toolchains?: string[];
+  /** Project this one continues (`npx openfleet continue`): its Follow-ups seeded this spec, its repos and stack are reused. */
+  continuedFrom?: string;
   /** Last `npx openfleet preflight` result. `stale` is set by `resume`, until preflight runs again. */
   preflight?: { ok: boolean; at: string; stale?: boolean };
 }
@@ -387,7 +392,7 @@ export function patchState(p: ProjectPaths, patch: unknown, actor?: string): Pro
       );
     }
     const next = mergePatch(current, patch);
-    if (next.greenfield) checkGreenfieldScope(p, next);
+    if (next.greenfield || next.continuedFrom) checkGreenfieldScope(p, next);
   }
   return updateState(p, (s) => mergePatch(s, patch), actor);
 }
