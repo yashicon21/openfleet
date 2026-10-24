@@ -17,6 +17,27 @@ The goal is to collect everything that `openfleet-spec` needs, so that no child 
 
 Restate the user's request in one or two sentences and confirm it. Ask what "done" looks like from the user's point of view.
 
+## 1b. Greenfield: a new system
+
+If the user asks for something new ("create", "build a new …", "from scratch") and no repo in `repos.json` or the workspace fits, this is a **greenfield** project: OpenFleet creates the repos and builds the system. Confirm it with the user, then patch `{"greenfield":true}`. For a greenfield project, this section replaces steps 2, 2b, 3, 3b and 5c; steps 4, 5, 5b, 6 and 6b still apply. Ask each question once for the whole system, with a recommended answer.
+
+1. **Services and contracts.** Propose the services (each owns its data), the frontend and the contracts between them, from the user's description. Keep it small.
+2. **Layout.** Recommend **one monorepo** (one package per service, one for the frontend and one shared contracts package). Several repos are possible if the user wants them. Pick the repo key(s) (for example the project name).
+3. **Stack**, one question per item, each with a recommendation: language and framework per service; frontend framework; database; service communication (REST/OpenAPI, gRPC or events); auth (recommend a dev-only stub login for the MVP); local run (recommend docker-compose). The answers go into the spec's **Stack** and **Shared approach** sections.
+4. **GitHub remote (opt-in).** Ask whether to create a private GitHub repo per repo (`<owner>/<name>`). Default: local only.
+5. **MVP slice.** Run `npx openfleet config` and show the greenfield caps (`greenfield.maxServices`, default 5; `greenfield.maxChildren`, 12; `greenfield.maxCriteriaPerChild`, 8). Propose a slice of the core flows that fits them (about 3–5 services plus the frontend), and **one end-to-end flow** that proves it (for an invoice tracker: create invoice → record payment → invoice shows paid). Move everything else into **Follow-ups** and show that list to the user, so they see what was cut. The user may raise a cap with `npx openfleet config set greenfield.<key> <n>`; never raise one yourself.
+6. **Children.** One child per unit of work, each with a `kind`:
+   - `setup` per repo (`<repo>/setup`): scaffolds with the official generators, adds lint/test/build and a sample test.
+   - `contracts` (`<repo>:contracts` in a monorepo): schemas plus generated types and clients in a shared package.
+   - `service` per service and `frontend` for the UI (`<repo>:<package>`).
+   - `system` (`<repo>/system`): docker-compose, dev credentials, seed data and the end-to-end flow.
+
+   OpenFleet adds the order to `dependsOn` itself (setup → contracts → services ∥ frontend → system). Baseline is `no` for every child (there is no existing behaviour). Build and test commands are not known yet: write the ones the setup child will create (for example `pnpm --filter <package> build`); the setup child confirms them.
+
+7. **Env and secrets.** There are no real secrets: databases get dev-only credentials that the system child generates into a git-ignored `.env.local`, and third-party services (payments, email) are stubbed behind an interface with a mock provider. Record `.env.local` under the repo's local files in the spec.
+
+Do **not** create any repo during the grill. The repos are created after the user approves the spec (see `openfleet-orchestrate`, section 0).
+
 ## 2. Repos and packages
 
 - Suggest likely repos from `repos.json`, based on names, descriptions and a quick search of their code.
@@ -98,6 +119,8 @@ When all of this is answered, write the spec with `openfleet-spec` and register 
 npx openfleet preflight <project>
 ```
 
-It checks that git can write ref locks and worktree admin dirs in every repo, that the worktrees dir is writable and that `copyFiles` can be opened (it never reads them). **Do not ask for approval while it fails**: `state --patch '{"specApproved":true}'` is rejected until it passes. Show the user its message as it is. `EPERM` ("Operation not permitted") means a sandbox blocks the writes. The likely causes, in order: OpenFleet or Copilot was started from a sandboxed shell (an IDE or app-embedded terminal, or an agent's shell): start `npx openfleet` from a normal terminal; Copilot's command sandbox is on: `/sandbox disable`, or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`; a managed OS policy. It is **not** fixed by macOS Full Disk Access; never suggest that. `EACCES` is a plain file-permissions problem. After the user fixes it, run preflight again.
+It checks that git can write ref locks and worktree admin dirs in every repo, that the worktrees dir is writable and that `copyFiles` can be opened (it never reads them). For a greenfield project, repos that do not exist yet only need a writable `repos/` folder. **Do not ask for approval while it fails**: `state --patch '{"specApproved":true}'` is rejected until it passes. Show the user its message as it is. `EPERM` ("Operation not permitted") means a sandbox blocks the writes. The likely causes, in order: OpenFleet or Copilot was started from a sandboxed shell (an IDE or app-embedded terminal, or an agent's shell): start `npx openfleet` from a normal terminal; Copilot's command sandbox is on: `/sandbox disable`, or add the repo paths to `sandbox.userPolicy.filesystem.readwritePaths` in `~/.copilot/settings.json`; a managed OS policy. It is **not** fixed by macOS Full Disk Access; never suggest that. `EACCES` is a plain file-permissions problem. After the user fixes it, run preflight again.
+
+For a greenfield project, also run `npx openfleet spec-check <project>` before the final question. Approval is refused while the spec is over the greenfield caps, a child has no `kind`, or `## Follow-ups` is missing or empty; `spec-check` lists every such problem. Cut scope (move the cut items to Follow-ups), update `spec.md` and `state.json`, and run it again until it prints `"ok": true`. Ask the user to raise a cap only if cutting would lose the end-to-end flow.
 
 When preflight passes, ask the final question from "Spec review" in `openfleet-spec`: show the summary and ask **"Anything to change before I start?"** The user's answer ends the grill. Apply any changes, log `spec.approved`, set `status: "running"`, and start the run immediately.

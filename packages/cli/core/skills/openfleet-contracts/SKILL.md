@@ -21,6 +21,10 @@ The coordinator writes the fixtures to `projects/<project>/contracts/` during th
 - **Implementer:** writes the tests. Producers assert that real output conforms to the fixture. Consumers assert that they correctly handle the fixture's example payloads, including the error cases.
 - **Tester:** verifies that the tests exist, reference the shared fixture, run in the child's test command, and pass.
 
+## Greenfield projects
+
+In a greenfield project, `contracts/` holds the agreed shapes from the grill (for an API: one OpenAPI 3.1 fragment per service, with every endpoint, request, response and error case of the MVP slice; for events: one JSON Schema per event). The `contracts` child turns them into the shared contracts package (full schemas plus generated types and clients) before any service or the frontend is built; those children import from that package, and their contract tests validate against it. A contract change during the run updates `contracts/` **and** the contracts package: send it to the contracts child (moved back to `implementing` if it is `done`) before the children that use it.
+
 ## Changing a contract during the run
 
 Only the top coordinator changes contracts, usually after a child asks a question. This happens during the hands-off run, so the coordinator decides without asking the user. A repo coordinator never changes a contract or the Shared approach: it escalates the question (`npx openfleet escalate <project> <child> --question '…'`), and the top coordinator decides, changes the contract here, resolves each escalated child (`escalate … --resolve --decision '…'`) and resumes the repo coordinator with <!--host:copilot-->`write_agent`<!--host:claude-->`SendMessage`<!--/host-->.

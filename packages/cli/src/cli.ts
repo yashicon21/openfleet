@@ -2,10 +2,10 @@ import { parseArgs } from "node:util";
 import { packageVersion } from "./core.js";
 import { cmdAdd, cmdExtensions, cmdRemove, runExtensionCommand } from "./commands/extensions.js";
 import { cmdExt } from "./commands/ext.js";
-import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
+import { cmdEvent, cmdSpecCheck, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
-import { cmdRepo } from "./commands/repo-create.js";
+import { cmdRepo } from "./commands/repos.js";
 import { cmdReport } from "./commands/report.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
@@ -47,6 +47,8 @@ Repos
   repo create <key> [--github <owner/name>] [--project <name>]
                                Create an empty repo in repos/<key> (initial commit on main) for a greenfield
                                project and register it in repos.json; --github also creates a private GitHub repo
+  repo confirm <key> [--package <name> [--path <dir>]] [--build <cmd>] [--test <cmd>] [--e2e <cmd>] [--copy-file <f>]
+                               Record confirmed commands (and local copyFiles) for a repo or package in repos.json
 
 Extensions
   add <git-url[#ref]|path>     Install or update an extension
@@ -64,6 +66,7 @@ Agent helpers (used by OpenFleet agents)
                                List declared extension settings (JSON); --unset: only those not yet set
   ext settings set <ext> <key> <value>
                                Write a workspace-level setting to extensions.config.json
+  spec-check <project>         Greenfield projects: list what blocks spec approval (caps, kinds, Follow-ups)
   preflight <project>          Check that git can write ref locks and worktrees in every repo (sandbox check)
   next <project> [--repo <repo>]
                                Print the next scheduling actions (plans first, then the gate)
@@ -95,7 +98,10 @@ function splitPassthrough(argv: string[]): [string[], string[]] {
   return i < 0 ? [argv, []] : [argv.slice(0, i), argv.slice(i + 1)];
 }
 
-function parse<T extends Record<string, { type: "string" | "boolean"; short?: string }>>(args: string[], options: T) {
+function parse<T extends Record<string, { type: "string" | "boolean"; short?: string; multiple?: boolean }>>(
+  args: string[],
+  options: T,
+) {
   return parseArgs({ args, options, allowPositionals: true, strict: true });
 }
 
@@ -153,7 +159,16 @@ export function run(argv: string[]): number {
       return cmdReport(positionals, values);
     }
     case "repo": {
-      const { values, positionals } = parse(rest, { github: { type: "string" }, project: { type: "string" } });
+      const { values, positionals } = parse(rest, {
+        github: { type: "string" },
+        project: { type: "string" },
+        package: { type: "string" },
+        path: { type: "string" },
+        build: { type: "string" },
+        test: { type: "string" },
+        e2e: { type: "string" },
+        "copy-file": { type: "string", multiple: true },
+      });
       return cmdRepo(positionals, values);
     }
     case "add":
@@ -195,6 +210,8 @@ export function run(argv: string[]): number {
       });
       return cmdExt(positionals, values);
     }
+    case "spec-check":
+      return cmdSpecCheck(parse(rest, {}).positionals);
     case "preflight":
       return cmdPreflight(parse(rest, {}).positionals);
     case "next": {

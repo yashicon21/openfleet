@@ -6,7 +6,8 @@ import { appendEvent, PLAN_REJECTION_REASONS } from "../events.js";
 import { addWorktree, git, headSha, isGitRepo } from "../git.js";
 import { defaultBranch, requireChildId } from "../groups.js";
 import { readRepos } from "../repos.js";
-import { patchState, readState, updateState } from "../state.js";
+import { greenfieldLimits, readConfig } from "../config.js";
+import { greenfieldProblems, patchState, readState, updateState } from "../state.js";
 import { projectPaths, requireWorkspace, UserError, validateProjectName, type Workspace } from "../workspace.js";
 import { out, warn } from "./output.js";
 
@@ -158,4 +159,15 @@ export function cmdWorktree(args: string[], flags: WorktreeFlags): number {
   }
   out(JSON.stringify(next.children[childId], null, 2));
   return 0;
+}
+
+/** `npx openfleet spec-check <project>`: the greenfield scope problems that would block approval (exit 1 if any). */
+export function cmdSpecCheck(args: string[]): number {
+  const ws = requireWorkspace();
+  const p = projectPaths(ws, validateProjectName(args[0]));
+  const state = readState(p);
+  const problems = state.greenfield ? greenfieldProblems(p, state) : [];
+  const limits = greenfieldLimits(readConfig(ws));
+  out(JSON.stringify({ ok: !problems.length, greenfield: state.greenfield === true, limits, problems }, null, 2));
+  return problems.length ? 1 : 0;
 }
