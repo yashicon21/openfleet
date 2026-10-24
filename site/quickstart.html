@@ -1142,13 +1142,16 @@
                 <a href="#run-h"><span>04</span>Answer once, then step away</a>
               </li>
               <li>
-                <a href="#touch-h"><span>05</span>Know what it can touch</a>
+                <a href="#new-h"><span>05</span>No repos yet? Describe the system</a>
               </li>
               <li>
-                <a href="#cmd-h"><span>06</span>Start it, check on it, pick it back up</a>
+                <a href="#touch-h"><span>06</span>Know what it can touch</a>
               </li>
               <li>
-                <a href="#ws-h"><span>07</span>Where everything lives</a>
+                <a href="#cmd-h"><span>07</span>Start it, check on it, pick it back up</a>
+              </li>
+              <li>
+                <a href="#ws-h"><span>08</span>Where everything lives</a>
               </li>
             </ol>
           </details>
@@ -1287,8 +1290,34 @@
           <p><a href="how-it-works.html">Watch an example run, event by event</a>.</p>
         </section>
 
+        <section class="col prose" aria-labelledby="new-h">
+          <h2 id="new-h"><small>05 · FROM SCRATCH</small>No repos yet? Describe the system</h2>
+          <p>
+            Ask for something new, such as
+            <code
+              >npx openfleet new invoices "Create an invoice and payment tracking website with microservices and a
+              frontend"</code
+            >, and the grill builds it from nothing. It proposes the services and their contracts, recommends one
+            monorepo, asks about the stack once (with a recommendation for each answer), and offers a private GitHub
+            repo.
+          </p>
+          <p>
+            A run builds an <strong>MVP slice</strong>: the core flows plus one end-to-end flow that proves them, such
+            as create invoice → record payment → invoice shows paid. Everything else goes into the spec’s Follow-ups.
+            The CLI enforces the limits (5 services, 12 children and 8 acceptance criteria per child by default), so the
+            scope can’t quietly grow during the run.
+          </p>
+          <p>
+            Then the children run in order: <strong>setup</strong> scaffolds each repo with the official generators,
+            <strong>contracts</strong> writes the schemas and generated clients, the <strong>services</strong> and the
+            <strong>frontend</strong> build on them in parallel, and <strong>system</strong> adds docker-compose, seed
+            data and the end-to-end test. The work lands on <code>main</code>, or in one draft PR, only when that test
+            passes. <code>npx openfleet continue invoices</code> starts the next slice from the Follow-ups.
+          </p>
+        </section>
+
         <section class="col prose" aria-labelledby="touch-h">
-          <h2 id="touch-h"><small>05 · PERMISSIONS</small>Know what it can touch</h2>
+          <h2 id="touch-h"><small>06 · PERMISSIONS</small>Know what it can touch</h2>
           <p>
             Inside the workspace and the repos you list, tools run without asking, so the run doesn’t stop for every
             edit. Any other path, and every URL, still prompts. Pass <code>--ask</code> to <code>new</code> or
@@ -1297,7 +1326,7 @@
         </section>
 
         <section class="col prose" aria-labelledby="cmd-h">
-          <h2 id="cmd-h"><small>06 · COMMANDS</small>Start it, check on it, pick it back up</h2>
+          <h2 id="cmd-h"><small>07 · COMMANDS</small>Start it, check on it, pick it back up</h2>
           <p>Every command runs from the workspace folder.</p>
         </section>
         <dl class="col ref">
@@ -1341,7 +1370,7 @@
         </p>
 
         <section class="col prose" aria-labelledby="ws-h">
-          <h2 id="ws-h"><small>07 · THE WORKSPACE</small>Where everything lives</h2>
+          <h2 id="ws-h"><small>08 · THE WORKSPACE</small>Where everything lives</h2>
           <p>Commit the settings and the repo list. Worktrees and patches stay out of git.</p>
         </section>
         <pre class="col codeblock" tabindex="0" role="region" aria-label="Workspace layout">my-workspace/

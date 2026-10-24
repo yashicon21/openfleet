@@ -606,3 +606,32 @@ describe("continue", () => {
     expect(fs.existsSync(projectPaths(ws, "invoices-2").state)).toBe(false);
   });
 });
+
+describe("greenfield demo", () => {
+  const SETUP = fileURLToPath(new URL("../../../examples/demo/setup.sh", import.meta.url));
+
+  it("launches the invoice tracker prompt on both hosts", () => {
+    const printed = spawnSync("bash", [SETUP, "--host", "claude", "--greenfield"], {
+      encoding: "utf8",
+      env: { ...process.env, OPENFLEET_DEMO_PRINT_PROMPT: "1" },
+    }).stdout.trim();
+    expect(printed).toMatch(/^Create an invoice and payment tracking website with microservices and a frontend\./);
+    for (const host of ["copilot", "claude"] as const) {
+      const ws = workspace();
+      const dir = tmpDir();
+      const out = path.join(dir, "launch.json");
+      const bin = path.join(dir, `fake-${host}.mjs`);
+      fs.writeFileSync(
+        bin,
+        `#!/usr/bin/env node\nimport fs from "node:fs";\nif (process.argv[2] === "--version") { console.log("2.1.280 (Claude Code)"); process.exit(0); }\nfs.writeFileSync(process.env.FAKE_OUT, JSON.stringify({ args: process.argv.slice(2) }));\n`,
+      );
+      fs.chmodSync(bin, 0o755);
+      const env = { [host === "claude" ? "OPENFLEET_CLAUDE_BIN" : "OPENFLEET_COPILOT_BIN"]: bin, FAKE_OUT: out };
+      const r = cli(ws.root, ["new", "invoices", printed, "--host", host], env);
+      expect(r.stderr).toBe("");
+      expect(r.code).toBe(0);
+      expect(readJson<{ args: string[] }>(out).args.join(" ")).toContain(`The user's request: ${printed}`);
+      expect(readJson<ReposFile>(ws.reposFile).repos).toEqual({});
+    }
+  });
+});

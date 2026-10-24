@@ -24,7 +24,7 @@ const INSTALL: Record<string, string> = {
   java: "a JDK, for example https://adoptium.net",
   mvn: "https://maven.apache.org/install.html",
   gradle: "https://gradle.org/install/",
-  dotnet: "https://dotnet.microsoft.com/download",
+  dotnet: "https://dot.net",
   gh: "https://cli.github.com",
 };
 
