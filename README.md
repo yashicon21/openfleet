@@ -1,12 +1,12 @@
 # OpenFleet
 
-Coordinate **one change across many repos** with [GitHub Copilot CLI](https://github.com/github/copilot-cli) (or, experimentally, [Claude Code](#hosts)).
+Coordinate **one change across many repos** with [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://code.claude.com).
 
 Website: [openfleet.tools](https://openfleet.tools) · Repository: [github.com/yashicon21/openfleet](https://github.com/yashicon21/openfleet)
 
 You describe the change once. A **coordinator** agent turns it into a spec with you, then runs a **planner → implementer → tester** pipeline for each repo, monorepo package or path-scoped unit (such as one page of an app), in parallel, each in its own git worktree. A repo with several children gets its own **repo coordinator**, which merges them into one integration branch and one PR. Every agent action is recorded in an append-only event log.
 
-OpenFleet is built from Copilot primitives (custom agents, subagents, hooks, skills). It is not a new agent runtime.
+OpenFleet is built from the host's own primitives (custom agents, subagents, hooks, skills). It is not a new agent runtime.
 
 ## Workflow at a glance
 
@@ -33,11 +33,11 @@ See the [flow diagram](docs/flow.png) for the details.
 
 ## Quick start
 
-Requirements: Node.js 20+, git, [Copilot CLI](https://github.com/github/copilot-cli) signed in, and optionally `gh` for draft PRs.
+Requirements: Node.js 20+, git, a signed-in agent host ([Copilot CLI](https://github.com/github/copilot-cli), or [Claude Code](https://code.claude.com) 2.1.219 or later), and optionally `gh` for draft PRs.
 
 ```sh
 mkdir my-fleet && cd my-fleet
-npm create @openfleet-tools@latest   # or: npx @openfleet-tools/create
+npm create @openfleet-tools@latest   # or: npx @openfleet-tools/create; asks Copilot CLI or Claude Code
 npx openfleet new better-auth "Move every service to better-auth"
 ```
 
@@ -127,11 +127,11 @@ Repos can live anywhere: give a `path` (relative to the workspace root) or a `ur
 
 | Command                                                             | What it does                                                                        |
 | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `npx openfleet init`                                                | Create the workspace in the current directory and install core                      |
+| `npx openfleet init [--host <copilot\|claude>]`                     | Create the workspace here, install core and choose the host (asks; CI: `copilot`)   |
 | `npx openfleet update`                                              | Replace `core` with the installed CLI version; disable incompatible extensions      |
 | `npx openfleet config`                                              | Show workspace settings (`openfleet.json`)                                          |
 | `npx openfleet config set maxParallel <n>`                          | Cap working agents across all projects (default 6)                                  |
-| `npx openfleet config set host <copilot\|claude>`                   | Agent host for new projects (default `copilot`; `claude` is experimental)           |
+| `npx openfleet config set host <copilot\|claude>`                   | Agent host for new projects (`copilot` or `claude`; set by `init`)                  |
 | `npx openfleet new <name> ["<request>"] [--ask] [--host <h>]`       | Create a project and launch the coordinator (`--host` overrides the workspace host) |
 | `npx openfleet resume <name> [--fresh] [--ask]`                     | Continue a project in its host session (`--fresh`, or a missing session: a new one) |
 | `npx openfleet status [name] [--json]`                              | Children grouped by repo, phases, retries and open questions                        |
@@ -149,13 +149,13 @@ Arguments after `--` go to the host CLI (`copilot` or `claude`) unchanged, for e
 
 ### Permissions
 
-OpenFleet launches Copilot in interactive mode so you can answer the grill questions. After the grill the coordinator keeps working without asking you anything. By default:
+OpenFleet launches the host in interactive mode so you can answer the grill questions. After the grill the coordinator keeps working without asking you anything. By default:
 
 - **Tools are auto-approved** (`--allow-all-tools`), so you are not asked to approve every edit or shell command.
 - **File access stays limited.** Path verification stays on. OpenFleet adds `--add-dir` for the workspace, the project's `worktrees/`, cloned repos in `repos/` and every local repo in `repos.json`. Access to any other path still prompts.
 - **URL access still prompts** (OpenFleet does not pass `--allow-all-urls`).
 
-Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal per-tool prompts. These defaults are for Copilot; see [Hosts](#hosts) for Claude Code. To allow everything, pass Copilot's own flag: `npx openfleet resume x -- --yolo`.
+Pass `--ask` to `new`, `resume` or an extension command to get Copilot's normal per-tool prompts. These defaults are for Copilot; see [Hosts](#hosts) for the Claude Code equivalents. To allow everything, pass Copilot's own flag: `npx openfleet resume x -- --yolo`.
 
 `new`, `resume` and `status` warn when another active project touches the same repo.
 
@@ -163,9 +163,10 @@ The agents also use the helper commands `state`, `event`, `worktree`, `preflight
 
 ## Hosts
 
-OpenFleet runs on [GitHub Copilot CLI](https://github.com/github/copilot-cli) by default. **[Claude Code](https://code.claude.com) is an experimental second host.** Copilot behaviour does not change when you don't use it.
+OpenFleet runs on [GitHub Copilot CLI](https://github.com/github/copilot-cli) and [Claude Code](https://code.claude.com). Both are fully supported and tested against the same scenarios.
 
-- `npx openfleet config set host claude` makes new projects launch in Claude Code, and `npx openfleet new <name> --host claude` does it for one project. A project keeps the host it was created with: `resume --host` with another host is refused.
+- `npm create @openfleet-tools` and `npx openfleet init` ask which host the workspace uses and save it as `host` in `openfleet.json`. Pass `--host <copilot|claude>` to skip the question; without a terminal (or in CI) the host is `copilot`.
+- `npx openfleet config set host <copilot|claude>` changes the host for new projects, and `npx openfleet new <name> --host <host>` overrides it for one project. A project keeps the host it was created with: `resume --host` with another host is refused.
 - Requires Claude Code 2.1.219 or later. OpenFleet runs `claude --version` and refuses older versions. `OPENFLEET_CLAUDE_BIN` overrides the binary, like `OPENFLEET_COPILOT_BIN`.
 - The same core generates a plugin per host: the Copilot plugin in `core/` and the Claude Code plugin in `core/claude/` (agents, skills and hooks, sharing `core/lib`). Workspaces created before host support need `npx openfleet update` first.
 - Permissions: `--permission-mode acceptEdits --allowedTools Bash` and the same `--add-dir` list as Copilot. `--ask` keeps the default permission mode. OpenFleet never passes `bypassPermissions` or `--dangerously-skip-permissions`.

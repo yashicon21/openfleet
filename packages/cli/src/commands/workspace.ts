@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { installCore, installedCoreVersion, packageVersion } from "../core.js";
 import { disableIncompatible, emptyLock, SETTINGS_FILE } from "../extensions.js";
-import { readConfig, setConfig, writeWorkspaceVersion } from "../config.js";
+import { parseHost, readConfig, setConfig, writeWorkspaceVersion } from "../config.js";
+import { DEFAULT_HOST, HOST_LABEL, HOSTS, type Host } from "../hosts.js";
 import { realish, writeJson } from "../fsutil.js";
 import { emptyRepos } from "../repos.js";
 import { findWorkspace, MARKER, requireWorkspace, UserError, workspaceAt, type Workspace } from "../workspace.js";
@@ -90,9 +91,77 @@ export function initWorkspace(root: string): InitResult {
   return { ws, created, gitignoreWritten };
 }
 
-export function cmdInit(): number {
+export interface InitOptions {
+  /** `--host`: skips the prompt and overrides the saved host. */
+  host?: string;
+  /** Whether init may ask which host to use (a TTY outside CI). */
+  interactive?: boolean;
+  /** Reads one answer; `undefined` means end of input. */
+  ask?: (question: string) => string | undefined;
+}
+
+const HOST_QUESTION =
+  "Which agent host should this workspace use?\n" +
+  HOSTS.map((h, i) => `  ${i + 1}) ${HOST_LABEL[h]} (${h})`).join("\n") +
+  `\nHost [${DEFAULT_HOST}]: `;
+
+/** Map a prompt answer to a host: a number, a host name or empty for the default; `null` when invalid. */
+export function hostFromAnswer(answer: string): Host | null {
+  const a = answer.trim().toLowerCase();
+  if (!a) return DEFAULT_HOST;
+  if (/^\d+$/.test(a)) return HOSTS[Number(a) - 1] ?? null;
+  return (HOSTS as readonly string[]).includes(a) ? (a as Host) : null;
+}
+
+/**
+ * Host init saves: `--host` wins; an existing workspace keeps its setting; a new one asks
+ * when interactive and otherwise uses the default. `undefined` means leave openfleet.json as is.
+ */
+export function resolveInitHost(created: boolean, opts: InitOptions): Host | undefined {
+  if (opts.host !== undefined) return parseHost(opts.host);
+  if (!created) return undefined;
+  if (!opts.interactive || !opts.ask) return DEFAULT_HOST;
+  for (;;) {
+    const answer = opts.ask(HOST_QUESTION);
+    if (answer === undefined) return DEFAULT_HOST;
+    const host = hostFromAnswer(answer);
+    if (host) return host;
+    warn(`Answer 1, 2, ${HOSTS.join(" or ")}.`);
+  }
+}
+
+/** Read one line from stdin synchronously; `undefined` at end of input or when stdin cannot be read. */
+export function readLineSync(question: string): string | undefined {
+  process.stdout.write(question);
+  const buf = Buffer.alloc(1);
+  let line = "";
+  for (;;) {
+    let n: number;
+    try {
+      n = fs.readSync(0, buf, 0, 1, null);
+    } catch (err) {
+      // A TTY stdin may be non-blocking: wait for the user to type instead of giving up.
+      if ((err as NodeJS.ErrnoException).code === "EAGAIN") {
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+        continue;
+      }
+      return line || undefined;
+    }
+    if (n === 0) return line || undefined;
+    const ch = buf.toString("utf8");
+    if (ch === "\n") return line.replace(/\r$/, "");
+    line += ch;
+  }
+}
+
+export function cmdInit(opts: InitOptions = {}): number {
+  if (opts.host !== undefined) parseHost(opts.host);
   const { ws, created, gitignoreWritten } = initWorkspace(process.cwd());
+  const interactive = opts.interactive ?? (Boolean(process.stdin.isTTY && process.stdout.isTTY) && !process.env.CI);
+  const chosen = resolveInitHost(created, { ask: readLineSync, ...opts, interactive });
+  const host = chosen === undefined ? readConfig(ws).host : setConfig(ws, "host", chosen).host;
   out(`${created ? "Created" : "Refreshed"} OpenFleet workspace at ${ws.root} (core ${packageVersion()}).`);
+  out(`Host: ${HOST_LABEL[host]} (change it with \`npx openfleet config set host <${HOSTS.join("|")}>\`).`);
   const missing = gitignoreWritten ? [] : missingGitignoreLines(path.join(ws.root, ".gitignore"));
   if (missing.length) {
     out("");
