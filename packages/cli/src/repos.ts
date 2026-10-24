@@ -1,5 +1,8 @@
 import { readJsonOr, writeJson } from "./fsutil.js";
-import type { Workspace } from "./workspace.js";
+import { UserError, type Workspace } from "./workspace.js";
+
+/** repos.json key: also the `<repo>` part of child ids. */
+const REPO_KEY = /^[A-Za-z0-9._-]+$/;
 
 export interface PackageEntry {
   /** Path relative to the repo root. */
@@ -32,6 +35,8 @@ export interface RepoEntry {
   description?: string;
   /** Build/test commands were confirmed by the user. */
   confirmed?: boolean;
+  /** Created empty by `npx openfleet repo create` for a greenfield project (no existing code or base). */
+  greenfield?: boolean;
 }
 
 export interface ReposFile {
@@ -43,8 +48,21 @@ export function emptyRepos(): ReposFile {
   return { v: 1, repos: {} };
 }
 
+export function validateRepoKey(key: string | undefined): string {
+  if (!key || !REPO_KEY.test(key) || key === "." || key === "..") {
+    throw new UserError(`Invalid repo key "${key ?? ""}". Use letters, digits, ".", "_" and "-".`);
+  }
+  return key;
+}
+
 export function readRepos(ws: Workspace): ReposFile {
-  return readJsonOr<ReposFile>(ws.reposFile, emptyRepos());
+  const repos = readJsonOr<ReposFile>(ws.reposFile, emptyRepos());
+  for (const [key, entry] of Object.entries(repos.repos ?? {})) {
+    if (entry.greenfield !== undefined && typeof entry.greenfield !== "boolean") {
+      throw new UserError(`repos.json "${key}".greenfield must be true or false.`);
+    }
+  }
+  return repos;
 }
 
 export function writeRepos(ws: Workspace, repos: ReposFile): void {

@@ -46,6 +46,7 @@ export const EVENT_TYPES = [
   "worktree.synced",
   "preflight.passed",
   "preflight.failed",
+  "repo.created",
 ] as const;
 
 export type KnownEventType = (typeof EVENT_TYPES)[number];

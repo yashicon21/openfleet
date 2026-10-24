@@ -5,6 +5,7 @@ import { cmdExt } from "./commands/ext.js";
 import { cmdEvent, cmdState, cmdWorktree } from "./commands/internal.js";
 import { out } from "./commands/output.js";
 import { cmdAck, cmdClaim, cmdEscalate, cmdMerge, cmdScope } from "./commands/repo.js";
+import { cmdRepo } from "./commands/repo-create.js";
 import { cmdReport } from "./commands/report.js";
 import { cmdBaseline, cmdGate, cmdNext, cmdPreflight } from "./commands/run.js";
 import { cmdClean, cmdList, cmdNew, cmdResume, cmdStatus } from "./commands/project.js";
@@ -39,6 +40,11 @@ Projects
   report <name> [--out <file>] [--open] [--gap <min>]
                                Write an HTML report of the run (default projects/<name>/report.html).
                                Pauses longer than --gap minutes (default 15) are collapsed
+
+Repos
+  repo create <key> [--github <owner/name>] [--project <name>]
+                               Create an empty repo in repos/<key> (initial commit on main) for a greenfield
+                               project and register it in repos.json; --github also creates a private GitHub repo
 
 Extensions
   add <git-url[#ref]|path>     Install or update an extension
@@ -143,6 +149,10 @@ export function run(argv: string[]): number {
         gap: { type: "string" },
       });
       return cmdReport(positionals, values);
+    }
+    case "repo": {
+      const { values, positionals } = parse(rest, { github: { type: "string" }, project: { type: "string" } });
+      return cmdRepo(positionals, values);
     }
     case "add":
       return cmdAdd(parse(rest, {}).positionals);
