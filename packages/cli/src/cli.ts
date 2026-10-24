@@ -25,7 +25,9 @@ Workspace
   config                       Show workspace settings (openfleet.json) as JSON
   config set <key> <value>     Change a workspace setting: maxParallel (default 6) caps planners,
                                baseline testers, implementers and testers running at once, across all projects;
-                               host (copilot | claude, default copilot) picks the agent host for new projects
+                               host (copilot | claude, default copilot) picks the agent host for new projects;
+                               greenfield.maxServices (default 5), greenfield.maxChildren (12) and
+                               greenfield.maxCriteriaPerChild (8) cap a greenfield spec before it can be approved
 
 Projects
   new <name> ["<request>"] [--ask] [--host copilot|claude]

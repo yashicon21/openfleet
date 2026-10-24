@@ -1,9 +1,12 @@
 import fs from "node:fs";
+import path from "node:path";
+import { greenfieldLimits, readConfig } from "./config.js";
 import { appendEvent } from "./events.js";
 import { parseChildId, syncIntegrationChildren } from "./groups.js";
 import { readJson, writeJson } from "./fsutil.js";
 import { withLock } from "./lock.js";
-import { UserError, type ProjectPaths } from "./workspace.js";
+import { greenfieldViolations } from "./greenfield.js";
+import { UserError, workspaceAt, type ProjectPaths } from "./workspace.js";
 import type { Host } from "./hosts.js";
 
 export const STATE_SCHEMA_VERSION = 1;
@@ -349,6 +352,20 @@ export function updateState(
   return next;
 }
 
+/** Refuse to approve a greenfield spec that exceeds the workspace caps or has no Follow-ups. */
+function checkGreenfieldScope(p: ProjectPaths, state: ProjectState): void {
+  // projects/<name> sits directly in the workspace root.
+  const ws = workspaceAt(path.dirname(path.dirname(p.dir)));
+  const spec = fs.existsSync(p.spec) ? fs.readFileSync(p.spec, "utf8") : undefined;
+  const problems = greenfieldViolations(state, spec, greenfieldLimits(readConfig(ws)));
+  if (!problems.length) return;
+  throw new UserError(
+    `The greenfield spec for project ${p.name} cannot be approved yet:\n` +
+      problems.map((m) => `- ${m}`).join("\n") +
+      "\n\nCut scope in spec.md (move what you cut to ## Follow-ups) and state.json, then approve again.",
+  );
+}
+
 export function patchState(p: ProjectPaths, patch: unknown, actor?: string): ProjectState {
   if (!isPlainObject(patch)) throw new UserError("State patch must be a JSON object.");
   if ("maxParallel" in patch) {
@@ -357,13 +374,16 @@ export function patchState(p: ProjectPaths, patch: unknown, actor?: string): Pro
     );
   }
   if (patch.specApproved === true) {
-    const pf = readState(p).preflight;
+    const current = readState(p);
+    const pf = current.preflight;
     if (pf && !pf.ok) {
       throw new UserError(
         `Preflight failed for project ${p.name}, so the spec cannot be approved yet. ` +
           `Fix the cause, then run: npx openfleet preflight ${p.name}`,
       );
     }
+    const next = mergePatch(current, patch);
+    if (next.greenfield) checkGreenfieldScope(p, next);
   }
   return updateState(p, (s) => mergePatch(s, patch), actor);
 }

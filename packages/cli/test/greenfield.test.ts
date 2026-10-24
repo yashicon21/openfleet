@@ -3,8 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { greenfieldLimits, readConfig, setConfig } from "../src/config.js";
 import { readEvents } from "../src/events.js";
 import { readJson, writeJson } from "../src/fsutil.js";
+import { specCriteria, specFollowUps } from "../src/greenfield.js";
 import { isSetup } from "../src/groups.js";
 import type { ReposFile } from "../src/repos.js";
 import { newState, patchState, readState, type ProjectState } from "../src/state.js";
@@ -223,5 +225,162 @@ describe("greenfield child kinds", () => {
     const ws = workspace();
     const p = project(ws);
     expect(() => patchState(p, { children: { app: { kind: "database" } } })).toThrow(/Unknown kind "database"/);
+  });
+});
+
+const MVP_SPEC = (criteria = 2, followUps = "- Recurring invoices\n- Multi-currency\n") => `# Invoices
+
+## Goal
+
+Track invoices and payments.
+
+## Per-child requirements
+
+### app/setup
+
+- **Build:** \`pnpm build\`
+- **Acceptance criteria:**
+  1. Build and test pass on the empty app.
+
+### app:invoices
+
+- **Scope:** invoice service.
+- **Acceptance criteria:**
+${Array.from({ length: criteria }, (_, i) => `  ${i + 1}. Criterion ${i + 1}.`).join("\n")}
+- **Contract tests:** produces \`invoices.yaml\`.
+
+### app/system
+
+- **Acceptance criteria:**
+  - Create invoice → record payment → invoice shows paid.
+
+## Shared approach
+
+None.
+
+\`\`\`markdown
+## Follow-ups
+\`\`\`
+
+## Follow-ups
+
+${followUps}
+## Completion mode
+
+\`staged\`
+`;
+
+describe("greenfield scope guard", () => {
+  function setup(spec: string | undefined, children: Record<string, object> = {}) {
+    const ws = workspace();
+    const p = project(ws);
+    if (spec !== undefined) fs.writeFileSync(p.spec, spec);
+    patchState(p, {
+      greenfield: true,
+      children: {
+        "app/setup": { kind: "setup" },
+        "app:invoices": { kind: "service" },
+        "app/system": { kind: "system" },
+        ...children,
+      },
+    });
+    return { ws, p, approve: () => patchState(p, { status: "running", specApproved: true }) };
+  }
+
+  it("approves a spec within the caps that lists Follow-ups", () => {
+    const { approve } = setup(MVP_SPEC());
+    expect(approve().specApproved).toBe(true);
+  });
+
+  it("parses Follow-ups and acceptance criteria from spec.md", () => {
+    expect(specFollowUps(MVP_SPEC())).toEqual(["Recurring invoices", "Multi-currency"]);
+    expect(specFollowUps(MVP_SPEC(2, "None.\n"))).toEqual([]);
+    expect(specFollowUps("# x\n\n## Goal\n\nHi.\n")).toBeUndefined();
+    expect(Object.fromEntries(specCriteria(MVP_SPEC(3)))).toEqual({
+      "app/setup": 1,
+      "app:invoices": 3,
+      "app/system": 1,
+    });
+  });
+
+  it("refuses a missing or empty Follow-ups section", () => {
+    const missing = setup(MVP_SPEC().replace(/\n## Follow-ups\n\n[^#]*/, "\n"));
+    expect(() => missing.approve()).toThrow(/no ## Follow-ups section/);
+    const empty = setup(MVP_SPEC(2, "None\n"));
+    expect(() => empty.approve()).toThrow(/Follow-ups section is empty/);
+    expect(readState(empty.p).specApproved).toBeUndefined();
+  });
+
+  it("refuses too many services, children and criteria, listing every violation", () => {
+    const services = Object.fromEntries(["a", "b", "c", "d", "e"].map((s) => [`app:svc-${s}`, { kind: "service" }]));
+    const { approve } = setup(MVP_SPEC(9), { ...services, "app:web": { kind: "frontend" }, "app:x": {} });
+    let message = "";
+    try {
+      approve();
+    } catch (err) {
+      message = (err as Error).message;
+    }
+    expect(message).toMatch(/Missing: app:x/);
+    expect(message).toMatch(/6 services .*limit is 5.*greenfield\.maxServices/);
+    expect(message).not.toMatch(/children, but the limit/);
+    expect(message).toMatch(/app:invoices has 9 acceptance criteria, but the limit is 8/);
+    expect(message.split("\n- ")).toHaveLength(4);
+  });
+
+  it("uses greenfield limits from openfleet.json", () => {
+    const { ws, approve } = setup(MVP_SPEC(3));
+    setConfig(ws, "greenfield.maxCriteriaPerChild", "2");
+    expect(() => approve()).toThrow(/3 acceptance criteria, but the limit is 2/);
+    setConfig(ws, "greenfield.maxChildren", "2");
+    expect(() => approve()).toThrow(/3 children, but the limit is 2/);
+    setConfig(ws, "greenfield.maxCriteriaPerChild", "3");
+    setConfig(ws, "greenfield.maxChildren", "12");
+    expect(approve().specApproved).toBe(true);
+  });
+
+  it("does not check brownfield projects", () => {
+    const ws = workspace();
+    const p = project(ws);
+    patchState(p, { children: { api: {} } });
+    expect(patchState(p, { specApproved: true }).specApproved).toBe(true);
+  });
+
+  it("config set greenfield.<key> validates and keeps other limits", () => {
+    const ws = workspace();
+    const c = (args: string[]) => cli(ws.root, ["config", ...args]);
+    expect(c(["set", "greenfield.maxServices", "3"]).code).toBe(0);
+    expect(c(["set", "greenfield.maxChildren", "10"]).code).toBe(0);
+    expect(readJson<{ greenfield: object }>(ws.marker).greenfield).toEqual({ maxServices: 3, maxChildren: 10 });
+    expect(greenfieldLimits(readConfig(ws))).toEqual({ maxServices: 3, maxChildren: 10, maxCriteriaPerChild: 8 });
+    expect(c(["set", "greenfield.maxServices", "0"]).stderr).toMatch(/greenfield\.maxServices must be a positive/);
+    expect(c(["set", "greenfield.maxPages", "3"]).stderr).toMatch(/Unknown greenfield setting "maxPages"/);
+    expect(c(["set", "greenfield", "3"]).stderr).toMatch(/one greenfield limit at a time/);
+    fs.writeFileSync(ws.marker, JSON.stringify({ maxParallel: 6, greenfield: { maxServices: "x" } }));
+    expect(c([]).stderr).toMatch(/openfleet\.json: greenfield\.maxServices must be a positive integer/);
+  });
+
+  it("plan.rejected needs a known reason, including out-of-scope", () => {
+    const ws = workspace();
+    const p = project(ws);
+    const ev = (payload: object) =>
+      cli(ws.root, [
+        "event",
+        "invoices",
+        "--type",
+        "plan.rejected",
+        "--target",
+        "app:web",
+        "--payload",
+        JSON.stringify(payload),
+      ]);
+    expect(ev({ reason: "out-of-scope", reasons: ["Implements recurring invoices (Follow-ups)"] }).code).toBe(0);
+    expect(ev({ reason: "invalid", reasons: [] }).code).toBe(0);
+    expect(ev({ reasons: ["x"] }).stderr).toMatch(/needs payload\.reason: one of invalid, inconsistent, out-of-scope/);
+    expect(ev({ reason: "too-big" }).code).toBe(1);
+    expect(
+      readEvents(p)
+        .filter((e) => e.type === "plan.rejected")
+        .map((e) => e.payload.reason),
+    ).toEqual(["out-of-scope", "invalid"]);
   });
 });
