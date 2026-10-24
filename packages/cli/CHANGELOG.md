@@ -1,5 +1,27 @@
 # @openfleet-tools/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- [#30](https://github.com/yashicon21/openfleet/pull/30) [`32e5251`](https://github.com/yashicon21/openfleet/commit/32e52512e6aa0a4df644c7a2d55315dd6f4603c5) Thanks [@yashicon21](https://github.com/yashicon21)! - Flatten the workspace layout. `npm create @openfleet-tools` and `npx openfleet init` no longer create an `openfleet/` subfolder: `core/`, `extensions/`, `projects/`, `repos.json`, `extensions.lock.json` and `extensions.config.json` now sit in the workspace root, next to `package.json` and `node_modules/`. Repos cloned from a `url` go to `repos/<key>`.
+  
+  - A new root file, `openfleet.json`, marks the workspace (commands walk up from the current folder to find it) and records the core `version`. It replaces `config.json`: workspace settings such as `maxParallel` and `host` live in it, and `npx openfleet config` / `config set` read and write it.
+  - `init` refuses a folder without `openfleet.json` that already contains any of the entries it would create, and lists them. Use an empty folder or a new subfolder.
+  - `init` writes a root `.gitignore` (including `node_modules/`, `repos/` and `projects/*/worktrees/`) only if none exists. Otherwise it leaves the file unchanged and prints the lines it lacks.
+  
+  Existing workspaces are not migrated automatically. To move one by hand, from the workspace root:
+  
+  1. Move everything in `openfleet/` up one level (`core/` can be deleted instead; `npx openfleet update` reinstalls it).
+  2. Rename `config.json` to `openfleet.json` (create `{}` if you had no `config.json`), then run `npx openfleet update` to record the version.
+  3. Cloned repos move from `openfleet/repos/` to `repos/` with step 1. Moving `projects/` and `repos/` breaks the links of existing worktrees: run `git worktree repair <worktree paths>` in each repo, or `npx openfleet clean` finished projects before moving.
+  4. Merge `openfleet/.gitignore` into the root `.gitignore`, add `node_modules/`, and delete the empty `openfleet/` folder.
+
+- [#34](https://github.com/yashicon21/openfleet/pull/34) [`47a54d0`](https://github.com/yashicon21/openfleet/commit/47a54d08a8eae2f668c0026ff1e0b36a9ebf2696) Thanks [@yashicon21](https://github.com/yashicon21)! - Add `npx openfleet report <project> [--out <file>] [--open] [--gap <min>]`. It writes `projects/<project>/report.html`, a single self-contained HTML report of a finished or running project, built from `events.jsonl`, `state.json`, `spec.md`, `summary.md` and git without an agent: active and wall-clock time (pauses longer than `--gap` minutes, default 15, are collapsed), how the work was split, a timeline of every child's phases, the plan gate, agents at once and spawns by role, lines changed and test runs per child, and the `Coverage`, `Assumptions`, `Follow-ups` and `Lessons` sections of `summary.md`.
+  
+  - Token usage by role and model is read from the host's transcripts on this machine (Claude Code or Copilot CLI) and counts each API message once. Cost is shown only when `openfleet.json` has a new optional `pricing` table (USD per million tokens per model); OpenFleet ships no prices.
+  - Finalize now writes the summary under the `## Coverage`, `## Assumptions`, `## Follow-ups` and `## Lessons` headings, runs `openfleet report` at the end of every run, and links `report.html` from `summary.md`.
+
 ## 0.4.0
 
 ### Minor Changes
