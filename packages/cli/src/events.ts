@@ -52,6 +52,12 @@ export const EVENT_TYPES = [
 export type KnownEventType = (typeof EVENT_TYPES)[number];
 
 /**
+ * `plan.rejected` reasons: `invalid` (fails the spec), `inconsistent` (differs from the Shared approach
+ * or another plan) and `out-of-scope` (implements a greenfield `## Follow-ups` item).
+ */
+export const PLAN_REJECTION_REASONS = ["invalid", "inconsistent", "out-of-scope"] as const;
+
+/**
  * Actor: `coordinator`, `<child>/<role>` (child may be `<repo>:<package>` or
  * `<repo>[:<package>]/<unit>`; role may be `repo-coordinator`),
  * `ext:<name>`, `cli` or `user`.

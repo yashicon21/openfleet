@@ -89,9 +89,10 @@ A repo with more than one child (path-scoped children such as pages or modules, 
    - It follows the spec's **Shared approach** section.
    - If the child has a baseline, every planned change to baseline behaviour is one the spec explicitly lists.
    - Nothing is out of scope or touches another child's repo.
+   - **Greenfield projects** (`state.greenfield`): nothing in the plan implements an item from the spec's `## Follow-ups` section, and it adds no endpoints, pages or tables beyond the contracts and this child's acceptance criteria.
    - The build and test commands match the spec.
 
-   If the plan fails, log `plan.rejected` with `{"reason":"invalid","reasons":["…"]}`. Send the reasons to the **same** <!--host:copilot-->planner with `write_agent`<!--host:claude-->planner with `SendMessage` (to its agent id)<!--/host-->. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
+   If the plan fails, log `plan.rejected` with `{"reason":"invalid","reasons":["…"]}`, or `{"reason":"out-of-scope","reasons":["<the Follow-ups item or extra endpoint/page/table>"]}` when it builds something the greenfield MVP slice cut. Send the reasons to the **same** <!--host:copilot-->planner with `write_agent`<!--host:claude-->planner with `SendMessage` (to its agent id)<!--/host-->. Log that message. Wait for the revision. Repeat until the plan passes. Do not ask the user.
 
    If the plan passes, log `plan.validated`.
 

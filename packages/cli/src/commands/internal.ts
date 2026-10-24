@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { copyIntoWorktree } from "../copyfiles.js";
-import { appendEvent } from "../events.js";
+import { appendEvent, PLAN_REJECTION_REASONS } from "../events.js";
 import { addWorktree, git, headSha, isGitRepo } from "../git.js";
 import { defaultBranch, requireChildId } from "../groups.js";
 import { readRepos } from "../repos.js";
@@ -36,6 +36,12 @@ export function cmdEvent(args: string[], flags: EventFlags): number {
   const payload = parseJson(flags.payload, "--payload") ?? {};
   if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
     throw new UserError("--payload must be a JSON object");
+  }
+  const reason = (payload as Record<string, unknown>).reason;
+  if (flags.type === "plan.rejected" && !(PLAN_REJECTION_REASONS as readonly unknown[]).includes(reason)) {
+    throw new UserError(
+      `plan.rejected needs payload.reason: one of ${PLAN_REJECTION_REASONS.join(", ")} (got ${JSON.stringify(reason ?? null)}).`,
+    );
   }
   const patch = flags["patch-file"] ? fs.readFileSync(flags["patch-file"], "utf8") : undefined;
   const ev = appendEvent(p, {
