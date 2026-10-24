@@ -329,9 +329,9 @@ describe("openfleet CLI", () => {
         version: "1.0.0",
         core: ">=0.0.0",
         phases: [{ slot: "post-run", instructions: "instructions.md" }],
-        commands: { report: "report.md" },
+        commands: { digest: "digest.md" },
       },
-      { "report.md": "Report." },
+      { "digest.md": "Digest." },
     );
     const add = cli(root, ["add", ext]);
     expect(add.code).toBe(0);
@@ -341,20 +341,20 @@ describe("openfleet CLI", () => {
 
     const out = path.join(tmp, "launch.json");
     expect(
-      cli(root, ["report", "--since", "yesterday"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code,
+      cli(root, ["digest", "--since", "yesterday"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code,
     ).toBe(0);
     const launch = readJson<Launch>(out);
     expect(launch.args[launch.args.indexOf("--agent") + 1]).toBe("openfleet:openfleet-ext-audit");
     expect(launch.args[launch.args.indexOf("-i") + 1]).toContain("--since yesterday");
     expect(launch.args).toContain("--allow-all-tools");
 
-    expect(cli(root, ["report", "--ask"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code).toBe(0);
+    expect(cli(root, ["digest", "--ask"], { OPENFLEET_COPILOT_BIN: fakeCopilot(tmp), FAKE_OUT: out }).code).toBe(0);
     const asked = readJson<Launch>(out);
     expect(asked.args).not.toContain("--allow-all-tools");
     expect(asked.args[asked.args.indexOf("-i") + 1]).not.toContain("--ask");
 
     expect(cli(root, ["remove", "audit"]).code).toBe(0);
-    expect(cli(root, ["report"]).stderr).toMatch(/Unknown command "report"/);
+    expect(cli(root, ["digest"]).stderr).toMatch(/Unknown command "digest"/);
   });
 
   it("rejects a version 1 extension with the v2 equivalent", () => {

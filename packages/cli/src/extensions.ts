@@ -25,6 +25,7 @@ export const BUILTIN_COMMANDS = [
   "status",
   "list",
   "clean",
+  "report",
   "add",
   "remove",
   "extensions",
