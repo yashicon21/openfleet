@@ -8,6 +8,8 @@ import { readEvents } from "../src/events.js";
 import { readJson, writeJson } from "../src/fsutil.js";
 import { specCriteria, specFollowUps } from "../src/greenfield.js";
 import { isSetup } from "../src/groups.js";
+import { childContext } from "../src/hooks/handlers.js";
+import { preflight } from "../src/preflight.js";
 import type { ReposFile } from "../src/repos.js";
 import { newState, patchState, readState, type ProjectState } from "../src/state.js";
 import { projectPaths, type Workspace } from "../src/workspace.js";
@@ -108,7 +110,7 @@ describe("repo create", () => {
     expect(fs.existsSync(path.join(ws.repos, "web", ".git"))).toBe(false);
     expect(cli(ws.root, ["repo", "create", "api"]).stderr).toMatch(/already in repos\.json/);
     expect(cli(ws.root, ["repo", "create", "../x"]).stderr).toMatch(/Invalid repo key/);
-    expect(cli(ws.root, ["repo", "list"]).stderr).toMatch(/Usage: openfleet repo create/);
+    expect(cli(ws.root, ["repo", "list"]).stderr).toMatch(/Usage:\n {2}openfleet repo create/);
   });
 
   it("--github creates a private repo with gh and records the remote", () => {
@@ -382,5 +384,89 @@ describe("greenfield scope guard", () => {
         .filter((e) => e.type === "plan.rejected")
         .map((e) => e.payload.reason),
     ).toEqual(["out-of-scope", "invalid"]);
+  });
+});
+
+describe("greenfield prompts and helpers", () => {
+  it("repo confirm records commands for a repo and its packages", () => {
+    const ws = workspace();
+    expect(cli(ws.root, ["repo", "create", "app"]).code).toBe(0);
+    const ok = cli(ws.root, ["repo", "confirm", "app", "--build", "pnpm -r build", "--test", "pnpm -r test"]);
+    expect(ok.stderr).toBe("");
+    expect(
+      cli(ws.root, ["repo", "confirm", "app", "--package", "web", "--path", "apps/web", "--e2e", "pnpm e2e"]).code,
+    ).toBe(0);
+    expect(cli(ws.root, ["repo", "confirm", "app", "--package", "web", "--test", "pnpm --filter web test"]).code).toBe(
+      0,
+    );
+    for (const f of [".env.local", ".env.local"])
+      expect(cli(ws.root, ["repo", "confirm", "app", "--copy-file", f]).code).toBe(0);
+    expect(readJson<ReposFile>(ws.reposFile).repos.app).toEqual({
+      path: "repos/app",
+      defaultBranch: "main",
+      greenfield: true,
+      build: "pnpm -r build",
+      test: "pnpm -r test",
+      confirmed: true,
+      packages: { web: { path: "apps/web", e2e: "pnpm e2e", test: "pnpm --filter web test" } },
+      copyFiles: [".env.local"],
+    });
+    expect(cli(ws.root, ["repo", "confirm", "app", "--package", "api"]).stderr).toMatch(/is new: pass --path/);
+    expect(cli(ws.root, ["repo", "confirm", "app", "--path", "x"]).stderr).toMatch(/--path needs --package/);
+    expect(cli(ws.root, ["repo", "confirm", "app", "--copy-file", "../x"]).stderr).toMatch(/must stay inside the repo/);
+    expect(cli(ws.root, ["repo", "confirm", "app", "--build", " "]).stderr).toMatch(/--build must not be empty/);
+    expect(cli(ws.root, ["repo", "confirm", "nope", "--build", "x"]).stderr).toMatch(/not in repos\.json/);
+  });
+
+  it("preflight treats a greenfield project's repos that do not exist yet as pending", () => {
+    const ws = workspace();
+    const p = project(ws);
+    patchState(p, { greenfield: true, children: { "app/setup": { kind: "setup" } } });
+    const report = preflight(ws, "invoices");
+    expect(report.ok).toBe(true);
+    expect(report.checks.find((c) => c.repo === "app")).toMatchObject({ check: "clone-dir", ok: true });
+    patchState(p, { greenfield: null });
+    expect(preflight(ws, "invoices").checks.find((c) => c.repo === "app")).toMatchObject({
+      ok: false,
+      error: "not in repos.json",
+    });
+  });
+
+  it("spec-check lists what blocks approval", () => {
+    const ws = workspace();
+    const p = project(ws);
+    patchState(p, { greenfield: true, children: { "app/setup": { kind: "setup" }, "app:api": {} } });
+    const bad = cli(ws.root, ["spec-check", "invoices"]);
+    expect(bad.code).toBe(1);
+    const report = JSON.parse(bad.stdout) as { ok: boolean; limits: object; problems: string[] };
+    expect(report.ok).toBe(false);
+    expect(report.limits).toEqual({ maxServices: 5, maxChildren: 12, maxCriteriaPerChild: 8 });
+    expect(report.problems.join("\n")).toMatch(/Missing: app:api[\s\S]*spec\.md is missing/);
+    fs.writeFileSync(p.spec, MVP_SPEC());
+    patchState(p, { children: { "app:api": { kind: "service" } } });
+    expect(cli(ws.root, ["spec-check", "invoices"]).code).toBe(0);
+  });
+
+  it("injects kind-specific instructions into greenfield assignments only", () => {
+    const ws = workspace();
+    const p = project(ws);
+    const state = patchState(p, {
+      greenfield: true,
+      children: {
+        "app/setup": { kind: "setup" },
+        "app:contracts": { kind: "contracts" },
+        "app/system": { kind: "system" },
+      },
+    });
+    const setupImpl = childContext(p, state, "app/setup", "implementer");
+    expect(setupImpl).toContain("## Greenfield: setup child");
+    expect(setupImpl).toMatch(/non-interactively/);
+    expect(setupImpl).toMatch(/## Follow-ups/);
+    expect(childContext(p, state, "app/setup", "tester")).toMatch(/"commands"/);
+    expect(childContext(p, state, "app:contracts", "tester")).toMatch(/leaves no diff/);
+    expect(childContext(p, state, "app/system", "planner")).toMatch(/docker-compose/);
+    expect(childContext(p, state, "app/system", "planner")).not.toMatch(/Commands: e2e/);
+    const brown = patchState(p, { greenfield: null });
+    expect(childContext(p, brown, "app/setup", "implementer")).not.toContain("## Greenfield");
   });
 });

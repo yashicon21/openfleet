@@ -160,9 +160,18 @@ export function runChecks(ws: Workspace, project: string | undefined, io: ProbeF
       }),
     );
   }
+  // A greenfield project creates its repos (`npx openfleet repo create`) after the spec is approved.
+  const greenfield = project ? readState(projectPaths(ws, project)).greenfield === true : false;
   for (const key of project ? projectRepos(ws, project) : Object.keys(repos).sort()) {
     const entry = repos[key];
-    if (!entry) checks.push({ repo: key, check: "repo", path: "", ok: false, error: "not in repos.json" });
+    if (!entry && greenfield) {
+      checks.push(
+        attempt(key, "clone-dir", ws.repos, () => {
+          if (!io.exists(ws.repos)) fs.mkdirSync(ws.repos, { recursive: true });
+          probeDir(io, ws.repos);
+        }),
+      );
+    } else if (!entry) checks.push({ repo: key, check: "repo", path: "", ok: false, error: "not in repos.json" });
     else checks.push(...checkRepo(ws, key, entry, io));
   }
   return checks;

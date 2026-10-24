@@ -353,11 +353,15 @@ export function updateState(
 }
 
 /** Refuse to approve a greenfield spec that exceeds the workspace caps or has no Follow-ups. */
-function checkGreenfieldScope(p: ProjectPaths, state: ProjectState): void {
+export function greenfieldProblems(p: ProjectPaths, state: ProjectState): string[] {
   // projects/<name> sits directly in the workspace root.
   const ws = workspaceAt(path.dirname(path.dirname(p.dir)));
   const spec = fs.existsSync(p.spec) ? fs.readFileSync(p.spec, "utf8") : undefined;
-  const problems = greenfieldViolations(state, spec, greenfieldLimits(readConfig(ws)));
+  return greenfieldViolations(state, spec, greenfieldLimits(readConfig(ws)));
+}
+
+function checkGreenfieldScope(p: ProjectPaths, state: ProjectState): void {
+  const problems = greenfieldProblems(p, state);
   if (!problems.length) return;
   throw new UserError(
     `The greenfield spec for project ${p.name} cannot be approved yet:\n` +

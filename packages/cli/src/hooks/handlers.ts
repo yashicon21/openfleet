@@ -7,6 +7,7 @@ import { findSlotEntry, readCoreIndex } from "../coreindex.js";
 import { appendEvent } from "../events.js";
 import { filePatch, snapshotWorktree, type FileKind } from "../git.js";
 import { groupOf, isSetup, membersOf, scopeGlobs } from "../groups.js";
+import { greenfieldContext } from "./greenfield-context.js";
 import {
   dependenciesOf,
   PORT_STEP,
@@ -339,6 +340,7 @@ export function childContext(p: ProjectPaths, state: ProjectState, childId: stri
   const upstream = upstreamOutputs(state, childId);
   const runtime = runtimeContext(p.name, childId, child, role);
   const scope = scopeContext(p.name, state, childId, role);
+  const greenfield = greenfieldContext(state, childId, role);
   const group = groupOf(state, childId);
   return [
     `# OpenFleet assignment`,
@@ -353,6 +355,7 @@ export function childContext(p: ProjectPaths, state: ProjectState, childId: stri
     group ? `- repo coordinator: ${group} (it answers your questions and merges your branch)` : "",
     role !== "planner" ? ackLine(p.name, childId, role) : "",
     scope ? `\n${scope}` : "",
+    greenfield ? `\n${greenfield}` : "",
     upstream ? `\n${upstream}` : "",
     runtime ? `\n${runtime}` : "",
   ]
