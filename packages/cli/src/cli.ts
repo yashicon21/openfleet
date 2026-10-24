@@ -13,12 +13,13 @@ import { hintFor } from "./sandbox.js";
 import { UserError } from "./workspace.js";
 import { MIN_CLAUDE_VERSION } from "./launcher.js";
 
-export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI (or Claude Code, experimental)
+export const HELP = `openfleet — coordinate one change across many repos with GitHub Copilot CLI or Claude Code
 
 Usage: npx openfleet <command> [options] [-- <host args>]
 
 Workspace
-  init                         Create the workspace in the current directory and install core
+  init [--host copilot|claude] Create the workspace in the current directory and install core.
+                               Asks which host to use (no terminal or CI: copilot); --host skips the question
   update                       Replace core with this CLI version and re-sync extensions
   config                       Show workspace settings (openfleet.json) as JSON
   config set <key> <value>     Change a workspace setting: maxParallel (default 6) caps planners,
@@ -78,7 +79,7 @@ acceptEdits --allowedTools Bash\`). File access stays limited to the workspace, 
 known repos, and URL access still prompts. Pass \`--ask\` to \`new\`, \`resume\` or an extension command
 to be prompted for every tool instead.
 Arguments after \`--\` are passed to the host CLI unchanged (e.g. \`-- --yolo\` for copilot).
-Claude Code (\`--host claude\`) is experimental and needs ${MIN_CLAUDE_VERSION} or later.
+Claude Code needs ${MIN_CLAUDE_VERSION} or later.
 `;
 
 function splitPassthrough(argv: string[]): [string[], string[]] {
@@ -105,8 +106,10 @@ export function run(argv: string[]): number {
     case "-v":
       out(packageVersion());
       return 0;
-    case "init":
-      return cmdInit();
+    case "init": {
+      const { values } = parse(rest, { host: { type: "string" } });
+      return cmdInit({ host: values.host });
+    }
     case "update":
       return cmdUpdate();
     case "config":

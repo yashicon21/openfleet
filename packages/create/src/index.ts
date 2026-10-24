@@ -47,11 +47,23 @@ export function ensurePackageJson(dir: string): boolean {
   return true;
 }
 
+const HOSTS = ["copilot", "claude"];
+
+/** Args for `openfleet init`: `--host` is forwarded so init skips its host question. */
+export function initArgs(host?: string): string[] {
+  if (host === undefined) return ["init"];
+  if (!HOSTS.includes(host))
+    throw new Error(`--host must be one of ${HOSTS.join(", ")} (got ${JSON.stringify(host)}).`);
+  return ["init", "--host", host];
+}
+
 const HELP = `@openfleet-tools/create — set up an OpenFleet workspace
 
-Usage: npm create @openfleet-tools@latest [dir] [-- --cli <spec>] [--skip-install]
+Usage: npm create @openfleet-tools@latest [dir] [-- --host <copilot|claude>] [--cli <spec>] [--skip-install]
 
   dir              Target directory (default: current directory)
+  --host <host>    Agent host: copilot (GitHub Copilot CLI) or claude (Claude Code).
+                   Without it, \`openfleet init\` asks (no terminal or CI: copilot)
   --cli <spec>     @openfleet-tools/cli version or spec to install (default: ^${ownVersion()})
   --skip-install   Do not install @openfleet-tools/cli or run \`openfleet init\`
 `;
@@ -60,17 +72,25 @@ export function main(argv = process.argv.slice(2)): number {
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
-    options: { cli: { type: "string" }, "skip-install": { type: "boolean" }, help: { type: "boolean", short: "h" } },
+    options: {
+      cli: { type: "string" },
+      host: { type: "string" },
+      "skip-install": { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+    },
   });
   if (values.help) {
     process.stdout.write(HELP);
     return 0;
   }
+  const init = initArgs(values.host);
   const dir = path.resolve(positionals[0] ?? ".");
   fs.mkdirSync(dir, { recursive: true });
   if (ensurePackageJson(dir)) process.stdout.write(`Created ${path.join(dir, "package.json")}\n`);
   if (values["skip-install"]) {
-    process.stdout.write("Skipped install. Run `npm i -D @openfleet-tools/cli && npx openfleet init` when ready.\n");
+    process.stdout.write(
+      `Skipped install. Run \`npm i -D @openfleet-tools/cli && npx openfleet ${init.join(" ")}\` when ready.\n`,
+    );
     return 0;
   }
   const spec = cliSpec(values.cli);
@@ -87,7 +107,7 @@ export function main(argv = process.argv.slice(2)): number {
   }
   const bin = path.join(dir, "node_modules", ".bin", process.platform === "win32" ? "openfleet.cmd" : "openfleet");
   try {
-    execFileSync(bin, ["init"], { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });
+    execFileSync(bin, init, { cwd: dir, stdio: "inherit", shell: process.platform === "win32" });
   } catch {
     return 1;
   }

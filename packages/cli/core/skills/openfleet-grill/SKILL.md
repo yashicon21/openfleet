@@ -74,7 +74,7 @@ For each child, decide whether it needs a **baseline**: tests (usually e2e) that
 
 - **Branch names:** propose `openfleet/<project>` for each repo (for a repo with several children, this is its integration branch and the PR branch; each child's own branch defaults to `openfleet/<project>--<child slug>`). Ask the user to confirm or override.
 - **Parallel agents:** run `npx openfleet config` and show the current `maxParallel`: how many planners, baseline testers, implementers and testers may run at once. Say it is a workspace setting shared by every project (not part of this spec), and offer to keep it or change it. Suggest fewer on a small machine or when apps start heavy dev servers. To change it, run `npx openfleet config set maxParallel <n>`; never edit `openfleet.json` by hand.
-- **Host:** the project runs in the host recorded as `host` in `state.json` (missing means `copilot`; `claude` is Claude Code, experimental). Mention it in the spec summary. It cannot change mid-project; to use another host, the user starts a new project with `npx openfleet new <name> --host <host>`.
+- **Host:** the project runs in the host recorded as `host` in `state.json` (missing means `copilot`; `claude` is Claude Code). Mention it in the spec summary. It cannot change mid-project; to use another host, the user starts a new project with `npx openfleet new <name> --host <host>`.
 - **Completion mode:** `staged` (default: changes are left staged in each worktree for review) or `draft-pr` (commit, push, and open draft PRs that link to each other and include a run summary).
 - **Out of scope:** list explicitly what this project must NOT change.
 
