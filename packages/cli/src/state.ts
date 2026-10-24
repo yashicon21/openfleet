@@ -43,6 +43,14 @@ export const PORT_STEP = 10;
 
 export type CompletionMode = "staged" | "draft-pr";
 
+/**
+ * What a greenfield child builds. `setup` scaffolds a repo, `contracts` writes the shared
+ * schemas and generated clients, `service` / `frontend` build on them and `system` wires
+ * everything together with one end-to-end flow. Run order: setup → contracts → service ∥ frontend → system.
+ */
+export const CHILD_KINDS = ["setup", "contracts", "service", "frontend", "system"] as const;
+export type ChildKind = (typeof CHILD_KINDS)[number];
+
 export interface ChildState {
   /** Key in repos.json. */
   repo: string;
@@ -68,6 +76,8 @@ export interface ChildState {
   allowPaths?: string[];
   /** Shared-setup child of a repo with path-scoped children (unit `setup`). */
   setup?: boolean;
+  /** Greenfield child kind; in a greenfield project it sets the child's dependencies (see `CHILD_KINDS`). */
+  kind?: ChildKind;
   /** Shared items (config, components, utils) the setup child must provide for its siblings. */
   sharedItems?: string[];
   /** Integration child of a grouped repo: id = repo key, branch = the repo's integration branch. */
@@ -141,6 +151,8 @@ export interface ProjectState {
   /** Agent host the project runs in, recorded at `new`. Missing means Copilot CLI. */
   host?: Host;
   completionMode?: CompletionMode;
+  /** The project creates its repos from scratch (`npx openfleet repo create`) instead of changing existing code. */
+  greenfield?: boolean;
   specApproved?: boolean;
   /** Keyed by child id: `<repo>`, `<repo>:<package>` or `<repo>[:<package>]/<unit>`. */
   children: Record<string, ChildState>;
@@ -243,11 +255,33 @@ export function mergePatch<T>(target: T, patch: unknown): T {
 
 const PLANNING: readonly ChildPhase[] = ["pending", "planning", "plan-review"];
 
+/**
+ * Greenfield run order, as `dependsOn` edges added to children with a `kind` (never removed):
+ * every child of a repo depends on that repo's setup child, services, frontends and the system
+ * child depend on every contracts child, and the system child depends on everything else.
+ */
+export function addGreenfieldDependencies(state: ProjectState): void {
+  const kinded = Object.entries(state.children).filter(([, c]) => c.kind && !c.integration);
+  const ids = (pred: (c: ChildState) => boolean) => kinded.filter(([, c]) => pred(c)).map(([id]) => id);
+  const contracts = ids((c) => c.kind === "contracts");
+  const built = ids((c) => c.kind !== "system");
+  for (const [id, child] of kinded) {
+    const needs: string[] = [];
+    if (child.kind !== "setup") needs.push(...ids((c) => c.kind === "setup" && c.repo === child.repo));
+    if (child.kind === "service" || child.kind === "frontend" || child.kind === "system") needs.push(...contracts);
+    if (child.kind === "system") needs.push(...built);
+    const deps = new Set(child.dependsOn ?? []);
+    for (const dep of needs) if (dep !== id) deps.add(dep);
+    child.dependsOn = [...deps];
+  }
+}
+
 function normalizeChildren(prev: ProjectState, state: ProjectState): void {
   for (const [id, child] of Object.entries(state.children)) {
     child.repo ??= parseChildId(id)?.repo ?? id.split(":")[0] ?? id;
   }
   syncIntegrationChildren(state);
+  if (state.greenfield) addGreenfieldDependencies(state);
   for (const [id, child] of Object.entries(state.children)) {
     child.phase ??= "pending";
     child.retries ??= 0;
@@ -272,6 +306,9 @@ function validateTransitions(prev: ProjectState, next: ProjectState): void {
   for (const [id, child] of Object.entries(next.children)) {
     if (prev.children[id]?.phase !== child.phase && !(CHILD_PHASES as readonly string[]).includes(child.phase)) {
       throw new UserError(`Unknown phase "${child.phase}" for child ${id}. Use one of: ${CHILD_PHASES.join(", ")}.`);
+    }
+    if (child.kind !== undefined && !(CHILD_KINDS as readonly string[]).includes(child.kind)) {
+      throw new UserError(`Unknown kind "${child.kind}" for child ${id}. Use one of: ${CHILD_KINDS.join(", ")}.`);
     }
   }
 }

@@ -62,7 +62,7 @@ export function groupOf(state: ProjectState, id: string): string | undefined {
 }
 
 export function isSetup(id: string, c: ChildState): boolean {
-  return c.setup === true || parseChildId(id)?.unit === SETUP_UNIT;
+  return c.setup === true || c.kind === "setup" || parseChildId(id)?.unit === SETUP_UNIT;
 }
 
 /**
